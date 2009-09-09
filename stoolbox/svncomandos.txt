@@ -1,0 +1,11 @@
+crear un brach desde trunk - branch/<versionbranch>
+svn copy https://stokes10.googlecode.com/svn/trunk https://stokes10.googlecode.com/svn/branches/branch1 -m "first branch" --username Alexander.Ladino@gmail.com
+
+realizar un check out (bajar del repositorio)
+svn checkout https://stokes10.googlecode.com/svn/trunk <dirdestino>
+
+realizar un update
+svn update
+
+adicionar archivos
+svn add <nombre de archivo> 

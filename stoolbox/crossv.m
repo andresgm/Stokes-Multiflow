@@ -1,0 +1,7 @@
+% Calcula el producto cruz de un arreglo de elementos a x b
+function acb = crossv(a,b)
+
+c1 = a(:,2).*b(:,3) - a(:,3).*b(:,2);
+c2 = a(:,3).*b(:,1) - a(:,1).*b(:,3);
+c3 = a(:,1).*b(:,2) - a(:,2).*b(:,1);
+acb = [c1 c2 c3]; 
