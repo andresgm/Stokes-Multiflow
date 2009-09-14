@@ -16,7 +16,7 @@ carpetadestino = '';
     % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 1;
 
-% Algoritmo de flujo de stokes con sulfactantes.
+% Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
 lamda = 0.1;
 g0 = 50;
@@ -73,7 +73,7 @@ optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
 
  warning...
-        ('Se considera la adimensionalizacion: DeltaF = (Sigma/g0)(2H) + Z - (1/g0)(4H^3 + 2Laps(H))');
+ ('Se considera la adimensionalizacion: DeltaF = (Sigma/g0)(2H) + Z - (1/g0)(4H^3 + 2Laps(H))');
 %% procesamiento de parametros
 if adim == 1
     
@@ -297,7 +297,7 @@ tic
 % primer paso de runge kutta
    % invoque el problema de flujo de stokes
    [velnode0,geom,parms] = stokesvesicle(geom,parms);
-   % inveoque la adaptacion de la malla
+   % invoque la adaptacion de la malla
 %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
    
    if velopt == 1

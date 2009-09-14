@@ -35,7 +35,7 @@ geom.jacmat = geomprop.jacmat;
 if parms.curvopt == 1
     % calculo mediante paraboloid fitting
     [geom.curv,geom.Kg] = curvparaboloid(geom);
-elseif parms.curvopt == 2
+elseif parms.curvopt == 2 %TODO Revisar aqui por que no se calcula la normal con el BP
     % calculo mediante extended paraboloid fitting/bestparaboloid fitting
     paropt.tipo = 'extended';
     [geom.curv,geom.Kg] = curvparaboloid(geom,paropt);
