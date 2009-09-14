@@ -23,17 +23,23 @@ lmin = zeros(numnodes,1);
 if geom.numdrops ~= 1
     % Adaptacion de lowenberg
     for j = 1:geom.numdrops
+        nodestemp = geom.nodes;
+        nodestemp(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = 0;
+        nodestemp(~any(nodestemp,2),:) = [];
         for k = geom.nnodesdrop(j,1):geom.nnodesdrop(j,2)
-           % calcule para el punto respeto de los nodos de ls otras gotas
-           if j == 1
-               cantnodes = length(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2));
-               lmin(k) = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
-               geom.nodes(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2),:)));  
-           elseif j == 2
-               cantnodes = length(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2));
-               lmin(k) = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
-               geom.nodes(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2),:)));  
-           end
+           % calcule para el punto respeto de los nodos de las otras gotas
+           cantnodes = geom.numnodes - (geom.nnodesdrop(j,2)- geom.nnodesdrop(j,1) + 1);
+           lmin(k) = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
+                     nodestemp));
+%            if j == 1  
+%                cantnodes = length(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2));
+%                lmin(k) = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
+%                geom.nodes(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2),:)));  
+%            elseif j == 2
+%                cantnodes = length(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2));
+%                lmin(k) = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
+%                geom.nodes(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2),:)));  
+%            end
         end
     end
 

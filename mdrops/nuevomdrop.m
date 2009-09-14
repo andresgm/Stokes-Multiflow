@@ -1,15 +1,15 @@
-% CALCULO DEL FLUJO DE STOKES PARA 2 GOTAS
+% CALCULO DEL FLUJO DE STOKES PARA N GOTAS
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE LAYER
 
 clear;clc
 % Algoritmo de flujo de stokes con sulfactantes.
-ca = 0.25;
-lamda = 1;
+ca = 0.35;
+lamda = 0.2;
 % Adimensionalizacion
 adim = 1;
 % frecuencia de guardar resultados
-outputfreq = 5;
+outputfreq = 10;
 % Banderas de fuerza dif 0: si. 1: no
 ka = 1;
 kb = 0;
@@ -19,17 +19,25 @@ reflevel = 2;
 % numero de gotas
 geom.numdrops = 2;
 % Coordenadas de los centroides de las gotas
-xc =[0 -1.2 0.25 ; 0 1.2 -0.25];
+xc = [0 -1.2 0.25; 0 1.2 -0.25];
 % xc =[0 0 0];
 % Introduzca el/los radios de la/s gotas
-xr=[1 1];
-% xr=[1];
-
+xr = [1 1];
+%Nombre de archivo a guardar y carpeta
+nombredestino = 'it';
+carpetadestino = 'gotaLambda0.2Ca0.35';
+% simulacion nueva desde cero optsim = 0
+% continue la simulacion optsim = 1 % TODO No se quiere implementar la opcion de continuar con diferentes parametros?
+opcionsim = 1;
+%Nombre carpeta de origen y archivo
+nombreorigen = 'it';
+carpetaorigen = 'gotaLambda0.2Ca0.35';
+%Nombre de iteracion deseada de inicio (para opcionsim = 1)
+iteracion = [83];
 % pasos de tiempo de la simulacion
-numtimesteps = 20000;
+numtimesteps = 30000;
 deltat = 0.001;
-redfactor = 2;
-
+redfactor = 20;
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal
 velopt = 1;
@@ -50,6 +58,7 @@ if adim == 1
     parms.rkextf = 2/(lamda + 1);
     parms.rksl = 2/(lamda + 1);
     parms.rkdl = 2*(lamda - 1)/(lamda + 1);
+    parms.lamda = lamda;
 
     % parametros de simulacion
     if ka == 1 
@@ -71,59 +80,149 @@ end
 
 %% procesamiento de la malla
 sbar = systembar();
-% cargue el archivo base
-filename = ['sph ref ' num2str(reflevel) '.mat'];
-load([cd sbar filename]);
-% PROCESAMIENTO DE LA MALLA ORIGINAL
-% Volumen original
-Radius = max(normesp(Nodes));
-% Numero de Elementos y numero de Nodos
-geom.nodes = Nodes;
-geom.elements = Elements;
-geom.numnodes = size(geom.nodes,1);
-geom.numelements = size(Elements,1);
-numnodes = geom.numnodes;
-numelements = geom.numelements;
-geom = drops(geom,xc,xr);
 
-% Index table
-% geom.indextable = [1:1:geom.numnodes];
-    % Tabla de elementos singulares a cada nodo
-geom.element2node = element2node(geom.elements);
-%     % Elementos singulares a cada nodo tabla SPARSE
-% geom.e2nsparse = ele2nodesp(geom.elements);
-% TODO: Borrar de la rutina ele2nodesp
-    % Tabla de conectividad de nodos, bordes, e.t.c
-geom.nodecon2node = node2node(geom.elements);
-% geom.edgeindex = edges(geom.elements);
-% TODO: si no se necesita borrar edges
+if opcionsim == 0
+        % cargue el archivo base
+    filename = ['sph ref ' num2str(reflevel) '.mat'];
+    load([cd sbar filename]);
+    % PROCESAMIENTO DE LA MALLA ORIGINAL
+    % Volumen original
+    Radius = max(normesp(Nodes));
+    % Numero de Elementos y numero de Nodos
+    geom.nodes = Nodes;
+    geom.elements = Elements;
+    geom.numnodes = size(geom.nodes,1);
+    geom.numelements = size(Elements,1);
+    numnodes = geom.numnodes;
+    numelements = geom.numelements;
+    geom = drops(geom,xc,xr);
+
+    % Index table
+    % geom.indextable = [1:1:geom.numnodes];
+        % Tabla de elementos singulares a cada nodo
+    geom.element2node = element2node(geom.elements);
+    %     % Elementos singulares a cada nodo tabla SPARSE
+    % geom.e2nsparse = ele2nodesp(geom.elements);
+    % TODO: Borrar de la rutina ele2nodesp
+        % Tabla de conectividad de nodos, bordes, e.t.c
+    geom.nodecon2node = node2node(geom.elements);
+    % geom.edgeindex = edges(geom.elements);
+    % TODO: si no se necesita borrar edges
+
+    % calcule el volumen inicial de la gota
+    normalandgeoopt.normal = 1;
+    normalandgeoopt.areas = 1;
+    normalandgeoopt.vol = 1;
+    geomprop = normalandgeo(geom,normalandgeoopt);
+    geom.normalele = geomprop.normalele;
+    geom.normal = geomprop.normal;
+    geom.dsi = geomprop.dsi;
+    geom.ds = geomprop.ds;
+    geom.s = geomprop.s;
+    geom.vol = geomprop.vol;
+    geom.jacmat = geomprop.jacmat;
+    geom.volini = geom.vol;
+
+    if parms.lamda ~= 1
+        geom.W = zeros(geom.numnodes,3);
+        geom.velnodeant = zeros(geom.numnodes,3);
+    end
+             
+    if isempty(carpetadestino) == 1
+        direccion = [cd  sbar nombredestino num2str(iteracion) '.mat'];   
+    else
+        direccion = [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
+    end
     
-% calcule el volumen inicial de la gota
-normalandgeoopt.normal = 1;
-normalandgeoopt.areas = 1;
-normalandgeoopt.vol = 1;
-geomprop = normalandgeo(geom,normalandgeoopt);
-geom.normalele = geomprop.normalele;
-geom.normal = geomprop.normal;
-geom.dsi = geomprop.dsi;
-geom.ds = geomprop.ds;
-geom.s = geomprop.s;
-geom.vol = geomprop.vol;
-geom.jacmat = geomprop.jacmat;
-geom.volini = geom.vol;
+    direcciondestino = [cd sbar carpetadestino sbar nombredestino];
+    mkdir([cd sbar,carpetadestino]);
+        
+    paso = 1;
+    geom.tiempo = 0;
+    itsaved = 0;
+    counter = 0;
+
+elseif opcionsim == 1
+    % cargue desde resultados y continue la simulacion
+    carpetadestino = carpetaorigen;
+    nombredestino = nombreorigen;
+    if isempty(carpetaorigen) == 1
+        direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
+    else
+        direccion = [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
+    end
+    
+    load(direccion);
+    
+    paso = iteracion*outputfreq + 1;
+    itsaved = iteracion;
+    counter = 0;
+
+    direcciondestino = [cd  sbar carpetadestino sbar nombredestino];
+    mkdir([cd sbar,carpetadestino]);
+    numnodes = size(geom.nodes,1);
+    numelements = size(geom.elements,1);    
+    normalandgeoopt.normal = 1;
+    normalandgeoopt.areas = 1;
+    normalandgeoopt.vol = 1;
+    
+end
+    
+% % cargue el archivo base
+% filename = ['sph ref ' num2str(reflevel) '.mat'];
+% load([cd sbar filename]);
+% % PROCESAMIENTO DE LA MALLA ORIGINAL
+% % Volumen original
+% Radius = max(normesp(Nodes));
+% % Numero de Elementos y numero de Nodos
+% geom.nodes = Nodes;
+% geom.elements = Elements;
+% geom.numnodes = size(geom.nodes,1);
+% geom.numelements = size(Elements,1);
+% numnodes = geom.numnodes;
+% numelements = geom.numelements;
+% geom = drops(geom,xc,xr);
+% 
+% % Index table
+% % geom.indextable = [1:1:geom.numnodes];
+%     % Tabla de elementos singulares a cada nodo
+% geom.element2node = element2node(geom.elements);
+% %     % Elementos singulares a cada nodo tabla SPARSE
+% % geom.e2nsparse = ele2nodesp(geom.elements);
+% % TODO: Borrar de la rutina ele2nodesp
+%     % Tabla de conectividad de nodos, bordes, e.t.c
+% geom.nodecon2node = node2node(geom.elements);
+% % geom.edgeindex = edges(geom.elements);
+% % TODO: si no se necesita borrar edges
+%     
+% % calcule el volumen inicial de la gota
+% normalandgeoopt.normal = 1;
+% normalandgeoopt.areas = 1;
+% normalandgeoopt.vol = 1;
+% geomprop = normalandgeo(geom,normalandgeoopt);
+% geom.normalele = geomprop.normalele;
+% geom.normal = geomprop.normal;
+% geom.dsi = geomprop.dsi;
+% geom.ds = geomprop.ds;
+% geom.s = geomprop.s;
+% geom.vol = geomprop.vol;
+% geom.jacmat = geomprop.jacmat;
+% geom.volini = geom.vol;
+% 
+% if parms.lamda ~= 1
+%     geom.W = zeros(geom.numnodes,3);
+%     geom.velnodeant = zeros(geom.numnodes,3);
+% end
 
 
 %% evolucion mediante runge kutta de 2to orden
-counter = 0;
-geom.tiempo = 0;
-itsaved = 0;
-for p = 1:numtimesteps
+for p = paso:numtimesteps
+    it=p;
+    it
 % calcule la distancia minima de adaptacion y el paso de tiempo
     counter = counter + 1;    
-   
     if geom.numdrops == 1
         % lmin entre nodos de una misma gota
-        % TODO generalizar para varias gotas
         lmin = zeros(numnodes,1);
             for k = 1:numnodes
                % extraiga los nodos vecinos a un nodo en la misma gota 
@@ -133,28 +232,36 @@ for p = 1:numtimesteps
     elseif geom.numdrops > 1
         % lmin entre nodos de una misma gota y entre varias gotas
         % lmin entre nodos de una misma gota
-        % TODO generalizar para varias gotas
+        % TO DO generalizar para varias gotas
         lmin = zeros(numnodes,1);
         for j = 1:geom.numdrops
+            nodestemp = geom.nodes;
+            nodestemp(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = 0;
+            nodestemp(~any(nodestemp,2),:) = [];       
             for k = geom.nnodesdrop(j,1):geom.nnodesdrop(j,2)
                % extraiga los nodos vecinos a un nodo en la misma gota 
                nodesadj = geom.nodecon2node{k};
-               lmintemp1 = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) - geom.nodes(nodesadj,:)));  
-               % calcule para el punto respeto de los nodos de ls otras gotas
-               if j == 1
-               cantnodes = length(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2));
-               lmintemp2 = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
-                   geom.nodes(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2),:)));  
-               elseif j == 2
-               cantnodes = length(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2));
-               lmintemp2 = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
-                   geom.nodes(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2),:)));  
-               end
+               lmintemp1 = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) ...
+                  - geom.nodes(nodesadj,:)));  
+               % calcule para el punto respecto de los nodos de las otras gotas
+                cantnodes = geom.numnodes - ...
+                    (geom.nnodesdrop(j,2)- geom.nnodesdrop(j,1) + 1);
+                lmintemp2 = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
+                    nodestemp));
+%                if j == 1
+%                cantnodes = length(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2));
+%                lmintemp2 = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
+%                    geom.nodes(geom.nnodesdrop(2,1):geom.nnodesdrop(2,2),:)));  
+%                elseif j == 2
+%                cantnodes = length(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2));
+%                lmintemp2 = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
+%                    geom.nodes(geom.nnodesdrop(1,1):geom.nnodesdrop(1,2),:)));  
+%                end
                lmin(k) = min([lmintemp1 lmintemp2]);
             end
         end
     end
-        % Longitud minima para verificacion de paso de tiempo.
+    % Longitud minima para verificacion de paso de tiempo.
     lmint = min(lmin);
     deltat = lmint^1.5/redfactor;
     adaptparms.lmin = lmin;
@@ -225,8 +332,6 @@ for p = 1:numtimesteps
     grafscfld(geom,geom.curv);
     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3')
     getframe;
-% error de volumen
-    errorvol = abs(geom.volini - geom.vol)/geom.volini
 % velocidad normal maxima y tiempo de simulacion
     velcont = max(abs(sum(velnode.*geom.normal,2)));
     geom.tiempo = geom.tiempo + deltat;
@@ -236,7 +341,7 @@ for p = 1:numtimesteps
     if counter == outputfreq
         itsaved = itsaved + 1;
         counter = 0;
-        nombrearchivo = ['ca' num2str(ca) 'it' num2str(itsaved), '.mat'];
+        nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
         save(nombrearchivo,'geom','velnode','parms','adim');
     end
 

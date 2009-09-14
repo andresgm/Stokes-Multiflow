@@ -7,7 +7,7 @@ function geom = drops(geom,xc,xr)
 nodes = geom.nodes;
 elements = geom.elements;
 numelements = size(geom.elements,1);
-numnodes = size(geom.nodes,1);
+numnodest = size(geom.nodes,1);
 elemin = 1;
 nodemin = 1;
 geom.nodes= [];
@@ -21,8 +21,8 @@ for j=1:geom.numdrops
    %extraiga el radio de la j gota
    xrdrop = xr(j);
    % Mueva los nodos de la j gota a la posicion deseada (coordenadas)
-   tempnodes = nodes*xrdrop + repmat(xcdrop,[numnodes,1]);
-   tempelements = elements + numnodes*(j-1);
+   tempnodes = nodes*xrdrop + repmat(xcdrop,[size(nodes,1),1]);
+   tempelements = elements + numnodest*(j-1);
    % Generar los nodos y los elementos
    geom.nodes = [geom.nodes;tempnodes];
    geom.elements = [geom.elements;tempelements];
