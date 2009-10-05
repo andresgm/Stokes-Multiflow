@@ -12,11 +12,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [2 2 2 2 2 2 2 2 2 2 2 2];
 
-carpetaorigenv = {'shearinf2' 'shearinf3' 'shearinf4' 'shearinf5' 'shearinf6' };
-nombreorigenv =  {'it' 'it' 'it' 'it' 'it'};
-itmaxv = [138 354 358 166 153];
+carpetaorigenv = {'sedimentacion_g0_1'};
+nombreorigenv =  {'it'};
+itmaxv = [8000];
 itminv = ones(1,size(itmaxv,2));
-intervalv = [1 2 2 1 1];
+intervalv = [100];
 
 %carpetaorigenv = {'eleinf1'};
 %nombreorigenv =  {'it' };
@@ -35,7 +35,7 @@ intervalv = [1 2 2 1 1];
 % *.FIG, *.PDF, Y *PNG DE TODO.
 
 % OJO dependiendo de la simulacion (sedimentacion o cortante) usted coloca los ejes
-ejes = [-2 2 -2 2 -3 3];
+ejes = [-1.5 1.5 -1.5 1.5 0 11];
 
 % voy a ir a almorzar mientras posprocese lo que hace falta
 

@@ -27,7 +27,9 @@ xr = [1 1];
 nombredestino = 'it';
 carpetadestino = 'gotaLambda0.2Ca0.35';
 % simulacion nueva desde cero optsim = 0
-% continue la simulacion optsim = 1 % TODO No se quiere implementar la opcion de continuar con diferentes parametros?
+% continue la simulacion optsim = 1 
+% TODO No se quiere implementar la opcion de continuar con
+% diferentes parametros?
 opcionsim = 1;
 %Nombre carpeta de origen y archivo
 nombreorigen = 'it';
@@ -131,7 +133,8 @@ if opcionsim == 0
     if isempty(carpetadestino) == 1
         direccion = [cd  sbar nombredestino num2str(iteracion) '.mat'];   
     else
-        direccion = [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
+        direccion = ...
+    [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
     end
     
     direcciondestino = [cd sbar carpetadestino sbar nombredestino];
@@ -149,7 +152,8 @@ elseif opcionsim == 1
     if isempty(carpetaorigen) == 1
         direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
     else
-        direccion = [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
+        direccion = ...
+    [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
     end
     
     load(direccion);
@@ -227,12 +231,14 @@ for p = paso:numtimesteps
             for k = 1:numnodes
                % extraiga los nodos vecinos a un nodo en la misma gota 
                nodesadj = geom.nodecon2node{k};
-               lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) - geom.nodes(nodesadj,:)));  
+               lmin(k) = ...
+            min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) ...
+                - geom.nodes(nodesadj,:)));  
             end
     elseif geom.numdrops > 1
         % lmin entre nodos de una misma gota y entre varias gotas
         % lmin entre nodos de una misma gota
-        % TO DO generalizar para varias gotas
+        % TODO generalizar para varias gotas
         lmin = zeros(numnodes,1);
         for j = 1:geom.numdrops
             nodestemp = geom.nodes;

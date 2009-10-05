@@ -12,8 +12,6 @@ rkelect = parms.rkelect;
 
 % constante del single layer
 rksl = parms.rksl;
-% constante del double layer
-rkdl = parms.rkdl;
 % constante del flujo externo
 rkextf = parms.rkextf;
 
@@ -23,8 +21,11 @@ normalandgeoopt.areas = 1;
 normalandgeoopt.vol = 1;
 geomprop = normalandgeo(geom,normalandgeoopt);
 
+if  isfield(geom,'normal') ~= 1
+    % no se ha calculado la normal inicial calcularla
+    geom.normal = geomprop.normal;
+end
 geom.normalele = geomprop.normalele;
-geom.normal = geomprop.normal;
 geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
 geom.s = geomprop.s;
@@ -34,11 +35,11 @@ geom.jacmat = geomprop.jacmat;
 % calculo de la curvatura media
 if parms.curvopt == 1
     % calculo mediante paraboloid fitting
-    [geom.curv,geom.Kg] = curvparaboloid(geom);
-elseif parms.curvopt == 2 %TODO Revisar aqui por que no se calcula la normal con el BP
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom);
+elseif parms.curvopt == 2
     % calculo mediante extended paraboloid fitting/bestparaboloid fitting
     paropt.tipo = 'extended';
-    [geom.curv,geom.Kg] = curvparaboloid(geom,paropt);
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
     lapbelmat = laplacebeltramimat(geom);
@@ -118,7 +119,8 @@ parfor j=1:numnodes
     % limpie singularidades
     rgreenfcn(isnan(rgreenfcn)) = 0;
     % calcule deltaf - deltaf*
-    rdeltaffpole = repmat((rdeltafperdrop{gotanum} - rdeltaftot(j)),[1 3]).*normalesperdrop{gotanum}; 
+    rdeltaffpole = repmat((rdeltafperdrop{gotanum} - rdeltaftot(j)),[1 3])...
+        .*normalesperdrop{gotanum}; 
     % calcule el producto gij*dfi (opt:2)
     rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
     % ejecute integral del trapecio sobre la gota que contiene el polo xj

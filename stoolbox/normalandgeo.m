@@ -1,3 +1,4 @@
+function geomprop = normalandgeo(geom,normalandgeoopt,opcion)
 % calcula la normal promedio en los nodos de una malla triangular
 % calcula el area superficial de cada elemento y total
 % calcula el area baricentrica alrededor de cada nodo
@@ -28,8 +29,6 @@
 % geom.dsi: area baricentrica alrededor de cada nodo dim(numnodes,1)
 % geom.s: area superficial total del enmallado
 % geom.vol: volumen total del enmallado
-
-function geomprop = normalandgeo(geom,normalandgeoopt,opcion)
 
 % calcule la metrica de transformacion a cada punto
 if nargin < 3

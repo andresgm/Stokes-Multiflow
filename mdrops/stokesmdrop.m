@@ -94,16 +94,21 @@ for j=1:numnodes
         for m=1:geom.numdrops
             if m ~= gotanum
                 % Calcule la funcion de green 
-                [rgreenfcn,closenode] = stokeslet(nodes(j,:),nodes(nnodesdrop(m,1):nnodesdrop(m,2),:));
+                [rgreenfcn,closenode] = ...
+                    stokeslet(nodes(j,:),nodes(nnodesdrop(m,1):nnodesdrop(m,2),:));
                 % limpie singularidades
                 rgreenfcn(isnan(rgreenfcn)) = 0;
                 % calcule deltaf - deltaf*
                 rdeltafgotaext = rdeltaftot(nnodesdrop(m,1):nnodesdrop(m,2));
-                rdeltaffpole = repmat((rdeltafgotaext - rdeltafgotaext(closenode)),[1 3]).*normales(nnodesdrop(m,1):nnodesdrop(m,2),:); 
+                rdeltaffpole = ...
+                    repmat((rdeltafgotaext - rdeltafgotaext(closenode)),[1 3])...
+                    .*normales(nnodesdrop(m,1):nnodesdrop(m,2),:); 
                 % calcule el producto gij*dfi (opt:2)
                 rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
                 % ejecute integral del trapecio de gotaext al polo xj
-                rintsln(j,:) = rintsln(j,:) + inttrapecioa(dsi(nnodesdrop(m,1):nnodesdrop(m,2),:),rintegrandsl);
+                rintsln(j,:) = ...
+                    rintsln(j,:) + ...
+                    inttrapecioa(dsi(nnodesdrop(m,1):nnodesdrop(m,2),:),rintegrandsl);
             else
             end
         end
@@ -131,7 +136,8 @@ end
 % calcule wielandt deflaction si lamda .ne. 1
 if parms.lamda ~= 1
     % invoque wielandt deflaction para el double layer
-        [velnode,geom.W] = doublewielandt(geom,rintsln,rextf,geom.velnodeant,geom.W,parms);
+        [velnode,geom.W] = ...
+            doublewielandt(geom,rintsln,rextf,geom.velnodeant,geom.W,parms);
         geom.velnodeant = velnode;
 else
     % calcule la velocidad total
@@ -172,9 +178,12 @@ e = [1 0 0;0 1 0; 0 0 1];
 % Surface Centroid Xc
 
 for j=1:geom.numdrops
-Xc(j,:) = (1/Stot(j)).*sum(Xpoles(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+Xc(j,:) = (1/Stot(j))...
+    .*sum(Xpoles(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)...
+    .*dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
 % Xgorro = Xpole - Xc
-Xgorro{j} = Xpoles(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) - repmat(Xc(j,:),[(geom.nnodesdrop(j,2)- geom.nnodesdrop(j,1) + 1) 1]);
+Xgorro{j} = Xpoles(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) ...
+    - repmat(Xc(j,:),[(geom.nnodesdrop(j,2)- geom.nnodesdrop(j,1) + 1) 1]);
 
 % Calcule Dij
 Xg11 = Xgorro{j}(:,1).^2;
@@ -185,15 +194,18 @@ Xg23 = Xgorro{j}(:,2).*Xgorro{j}(:,3);
 Xg33 = Xgorro{j}(:,3).^2;
 XgorroQ = normesp(Xgorro{j}).^2;
 
-Dij{j}(1,1) = sum((XgorroQ - Xg11).*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+Dij{j}(1,1) = sum((XgorroQ - Xg11)...
+    .*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
 Dij{j}(1,2) = sum(-Xg12.*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);  
 Dij{j}(1,3) = sum(-Xg13.*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
 Dij{j}(2,1) = Dij{j}(1,2);
-Dij{j}(2,2) = sum((XgorroQ - Xg22).*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+Dij{j}(2,2) = sum((XgorroQ - Xg22)...
+    .*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
 Dij{j}(2,3) = sum(-Xg23.*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
 Dij{j}(3,1) = Dij{j}(1,3);
 Dij{j}(3,2) = Dij{j}(2,3);
-Dij{j}(3,3) = sum((XgorroQ - Xg33).*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+Dij{j}(3,3) = sum((XgorroQ - Xg33)...
+    .*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
 end
 
 for zz=1:1000
@@ -202,16 +214,22 @@ for zz=1:1000
     for j=1:geom.numdrops
         IntW = zeros(3,1);
         for i=1:3
-            IntW(i) = sum(sum(W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*cross(repmat(e(i,:),[(geom.nnodesdrop(j,2)- ...
-                geom.nnodesdrop(j,1) + 1) 1]),Xgorro{j}),2).*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+            IntW(i) = sum(sum(W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)...
+                .*cross(repmat(e(i,:),[(geom.nnodesdrop(j,2)- ...
+                geom.nnodesdrop(j,1) + 1) 1]),Xgorro{j}),2)...
+                .*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
         end
         % Calcule los coeficients Bj = inv(Dij)*IntW
         Bj(:,j) = Dij{j}\IntW;
         % Calcule Ai = (1/S)*Int(Wi,dS)
-        Ai(j,:) = (1/Stot(j)) .* sum(W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+        Ai(j,:) = (1/Stot(j)) ...
+            .* sum(W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)...
+            .*dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
         % W'(Xpole) = Aiei + Biei x Xgorro
-        Wprim(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = repmat(Ai(j,:),[(geom.nnodesdrop(j,2)- ...
-            geom.nnodesdrop(j,1) + 1),1]) + cross(repmat(Bj(:,j)',[(geom.nnodesdrop(j,2) - geom.nnodesdrop(j,1) + 1),1]),Xgorro{j});
+        Wprim(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = ...
+            repmat(Ai(j,:),[(geom.nnodesdrop(j,2) - ...
+            geom.nnodesdrop(j,1) + 1),1]) + ...
+  cross(repmat(Bj(:,j)',[(geom.nnodesdrop(j,2) - geom.nnodesdrop(j,1) + 1),1]),Xgorro{j});
     end
     % Calcule las integrales de double layer.
 
@@ -228,10 +246,12 @@ for zz=1:1000
                 [Cf1,r] = greenconst(geom.nodes(i,:),geom,gotanum,j,W,i);
                 if j==gotanum
                     IntTstInf(i,:) = IntTstInf(i,:) + (0.5*W(i,:) + (3/(4*pi)).*...
-                        sum((dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*repmat(Cf1,[1 3])).*r,1));
+                        sum((dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)...
+                        .*repmat(Cf1,[1 3])).*r,1));
                 else
                     IntTstInf(i,:) = IntTstInf(i,:) + ((3/(4*pi)).*...
-                    sum((dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*repmat(Cf1,[1 3])).*r,1));
+                        sum((dSiV(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)...
+                        .*repmat(Cf1,[1 3])).*r,1));
                 end
         end
     end
@@ -241,11 +261,15 @@ for zz=1:1000
     % Calcule la integral Int(<w(Xpole),NormalAtXpole>,dS)
     for j=1:geom.numdrops
         IntWN(j) = sum(sum(W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*...
-        geom.normal(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),2).*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
-        norsubS(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = geom.normal(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*(1/(2*Stot(j)));
+            geom.normal(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),2)...
+            .*geom.dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:),1);
+        norsubS(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = ...
+            geom.normal(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*(1/(2*Stot(j)));
         % W(Xpole)
-        W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = parms.rkdl.*(IntTstInf(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)...
-            - Wprim(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)./2 + norsubS(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*IntWN(j))...
+        W(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = ...
+            parms.rkdl.*(IntTstInf(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) ...
+            - Wprim(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:)./2 ...
+            + norsubS(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:).*IntWN(j)) ...
             + IntSingleLayer(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:);
     end
     W(:,2) = W(:,2) + UinfAtNode;

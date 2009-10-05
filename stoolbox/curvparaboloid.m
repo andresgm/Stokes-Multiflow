@@ -5,7 +5,7 @@
 % equation z = ax^2 + bxY + cY^2
 % Calcula la curvatura media y curvatura gaussiana
 
-function  [cmean,Kg] = curvparaboloid(geom,paropt)
+function  [cmean,normal_f,Kg] = curvparaboloid(geom,paropt)
 
 if nargin < 2
     tipo = 'single';
@@ -49,6 +49,7 @@ end
 % defina espacio en memoria
 cmean = zeros(numnodes,1);
 Kg = zeros(numnodes,1);
+normalbp = zeros (numnodes,3);
 
 if strcmp(tipo,'single') == 1
     % r1 es extraer la primera columna del tensor de proyeccion
@@ -72,8 +73,8 @@ for i=1:numnodes
         deltax(:,k) = temp1;
     end
 
-        % paraboloid fitting based in z = ax^2 + bxY + cY^2
     if strcmp(tipo,'single') == 1
+        % paraboloid fitting based in z = ax^2 + bxY + cY^2
         mr = [r1(i,:);r2(i,:);norm_i(i,:)];
         xlocnodes = zeros(3,size(nodesadj,1));
         for k=1:size(nodesadj,1)
@@ -84,9 +85,16 @@ for i=1:numnodes
         
     elseif strcmp(tipo,'extended') == 1
          % paraboloid fitting based in z = ax^2 + bxY + cY^2 + dx + eY
-        [cmean(i),normalcen,Kg(i)] = extendedquatric(deltax,norm_i(i,:),tol,itmax);
+        [cmean(i),normalbp(i,:),Kg(i)] = extendedquatric(deltax,norm_i(i,:),tol,itmax);
     end
 
+end
+
+if strcmp(tipo,'single') == 1
+    % Si se usa metodo 'single' la normal no se actualiza
+    normal_f = normal_i;
+elseif strcmp(tipo,'extended') == 1
+    normal_f = normalbp;
 end
 
 end
@@ -156,19 +164,15 @@ function [cmeancen,normalcen,Kg] = extendedquatric(deltax,normalnew,tol,itmax)
         % transforme la normal a la base Global
         normalnew = (mr'*normalnewl)';
         % curvatura media
-        cmeancen = -(alfa(1) + alfa(3) + alfa(1)*alfa(5)^2 + alfa(3)*alfa(4)^2 - alfa(2)*alfa(4)*alfa(5))...
-            /(1 + alfa(4)^2 + alfa(5)^2)^1.5;
+        cmeancen = -(alfa(1) + alfa(3) + alfa(1)*alfa(5)^2 + alfa(3)*alfa(4)^2 ...
+            - alfa(2)*alfa(4)*alfa(5))/(1 + alfa(4)^2 + alfa(5)^2)^1.5;
         
         
         % curvatura gaussiana
         Kg= ((4.*alfa(1).*alfa(3) - alfa(2)^2)./(1 + alfa(4)^2 + alfa(5)^2)^2);
-
-        
+                
         if it >= itmax
-           disp('no se alcanzo la convergencia, calculo fallido') 
-           numnodesadj
-           error('calculo fallido en la curvatura fin de simulacion')
-
+           error('Calculo fallido en la curvatura, fin de simulacion!')
         end
     end
 

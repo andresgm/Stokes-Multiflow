@@ -5,12 +5,12 @@ clear;clc
 % opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
-carpetaorigen = 'eleinf2';
-iteracion = [20];
+carpetaorigen = 'sedimentacion_g0_1';
+iteracion = [8000];
 
     % nombre de archivo a guardar y carpeta
-nombredestino = '';
-carpetadestino = '';
+nombredestino = 'it';
+carpetadestino = 'sedimentacion_g0_1';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -18,14 +18,14 @@ opcionsim = 1;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
-lamda = 0.1;
-g0 = 50;
-e0 = 2250;
+lamda = 1;
+g0 = 1;
+e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'inf';
+flow = 'semiinf';
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
-curvopt = 1;
+curvopt = 2;
 % Constantes del modelo de bending
     % Constante c del modelo
 c = 0.1;
@@ -35,13 +35,13 @@ kbar = 40;
 % Adimensionalizacion
 adim = 1;
 % frecuencia de guardar resultados
-outputfreq = 20;
+outputfreq = 10;
 
 % Banderas de fuerza dif 0: si. 1: no
     % curvatura
 ka = 1;
     % gravedad
-kb = 0;
+kb = 1;
     % bending
 kc = 1;
     % campo electrico
@@ -50,14 +50,14 @@ kd = 0;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 0];
+xc =[0 0 10];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
-numtimesteps = 20000;
+numtimesteps = 80000;
 deltat = 0.001;
-redfactor = 250;
+redfactor = 100;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal
@@ -294,7 +294,7 @@ tic
     lmint = min(lmin);
     deltat = lmint^1.5/redfactor;
     parms.lmin = lmin;
-% primer paso de runge kutta
+%% primer paso de runge kutta
    % invoque el problema de flujo de stokes
    [velnode0,geom,parms] = stokesvesicle(geom,parms);
    % invoque la adaptacion de la malla
@@ -321,7 +321,7 @@ tic
    nodesori = geom.nodes;
    geom.nodes = geom.nodes + (1/2).*k1;
    
-% segundo paso de runge kutta
+%% segundo paso de runge kutta
     % invoque el problema de flujo de stokes
    [velnode,geom,parms] = stokesvesicle(geom,parms);
    % inveoque la adaptacion de la malla
