@@ -20,11 +20,10 @@ alpha=1/(4*pi/3);
 % % indique las iteraciones de estado estable para cada solucion
 % itss = [699 1072 1068 1073 1080 1132 1042 2085];
 
-carpetaorigen = {'gotaLambda1Ca0.05' 'gotaLambda1Ca0.10' 'gotaLambda1Ca0.20'...
-    'gotaLambda1Ca0.30' 'gotaLambda1Ca0.35' 'gotaLambda1Ca0.40'}
+carpetaorigen = {'gotaLambda0.2Ca0.35'}
 
 % indique las iteraciones de estado estable para cada solucion
-itss = [2000 1061 1058 1055 123 1085];
+itss = [30];
 
 % nombre del archivo de origen
 nombreorigen = 'it';
@@ -47,9 +46,14 @@ for k=1: max(size(carpetaorigen))
     rdeltafcurv = deltafcurv(geom.curv,parms.rkcurv);
     deltafcurvv = geom.normal.*repmat(rdeltafcurv,[1 3]);
    
-    strtensornode = strtensorreologia(deltafcurvv,geom.nodes,velnode,geom.normal,parms.lamda);
-    rintegral = alpha*inttrapeciomata(geom.dsi,strtensornode); 
-   
+    rintegral = zeros(3,3);
+    for z=1:geom.numdrops
+        strtensornode = strtensorreologia(deltafcurvv,geom.nodes,...
+            velnode,geom.normal,parms.lamda,geom.nnodesdrop,z);
+        rintegral = rintegral + alpha*inttrapeciomata(geom.dsi(geom.nnodesdrop(z,1):...
+            geom.nnodesdrop(z,2),:),strtensornode);
+    end
+    
     capilar(contador) = parms.ca;
     % S11 - S22 (S22 - S33 este caso)  
     y1(contador) = rintegral(2,2)-rintegral(3,3);

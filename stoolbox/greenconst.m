@@ -22,8 +22,9 @@ if gotanum == gotaactual
     Temp2 = W(geom.nnodesdrop(gotaactual,1):geom.nnodesdrop(gotaactual,2),:) -...
         repmat(W(pole,:),[(geom.nnodesdrop(gotaactual,2)- geom.nnodesdrop(gotaactual,1) + 1) 1]);
 else
+    Wtemp = W(geom.nnodesdrop(gotaactual,1):geom.nnodesdrop(gotaactual,2),:);
     Temp2 = W(geom.nnodesdrop(gotaactual,1):geom.nnodesdrop(gotaactual,2),:) -...
-        repmat(W(closenode,:),[(geom.nnodesdrop(gotaactual,2)- geom.nnodesdrop(gotaactual,1) + 1) 1]);
+        repmat(Wtemp(closenode,:),[(geom.nnodesdrop(gotaactual,2)- geom.nnodesdrop(gotaactual,1) + 1) 1]);
 end
 Temp3 = sum(r.*Temp2,2);
 Cf1 = Temp1.*Temp3./rquint;

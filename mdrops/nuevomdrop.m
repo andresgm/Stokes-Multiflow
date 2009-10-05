@@ -5,7 +5,7 @@
 clear;clc
 % Algoritmo de flujo de stokes con sulfactantes.
 ca = 0.35;
-lamda = 0.2;
+lamda = 1;
 % Adimensionalizacion
 adim = 1;
 % frecuencia de guardar resultados
@@ -15,11 +15,11 @@ ka = 1;
 kb = 0;
 kc = 0;
 % malla a usar
-reflevel = 2;
+reflevel = 3;
 % numero de gotas
 geom.numdrops = 2;
 % Coordenadas de los centroides de las gotas
-xc = [0 -1.2 0.25; 0 1.2 -0.25];
+xc = [0 -3 0.25; 0 3 -0.25];
 % xc =[0 0 0];
 % Introduzca el/los radios de la/s gotas
 xr = [1 1];
@@ -27,25 +27,23 @@ xr = [1 1];
 nombredestino = 'it';
 carpetadestino = 'gotaLambda0.2Ca0.35';
 % simulacion nueva desde cero optsim = 0
-% continue la simulacion optsim = 1 
-% TODO No se quiere implementar la opcion de continuar con
-% diferentes parametros?
-opcionsim = 1;
+% continue la simulacion optsim = 1
+opcionsim = 0;
 %Nombre carpeta de origen y archivo
-nombreorigen = 'it';
 carpetaorigen = 'gotaLambda0.2Ca0.35';
+nombreorigen = 'it';
 %Nombre de iteracion deseada de inicio (para opcionsim = 1)
-iteracion = [83];
+iteracion = 2235;
 % pasos de tiempo de la simulacion
 numtimesteps = 30000;
 deltat = 0.001;
-redfactor = 20;
+redfactor = 15;
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal
 velopt = 1;
 % meshadapt lowenberg
 adaptparms.psi = 1;
-adaptparms.lamda = lamda;
+adaptparms.lamda = lamd0.2a;
 adaptparms.flow = flow;
 % escalaje
 errorvoltol = 1e-3;
@@ -53,7 +51,7 @@ optesc.maxit = 15000;
 optesc.kp = 20;
 optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
-% TODO: DEFINIR OPCIONES DE ESCALAJE
+% TO DO: DEFINIR OPCIONES DE ESCALAJE
 %% procesamiento de parametros
 if adim == 1
     % adimensionalizacion de bazhlekov
@@ -61,6 +59,7 @@ if adim == 1
     parms.rksl = 2/(lamda + 1);
     parms.rkdl = 2*(lamda - 1)/(lamda + 1);
     parms.lamda = lamda;
+    parms.ca = ca;
 
     % parametros de simulacion
     if ka == 1 
@@ -133,8 +132,7 @@ if opcionsim == 0
     if isempty(carpetadestino) == 1
         direccion = [cd  sbar nombredestino num2str(iteracion) '.mat'];   
     else
-        direccion = ...
-    [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
+        direccion = [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
     end
     
     direcciondestino = [cd sbar carpetadestino sbar nombredestino];
@@ -152,8 +150,7 @@ elseif opcionsim == 1
     if isempty(carpetaorigen) == 1
         direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
     else
-        direccion = ...
-    [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
+        direccion = [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
     end
     
     load(direccion);
@@ -231,27 +228,22 @@ for p = paso:numtimesteps
             for k = 1:numnodes
                % extraiga los nodos vecinos a un nodo en la misma gota 
                nodesadj = geom.nodecon2node{k};
-               lmin(k) = ...
-            min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) ...
-                - geom.nodes(nodesadj,:)));  
+               lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) - geom.nodes(nodesadj,:)));  
             end
     elseif geom.numdrops > 1
         % lmin entre nodos de una misma gota y entre varias gotas
         % lmin entre nodos de una misma gota
-        % TODO generalizar para varias gotas
         lmin = zeros(numnodes,1);
-        for j = 1:geom.numdrops
+        for j=1:geom.numdrops
             nodestemp = geom.nodes;
             nodestemp(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2),:) = 0;
             nodestemp(~any(nodestemp,2),:) = [];       
             for k = geom.nnodesdrop(j,1):geom.nnodesdrop(j,2)
                % extraiga los nodos vecinos a un nodo en la misma gota 
                nodesadj = geom.nodecon2node{k};
-               lmintemp1 = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) ...
-                  - geom.nodes(nodesadj,:)));  
+               lmintemp1 = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1]) - geom.nodes(nodesadj,:)));  
                % calcule para el punto respecto de los nodos de las otras gotas
-                cantnodes = geom.numnodes - ...
-                    (geom.nnodesdrop(j,2)- geom.nnodesdrop(j,1) + 1);
+                cantnodes = geom.numnodes - (geom.nnodesdrop(j,2)- geom.nnodesdrop(j,1) + 1);
                 lmintemp2 = min(normesp(repmat(geom.nodes(k,:),[cantnodes 1]) - ...
                     nodestemp));
 %                if j == 1
