@@ -4,35 +4,35 @@
 clear;clc
 % opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'it';
-carpetaorigen = 'shearlamda01';
-iteracion = [75];
+nombreorigen = 'sph ref 3';
+carpetaorigen = '';
+iteracion = [];
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'gotaLambda1Ca0.40';
+carpetadestino = 'sedimentacion_gota_g0_1_lambda_10';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 1;
+opcionsim = 0;
 
 % Algoritmo de flujo de stokes.
 % capilar o bond
-ca = 2.00;
+ca = 0;
 % lamda
-lamda = 3.6;
+lamda = 10;
 % g0: solo aplica para adim = 1. g0 = 1 por defecto
 g0 = 1;
 % campo electrico
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'inf';
+flow = 'semiinf';
 % aplica sol cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: best par (extended);
 % 3: basado en laplace beltrami
-curvopt = 3;
+curvopt = 2;
 % Adimensionalizacion
-adim = 2;
+adim = 1;
 % frecuencia de guardar resultados
 outputfreq = 10;
 
@@ -40,21 +40,21 @@ outputfreq = 10;
     % curvatura
 ka = 1;
     % gravedad
-kb = 0;
+kb = 1;
     % campo electrico
 kd = 0;
 
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 0];
+xc =[0 0 30];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
 numtimesteps = 10000;
 deltat = 0.001;
-redfactor = 10;
+redfactor = 100;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal
@@ -83,7 +83,7 @@ end
 % guarde temporalmente los parametros
 parmstemp = parms;
 %% procesamiento de la malla
-sbar = systembar();
+sbar = filesep;
     
 if opcionsim == 0
     % cargue el archivo base
@@ -251,14 +251,14 @@ tic
        % hidrodinamica + adaptacion
        veladapt0 = meshadapt2(geom,parms);
        temporal = repmat(geom.velcentroid,[numnodes 1]);
-       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+       % veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
        veltan = 0;
        k1 = deltat.*(velnode0 + veladapt0 + veltan);
    elseif velopt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
-       veltan = 0;
+       % veltan = 0;
 %        veladapt = 0;
        velnormal0 = repmat(sum(velnode0.*geom.normal,2),[1 3]).*geom.normal;
        veladapt0 = meshadapt2(geom,parms);

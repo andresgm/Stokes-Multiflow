@@ -34,7 +34,8 @@ if nodesperelement == 3
     x3 = reshape(x3,nodesperelement,numelements);
     
     % calculo de las derivadas dx/zi 
-    [dx1z1, dx1z2, dx2z1, dx2z2, dx3z1, dx3z2,dx1z3,dx2z3,dx3z3] = dfzitalin(x1,x2,x3);
+    [dx1z1, dx1z2, dx2z1, dx2z2, dx3z1, dx3z2,dx1z3,dx2z3,dx3z3] = ...
+        dfzitalin(x1,x2,x3);
        
     % Replique para los puntos de integracion
     dx1z1 = repmat(dx1z1',1,numpoints);
@@ -63,7 +64,8 @@ elseif nodesperelement == 6
  
     % nUevA RUtInA tenIenDO en cUentA QUe nODOS InteRmeDIOS nO cOIncIDen
     % cOn zItA 0.5
-    [dx1z1, dx1z2, dx2z1, dx2z2, dx3z1, dx3z2] = dfzitacurv2(nodes,elements,zitavect,nodes);
+    [dx1z1, dx1z2, dx2z1, dx2z2, dx3z1, dx3z2] = ...
+        dfzitacurv2(nodes,elements,zitavect,nodes);
 end
 
 % componentes (g1,g2,g3) de la normal

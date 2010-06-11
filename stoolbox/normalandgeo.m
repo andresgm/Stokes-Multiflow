@@ -36,8 +36,7 @@ if nargin < 3
 else
     jacomp = metrictrans(geom,[1/3;1/3],opcion);
 end
-    
-    
+
 geomprop.jacmat = jacomp.jacinv;
 geomprop.g = jacomp.g;
 
@@ -48,8 +47,9 @@ if isfield(normalandgeoopt,'areas') == 1
 end
    
 if isfield(normalandgeoopt,'vol') == 1 && isfield(normalandgeoopt,'areas') == 0
-    error('surface areas must be computed in order to perform volume computing, please activate normalandgeoopt.areas = 1');
-else
+    error('To calculate volume surface areas must be computed use normalandgeoopt.areas = 1');
+elseif isfield(normalandgeoopt,'vol') == 1 ...
+        && isfield(normalandgeoopt,'areas') == 1
     parfield.jacomp = jacomp;
     parfield.normal = geomprop.normal;
     parfield.dsi = geomprop.dsi;

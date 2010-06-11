@@ -21,7 +21,6 @@ else
     DeltaTe = optesc.deltate;
 end
     
-TolErrorVol = 1e-5;
 % opciones para la rutina de calculo de volumen
 normalandgeoopt.normal = 1;
 normalandgeoopt.areas = 1;
@@ -52,7 +51,12 @@ while abs(ErrorVol(r))>TolErrorVol
     % Accion de Control CORRECION
     VelCorN = ErrorVol(r)*VelCor*Kp;
     % Actualice los nodos a la nueva pos corregida Correccion
-    geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2)) = geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2)) + (DeltaTe).*(VelCorN.*NormalAtNodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2)));
+    VelDesp = ...
+        (DeltaTe).*(VelCorN.*NormalAtNodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:));
+    
+    geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:) = ...
+        geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:) + VelDesp;
+        
 
     % Calculo del Error en Volumen despues de correccion
     ErrorVol(r) = (VolumeIni(r) - geom.vol(r))/VolumeIni(r); 
@@ -61,6 +65,7 @@ while abs(ErrorVol(r))>TolErrorVol
         % deje la gota como esta
         geom.nodes = NodesBC;
         geom = normalandgeo(geom,normalandgeoopt);
+        error ('El escalaje no convergio');
         break
     end
 end

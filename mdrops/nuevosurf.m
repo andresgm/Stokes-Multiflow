@@ -4,7 +4,7 @@
 clear;clc
 % opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 2';
+nombreorigen = 'sph ref 3';
 carpetaorigen = '';
 iteracion = [];
     % nombre de archivo a guardar y carpeta
@@ -19,7 +19,7 @@ opcionsim = 0;
 % capilar o bond
 ca = 0.1;
 % lamda
-lamda = 0.093;
+lamda = 2;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
 greenfunction = @greeninf;
@@ -27,7 +27,7 @@ greenfunction = @greeninf;
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
-curvopt = 3;
+curvopt = 2;
 % Adimensionalizacion
 adim = 1;
 % frecuencia de guardar resultados
@@ -49,7 +49,7 @@ kd = 0;
     maranmodel = 2;
     e = 0.35;
     % constante Kbar del modelo
-    x = 0.36;
+    x = 0.975;
     alpha = 100;
     % constante para modelo lineal
     beta = 0.2;

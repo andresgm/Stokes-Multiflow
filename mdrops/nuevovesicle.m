@@ -2,19 +2,19 @@
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
 clear;clc
-% opciones de carga de archivos
+%% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'it';
-carpetaorigen = 'sedimentacion_g0_1';
-iteracion = [8000];
+nombreorigen = 'sph ref 3.mat';
+carpetaorigen = '';
+iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_g0_1';
+carpetadestino = 'sedimentacion_g0_1_validacion_stokes';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 1;
+opcionsim = 0;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
@@ -38,7 +38,7 @@ adim = 1;
 outputfreq = 10;
 
 % Banderas de fuerza dif 0: si. 1: no
-    % curvatura
+    % Tension (superficial)
 ka = 1;
     % gravedad
 kb = 1;
@@ -50,14 +50,14 @@ kd = 0;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 10];
+xc =[0 0 20];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
-deltat = 0.001;
-redfactor = 100;
+
+redfactor = 80;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal
@@ -72,10 +72,11 @@ optesc.kp = 20;
 optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
 
- warning...
- ('Se considera la adimensionalizacion: DeltaF = (Sigma/g0)(2H) + Z - (1/g0)(4H^3 + 2Laps(H))');
 %% procesamiento de parametros
 if adim == 1
+    
+    warning...
+ ('DeltaF = (Sigma/g0)(2H) + Z - (1/g0)(4H^3 + 2Laps(H) + 4KH)');
     
     parms.flow = flow;
     parms.w = 0;
@@ -120,8 +121,8 @@ if adim == 1
         parms.rkelect = 0;
     end    
     
-elseif adim == 2
-    
+else
+    error('Wrong adim parameter')
 end
 parms.curvopt = curvopt;
 % guarde temporalmente los parametros
@@ -180,7 +181,8 @@ if opcionsim == 0
     if isempty(carpetadestino) == 1
         direccion = [cd  sbar nombredestino num2str(iteracion) '.mat'];   
     else
-        direccion = [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
+        direccion = ...
+         [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
     end
     
     direcciondestino = [cd sbar carpetadestino sbar nombredestino];
@@ -198,7 +200,8 @@ elseif opcionsim == 1
     if isempty(carpetaorigen) == 1
         direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
     else
-        direccion = [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
+        direccion = ...
+         [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
     end
     
     load(direccion);
@@ -223,7 +226,8 @@ elseif opcionsim == 2
         direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
         
     else
-        direccion = [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];        
+        direccion = ...
+         [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];        
     end
     
     load(direccion);
@@ -255,7 +259,8 @@ geom.xc = xcant;
 for p = paso:numtimesteps
 tic
 % calcule la distancia minima de adaptacion y el paso de tiempo
-    counter = counter + 1;    
+    counter = counter + 1;
+    disp(['iteracion = ', num2str(p)])
    
     if geom.numdrops == 1
         % lmin entre nodos de una misma gota
@@ -362,6 +367,7 @@ tic
     for r=1:geom.numdrops
        if errorvol(r) > errorvoltol
            % invoque escalaje
+           disp('Realizando Escalaje')
            geom = escaling(geom,optesc,r);
        end
     end
@@ -398,7 +404,7 @@ tic
 % grafique la velocidad del centroide en x3
     figure(6); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc x3');
 % grafique la velocidad del centroide en x2
-    figure(7); plot(geom.tiempo,geom.velcentroid(:,2),'*');hold on; title('vc x2');
+%    figure(7); plot(geom.tiempo,geom.velcentroid(:,2),'*');hold on; title('vc x2');
 % grafique la posicion del centroide en x3
     figure(8); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');    
 % guarde resultados
