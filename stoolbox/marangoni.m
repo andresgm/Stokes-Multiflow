@@ -1,7 +1,6 @@
 % Calcula los esfuerzos de Marangoni debido a la concentracion local
 % surfactantes. Basado en Bazhlekov "Numerical investigation of the effect 
-% of insoluble surfactants on drop deformation and breakup in simple shear 
-% ?ow".
+% of insoluble surfactants on drop deformation and breakup in simple shear flow.
 % El calculo es realizado sobre una malla triangular struct
 % gamma: concentracion de sulfactante en cada nodo de la malla.
 % struct: structura de la malla.

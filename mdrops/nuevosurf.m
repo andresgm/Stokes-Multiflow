@@ -1,15 +1,15 @@
 % CALCULO DEL FLUJO DE STOKES PARA UNA GOTA
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
-clear;clc
-% opciones de carga de archivos
+clear;clc; close all
+%% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
 nombreorigen = 'sph ref 3';
 carpetaorigen = '';
 iteracion = [];
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'bazf8a13-2b';
+carpetadestino = 'sedimentacion_gota_g0_1_lambda_1_validacion_stokes_surf_inf';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -17,64 +17,52 @@ opcionsim = 0;
 
 % Algoritmo de flujo de stokes.
 % capilar o bond
-ca = 0.1;
+ca = 0;
 % lamda
-lamda = 2;
+lamda = 1;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
-greenfunction = @greeninf;
 % aplica sol cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
-curvopt = 2;
+curvopt = 1;
 % Adimensionalizacion
-adim = 1;
+adim = 2;
 % frecuencia de guardar resultados
-outputfreq = 20;
+outputfreq = 10;
 
 % Banderas de fuerza dif 0: si. 1: no
-    % curvatura
+    % Tension superficial
 ka = 1;
     % gravedad
-kb = 0;
+kb = 1;
+   % Si hay gravedad se debe definir el n?mero de Bond y admin debe ser 2!
+Bo = 1;
     % marangoni
 kc = 1;
-    % campo electrico
-kd = 0;
     
 % sulfactantes si kc = 1. 
-% maranmodel = 1(lineal) definir beta y pe
-% maranmodel = 2(logaritmico) definir x, e y pe
-    maranmodel = 2;
-    e = 0.35;
-    % constante Kbar del modelo
-    x = 0.975;
-    alpha = 100;
-    % constante para modelo lineal
-    beta = 0.2;
-    % Peclet para la evolucion de surfactantes
-    % pe = ca * ALPHA (Bazhekov)
-    s0seq = (1 + e*log(1-x))^(-1);
-    % para modelo no lineal    
-    if maranmodel == 1
-        % lineal
-        pe = alpha*ca; 
-    elseif maranmodel == 2
-        % logaritmico
-        pe = ca*alpha*s0seq;
-%         pe = alpha
-    end
-   
+% maranmodel = 1(lineal) definir beta y pe(alpha)
+% maranmodel = 2(logaritmico) definir x, e y pe(alpha)
+ maranmodel = 2;
+ e = 0.20;
+ % Concentracion 
+ x = 0.975;
+ % Parametro \Alpha =  \simga_0 R_0/\mu D_s
+ alpha = 100;
+ % constante para modelo lineal
+ beta = 0.2;
+
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 0];
+xc =[0 0 20];
 % Introduzca el/los radios de la/s gotas
 xr = 1;
 
 % pasos de tiempo de la simulacion
-numtimesteps = 20000;
+numtimesteps = 80000;
 
 redfactor = 100;
 
@@ -94,14 +82,14 @@ optesc.tolerrorvol = errorvoltol;
 % numero de puntos a usar para integracion polar 4-6-8-12-20
 npolar = 4;
 
-% parametros de sulfactantes
+% parametros de surfactantes
 % opciones de evolucion de la interfase
 % surfopt.opt = 1 los nodos solo se mueven con la velocidad normal
 % surfopt.opt = 2 los nodos se mueven con la velocidad normal y adaptacion
 % surfopt.opt = 3 los nodos se mueven con la velocidad hidrodinamica
 % surfopt.opt = 4 los nodos se mueven con la velocidad hidrodinamica y adaptacion
 surfopt.opt = 2;
-% parametros de tiempo para integracion de sulfactantes
+% parametros de tiempo para integracion de surfactantes
 % theta = 0 Euler Explicito
 % theta = 0.5 semi implicito
 % theta = 1 full implicito
@@ -109,13 +97,36 @@ theta = 0.5;
 
 %% procesamiento de parametros
 if adim == 1
-    % adimensionalizacion de bazhlekov
+    warning('Esta dimensionalizacion permite solo flujo infinito')
+    greenfunction = @greeninf;
+    parms.greenfunction = greenfunction;
+    parms.flow = flow;
+    parms.curvopt = curvopt;
+       
+   % adimensionalizacion de bazhlekov
     parms.rkextf = 2/(lamda + 1);
     parms.rksl = 2/(lamda + 1);
     parms.rkdl = 2*(lamda - 1)/(lamda + 1);
-
-    parms.ca = ca;
+    
+    if ca == 0
+       error('Para esta adimensionalizacion Ca debe ser un n?mero positivo > 0')
+    else
+       parms.ca = ca;
+    end
+    
     parms.lamda = lamda;
+    % Peclet para la evolucion de surfactantes
+    % pe = ca * ALPHA (Bazhekov)
+    s0seq = (1 + e*log(1-x))^(-1);
+    % para modelo no lineal    
+    if maranmodel == 1
+        % lineal
+        pe = alpha*ca; 
+    elseif maranmodel == 2
+        % logaritmico
+        pe = ca*alpha*s0seq;
+%         pe = alpha
+    end
     % parametros de simulacion
     if ka == 1 
         % curvatura constante
@@ -146,15 +157,56 @@ if adim == 1
     else
         parms.maran.rkmaran = 0; 
     end
-    
-    
+        
 elseif adim == 2
-    % adimensionalizacion de pozrkidis
+    % adimensionalizacion de andres gonzalez basado en la velocidad
+    % caracter?stica de sedimentacion U_0=\Delata \rho g R_0^2/\mu(1+\lambda)
     
+    parms.flow = flow;
+    greenfunction = @greeninf;
+    parms.greenfunction = greenfunction;
+    parms.curvopt = curvopt;
+    % adimensionalizacion del single layer
+    parms.rkextf = 2*ca/Bo;
+    parms.rksl = 2;
+    parms.rkdl = 2*(lamda - 1)/(lamda + 1);
+
+    parms.Bo = Bo;   
+    parms.lamda = lamda;
+    parms.ca = ca;
+    % parametros de simulacion
+    if ka == 1 
+        % curvatura constante
+        parms.rkcurv = 1/Bo;
+    else
+        parms.rkcurv = 0;
+    end
+
+    if kb == 1
+        % gravedad
+        parms.rkgrav = 1;
+    else
+        parms.rkgrav = 0;
+    end
+    
+    if kc == 1
+       pe = Bo*alpha/(1-lamda);
+        parms.maran.rkmaran = 1/Bo;
+        if maranmodel == 1
+            parms.maran.maranmodel = 'linear';
+            parms.maran.beta = beta;
+            parms.maran.pe = pe;
+        elseif maranmodel  == 2
+            parms.maran.maranmodel = 'log';
+            parms.maran.pe = pe;
+            parms.maran.x = x;
+            parms.maran.e = e;
+        end
+    else
+        parms.maran.rkmaran = 0; 
+    end
+      
 end
-parms.greenfunction = greenfunction;
-parms.curvopt = curvopt;
-parms.flow = 'inf';
 
 if dlmod == 1
     parms.dlmod = 'deflaction';
@@ -306,6 +358,7 @@ for p = 1:numtimesteps
     tic
 % calcule la distancia minima de adaptacion y el paso de tiempo
     counter = counter + 1;  
+    disp(['iteracion = ', num2str(p)])
     
     if geom.numdrops == 1
         % lmin entre nodos de una misma gota
@@ -345,43 +398,47 @@ for p = 1:numtimesteps
     deltat = lmint^1.5/redfactor;
     parms.lmin = lmin;
     
-% primer paso de runge kutta
-    
-   % invoque el problema de flujo de stokes con surfactantes
-    [velnode0,geom] = stokessurf(geom,parms,flds);
-   
-    % factor k1 de runge kutta y calculo de las matrices de concentracion
+% Para los primeros pasos usamos RK4 para inicializar los puntos de
+% Adams-Bashforth-Moulton
+   if p <=3
+       % primer paso de runge kutta f1
+       % invoque el problema de flujo de stokes
+       [velnode1,geom] = stokessurf(geom,parms,flds);
+       % invoque la adaptacion de la malla
+       % veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       % factor k1 de runge kutta y calculo de las matrices de concentracion
     if surfopt.opt == 1
        % normal
-       velnormal0 = repmat(sum(velnode0.*geom.normal,2),[1 3]).*geom.normal;
+       velnormal0 = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode0,zeros(numnodes,3),pe,surfopt);
+       ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
        end
-       k1 = deltat.*velnormal0;
+       f1 = deltat.*velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
        veladapt0 = meshadapt2(geom,parms);
-       veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
-       velnormal0 = repmat(sum(velnode0.*geom.normal,2),[1 3]).*geom.normal;
+       % veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
+       velnormal0 = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode0,veladapt0,pe,surfopt);
+         ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
        end
-       k1 = deltat.*(velnormal0 + veladapt0);
+       f1 = deltat.*(velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode0,zeros(numnodes,3),pe,surfopt);
+       ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
        end
-       k1 = deltat.*velnode0;
+       f1 = deltat.*velnode1;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode0,veladapt0,pe,surfopt);
+       ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
        end
-       k1 = deltat.*(velnode0 + veladapt0);
+       f1 = deltat.*(velnode1 + veladapt0);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -397,50 +454,55 @@ for p = 1:numtimesteps
         geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
         geom.gammatot
     end
-    % evolucion de las posiciones de los nodos en t + dt/2
-        nodesori = geom.nodes;
-        geom.nodes = geom.nodes + (1/2).*k1;
-        
-% segundo paso de runge kutta
-    % invoque el problema de flujo de stokes con surfactantes
-   [velnode,geom] = stokessurf(geom,parms,flds);
-      
-   % factor k1 de runge kutta y calculo de las matrices de concentracion
-   if surfopt.opt == 1
+
+       abm{counter} = f1;
+       nodes0 = geom.nodes;
+       geom.nodes = geom.nodes + (1/2).*f1;
+
+    %% segundo paso de runge kutta f2
+       % invoque el problema de flujo de stokes
+       [velnode2,geom] = stokessurf(geom,parms,flds);
+       % invoque la adaptacion de la malla
+    %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       % factor k1 de runge kutta y calculo de las matrices de concentracion
+    if surfopt.opt == 1
        % normal
-       velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+       velnormal0 = repmat(sum(velnode2.*geom.normal,2),[1 3]).*geom.normal;
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
+       ajimat = surfactants(geom,velnode2,zeros(numnodes,3),pe,surfopt);
        end
-       k2 = deltat.*velnormal;
-   elseif surfopt.opt == 2
-        % normal + adaptacion
+       f2 = deltat.*velnormal0;
+    elseif surfopt.opt == 2
+       % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
-       veladapt = meshadapt2(geom,parms);
-       veladapt = veladapt - repmat(sum(veladapt.*geom.normal,2),[1 3]).*geom.normal; 
-       velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+       veladapt0 = meshadapt2(geom,parms);
+       % veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
+       velnormal0 = repmat(sum(velnode2.*geom.normal,2),[1 3]).*geom.normal;
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode,veladapt,pe,surfopt);
+       ajimat = surfactants(geom,velnode2,veladapt0,pe,surfopt);
        end
-       k2 = deltat.*(velnormal + veladapt);
-   elseif surfopt.opt == 3
+       f2 = deltat.*(velnormal0 + veladapt0 + veltan);
+    elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
+       ajimat = surfactants(geom,velnode2,zeros(numnodes,3),pe,surfopt);
        end
-       k2 = deltat.*velnode;
-   elseif surfopt.opt == 4
+       f2 = deltat.*velnode0;
+    elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
-       veladapt = meshadapt2(geom,parms);
+       veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
-       ajimat = surfactants(geom,velnode,veladapt,pe,surfopt);
+       ajimat = surfactants(geom,velnode2,veladapt0,pe,surfopt);
        end
-       k2 = deltat.*(velnode + veladapt);
-   end
+       f2 = deltat.*(velnode2 + veladapt0);
+    end
    
     if parms.maran.rkmaran ~= 0
-        % evolucion del sulfactante en t + deltat
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
         flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
 
         % escale la concentracion
@@ -450,10 +512,256 @@ for p = 1:numtimesteps
         geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
         geom.gammatot
     end
-    
-    geom.nodes = nodesori + k2;
+
+       geom.nodes = nodes0 + (1/2).*f2;
+
+    %% tercer paso de runge kutta f3
+       % invoque el problema de flujo de stokes
+       [velnode3,geom] = stokessurf(geom,parms,flds);
+       % invoque la adaptacion de la malla
+    %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       % factor k1 de runge kutta y calculo de las matrices de concentracion
+    if surfopt.opt == 1
+       % normal
+       velnormal0 = repmat(sum(velnode3.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode3,zeros(numnodes,3),pe,surfopt);
+       end
+       f3 = deltat.*velnormal0;
+    elseif surfopt.opt == 2
+       % normal + adaptacion
+       temporal = repmat(geom.velcentroid,[numnodes 1]);
+       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+       veladapt0 = meshadapt2(geom,parms);
+       % veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
+       velnormal0 = repmat(sum(velnode3.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode3,veladapt0,pe,surfopt);
+       end
+       f3 = deltat.*(velnormal0 + veladapt0 + veltan);
+    elseif surfopt.opt == 3
+       % hidrodinamica
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode3,zeros(numnodes,3),pe,surfopt);
+       end
+       f3 = deltat.*velnode3;
+    elseif surfopt.opt == 4
+       % hidrodinamica + adaptacion      
+       veladapt0 = meshadapt2(geom,parms);
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode3,veladapt0,pe,surfopt);
+       end
+       f3 = deltat.*(velnode3 + veladapt0);
+    end
    
-% escalaje
+    if parms.maran.rkmaran ~= 0
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
+        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+
+        % escale la concentracion
+        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        gammasc = geom.gammatotori/gammatotnew;
+        flds.gamma = flds.gamma.*gammasc;
+        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        geom.gammatot
+    end
+
+       geom.nodes = nodes0 + f3;
+
+    %% cuarto paso de runge kutta f4
+       % invoque el problema de flujo de stokes
+       [velnode,geom] = stokessurf(geom,parms,flds);
+       % invoque la adaptacion de la malla
+    %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       % factor k1 de runge kutta y calculo de las matrices de concentracion
+    if surfopt.opt == 1
+       % normal
+       velnormal0 = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
+       end
+       f4 = deltat.*velnormal0;
+    elseif surfopt.opt == 2
+       % normal + adaptacion
+       temporal = repmat(geom.velcentroid,[numnodes 1]);
+       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+       veladapt0 = meshadapt2(geom,parms);
+       % veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
+       velnormal0 = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
+       end
+       f4 = deltat.*(velnormal0 + veladapt0 + veltan);
+    elseif surfopt.opt == 3
+       % hidrodinamica
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
+       end
+       f4 = deltat.*velnode0;
+    elseif surfopt.opt == 4
+       % hidrodinamica + adaptacion      
+       veladapt0 = meshadapt2(geom,parms);
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
+       end
+       f4 = deltat.*(velnode + veladapt0);
+    end
+   
+    if parms.maran.rkmaran ~= 0
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
+        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+
+        % escale la concentracion
+        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        gammasc = geom.gammatotori/gammatotnew;
+        flds.gamma = flds.gamma.*gammasc;
+        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        geom.gammatot
+    end
+
+       geom.nodes = nodes0 + (f1+2*f2+2*f3+f4)/6;
+
+   else
+       
+       % Ahora podemos usar el m?todo Predictor-Corrector de
+       % Adams-Bashforth-Moulton
+       
+       % Paso predictor
+       
+       % Calculo de la velocidad en el punto actual
+       
+       [velnode1,geom] = stokessurf(geom,parms,flds);
+       % invoque la adaptacion de la malla
+       % veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       % factor k1 de runge kutta y calculo de las matrices de concentracion
+    if surfopt.opt == 1
+       % normal
+       velnormal0 = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
+       end
+       f1 = deltat.*velnormal0;
+    elseif surfopt.opt == 2
+       % normal + adaptacion
+       temporal = repmat(geom.velcentroid,[numnodes 1]);
+       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+       veladapt0 = meshadapt2(geom,parms);
+       % veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
+       velnormal0 = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
+       end
+       f1 = deltat.*(velnormal0 + veladapt0 + veltan);
+    elseif surfopt.opt == 3
+       % hidrodinamica
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
+       end
+       f1 = deltat.*velnode1;
+    elseif surfopt.opt == 4
+       % hidrodinamica + adaptacion      
+       veladapt0 = meshadapt2(geom,parms);
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
+       end
+       f1 = deltat.*(velnode1 + veladapt0);
+    end
+   
+    if parms.maran.rkmaran ~= 0
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
+        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+
+        % escale la concentracion
+        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        gammasc = geom.gammatotori/gammatotnew;
+        flds.gamma = flds.gamma.*gammasc;
+        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        geom.gammatot
+    end
+
+       abm{4} = f1;
+       nodes0 = geom.nodes;
+       geom.nodes = geom.nodes + (-9*abm{1}+37*abm{2}-59*abm{3}+55*abm{4})/24;
+       
+       % Paso corrector
+       
+       % Calculo de la velocidad en el punto siguiente con la prediccion
+       
+       [velnode,geom] = stokessurf(geom,parms,flds);
+       % invoque la adaptacion de la malla
+       % veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       % factor k1 de runge kutta y calculo de las matrices de concentracion
+    if surfopt.opt == 1
+       % normal
+       velnormal0 = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
+       end
+       f2 = deltat.*velnormal0;
+    elseif surfopt.opt == 2
+       % normal + adaptacion
+       temporal = repmat(geom.velcentroid,[numnodes 1]);
+       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+       veladapt0 = meshadapt2(geom,parms);
+       % veladapt0 = veladapt0 - repmat(sum(veladapt0.*geom.normal,2),[1 3]).*geom.normal; 
+       velnormal0 = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
+       end
+       f2 = deltat.*(velnormal0 + veladapt0 + veltan);
+    elseif surfopt.opt == 3
+       % hidrodinamica
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
+       end
+       f2 = deltat.*velnode0;
+    elseif surfopt.opt == 4
+       % hidrodinamica + adaptacion      
+       veladapt0 = meshadapt2(geom,parms);
+       if parms.maran.rkmaran ~= 0
+       ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
+       end
+       f2 = deltat.*(velnode + veladapt0);
+    end
+   
+    if parms.maran.rkmaran ~= 0
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
+        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+
+        % escale la concentracion
+        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        gammasc = geom.gammatotori/gammatotnew;
+        flds.gamma = flds.gamma.*gammasc;
+        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        geom.gammatot
+    end
+
+       abm{5} = f2;
+       
+       geom.nodes = nodes0 + (abm{2}-5*abm{3}+19*abm{4}+9*abm{5})/24;
+       
+       % Actualizacion nodos
+       
+       abm{1} = abm{2};
+       abm{2} = abm{3};
+       abm{3} = abm{4};
+       
+   
+   end
+    
+%% escalaje
     geomprop = normalandgeo(geom,normalandgeoopt);
     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
@@ -468,6 +776,7 @@ for p = 1:numtimesteps
     for r=1:geom.numdrops
        if errorvol(r) > errorvoltol
            % invoque escalaje
+           disp('Realizando Escalaje')
            geom = escaling(geom,optesc,r);
        end
     end
@@ -483,27 +792,47 @@ for p = 1:numtimesteps
     geom.xc = centroide(geom);
     geom.velcentroid = (geom.xc - xcant)./deltat;
     
-% grafique la geometria
-    figure(1);
-%     grafscfld(geom,flds.gamma);
-    grafscfld(geom,geom.rsigmavar);
-    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    getframe; title('curv');
-% grafique la velocidad del centroide
-    figure(2); plot(geom.tiempo,geom.velcentroid(1,2),'*');hold on; title('velcentroid');
+    if parms.maran.rkmaran ~= 0
+   % grafique la geometria
+       figure(1);
+   %     grafscfld(geom,flds.gamma);
+       grafscfld(geom,geom.rsigmavar);
+       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+       getframe; title('\sigma');
+       figure(2);
+   %     grafscfld(geom,flds.gamma);
+       grafscfld(geom,flds.gamma);
+       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+       getframe; title('\gamma');
+    else
+      figure(1);
+      grafscfld(geom,geom.curv);
+      axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+      getframe; title('curv');
+    end
+% % grafique la velocidad del centroide
+%     figure(2); plot(geom.tiempo,geom.velcentroid(1,2),'*');hold on; title('velcentroid');
 % grafique la velocidad normal
     figure(3); plot(geom.tiempo,velcont,'*');hold on; title('velnormal');
 % grafique error de volumen
-    figure(4); plot(geom.tiempo,errorvol,'*');hold on;title('errorvol');
-% grafique la velocidad del centroide en x3
-    figure(5); plot(geom.tiempo,geom.velcentroid(1,3),'*');hold on; title('velcentroid in x3');
-% grafique la velocidad del centroide en x3
-    figure(6); plot(geom.tiempo,max(flds.gamma),'*');hold on; title('max gamma in x3');    
-% monitoreo de la concentracion
-    figure(7); plot(geom.tiempo,geom.gammatot,'*');hold on; title('gammatot');
-    
-    figure(8); plot(geom.tiempo,min(flds.gamma),'*');hold on; title('min gamma');  
-        
+%    figure(4); plot(geom.tiempo,errorvol,'*');hold on;title('errorvol');
+% % grafique la velocidad del centroide en x3
+%     figure(5); plot(geom.tiempo,geom.velcentroid(1,3),'*');hold on; title('velcentroid in x3');
+% % grafique la velocidad del centroide en x3
+%     figure(6); plot(geom.tiempo,max(flds.gamma),'*');hold on; title('max gamma in x3');    
+% % monitoreo de la concentracion
+%     figure(7); plot(geom.tiempo,geom.gammatot,'*');hold on; title('gammatot');
+%     
+%     figure(8); plot(geom.tiempo,min(flds.gamma),'*');hold on; title('min gamma');  
+%
+if adim == 2
+   
+   % grafique la velocidad del centroide en x3
+       figure(4); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc in x3');
+   % grafique la posicion del centroide en x3
+       figure(5); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');   
+end    
+
 % guarde resultados
     if counter == outputfreq
         itsaved = itsaved + 1;
@@ -512,6 +841,6 @@ for p = 1:numtimesteps
         save(nombrearchivo,'geom','velnode','parms','adim','flds');
     end
     disp(carpetadestino)
-    disp('deltat'); geom.deltat
+    disp(['deltat: ', num2str(geom.deltat)])
     toc
 end

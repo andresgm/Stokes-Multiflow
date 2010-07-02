@@ -45,7 +45,7 @@ elseif parms.curvopt == 3
 end
 
 
-% calcule la fuerza por curvatura
+% calcule la fuerza por tension superficial
 if rkcurv ~= 0
     rdeltafcurv = deltafcurv(geom.curv,rkcurv);
 else
@@ -88,7 +88,7 @@ for k=1:geom.numdrops
     nodesperdrop{k} = geom.nodes(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
 end
 
-parfor j=1:numnodes
+for j=1:numnodes
     % calcule la integral de la gota a la que pertenece el polo xj
     % pregunte en que gota esta el polo xj
     for k=1:geom.numdrops

@@ -6,3 +6,4 @@ function [rdeltafmaran,rdeltafcurv,rsigmavar] = deltafmaran(struct,gamma,maran,r
 [rmaranstress,rsigmavar] = marangoni(struct,gamma,maran);
 rdeltafmaran = rmaranstress.*maran.rkmaran;
 rdeltafcurv = deltafcurv(struct.curv,rsigmavar).*rkcurv;
+%%

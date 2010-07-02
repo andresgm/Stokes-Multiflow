@@ -1,11 +1,12 @@
 function parms = conststokesdrop(adim,flow,ca,lamda,g0,e0,ka,kb,kd)
 
 if adim == 1
-    % adimensionalizacion de andres gonzalez
+    % adimensionalizacion de andres gonzalez basado en la velocidad
+    % caracter?stica de sedimentacion U_0=\Delata \rho g R_0^2/\mu(1+\lambda)
     parms.flow = flow;
     parms.w = 0;
     % adimensionalizacion del single layer
-    parms.rkextf = 2*ca;
+    parms.rkextf = 2*ca/g0;
     parms.rksl = 2;
     parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 
@@ -34,7 +35,7 @@ if adim == 1
         parms.rkelect = 0;
     end    
      warning...
-        ('Se considera la adimensionalizacion: DeltaF = (Sigma/g0)(2H) + Z - (1/g0)(4H^3 + 2Laps(H))');
+        ('DeltaF = (Sigma/g0)(2H) + Z');
 elseif adim == 2
     % adimensionalizacion de kennedy - No gravity
     parms.flow = flow;

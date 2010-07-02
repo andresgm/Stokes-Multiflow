@@ -1,15 +1,15 @@
 % CALCULO DEL FLUJO DE STOKES PARA UNA GOTA
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
-clear;clc
-% opciones de carga de archivos
+clear;clc;close all;
+%% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
 nombreorigen = 'sph ref 3';
 carpetaorigen = '';
 iteracion = [];
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_gota_g0_1_lambda_10';
+carpetadestino = 'sedimentacion_gota_g0_1_lambda_1_validacion_stokes_inf';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -19,13 +19,13 @@ opcionsim = 0;
 % capilar o bond
 ca = 0;
 % lamda
-lamda = 10;
+lamda = 1;
 % g0: solo aplica para adim = 1. g0 = 1 por defecto
 g0 = 1;
 % campo electrico
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 % aplica sol cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: best par (extended);
@@ -37,7 +37,7 @@ adim = 1;
 outputfreq = 10;
 
 % Banderas de fuerza dif 0: si. 1: no
-    % curvatura
+    % Tension superficial
 ka = 1;
     % gravedad
 kb = 1;
@@ -47,14 +47,14 @@ kd = 0;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 30];
+xc =[0 0 20];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
-numtimesteps = 10000;
-deltat = 0.001;
-redfactor = 100;
+numtimesteps = 80000;
+
+redfactor = 70;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal
@@ -196,14 +196,15 @@ elseif opcionsim == 2
 end
 
 
-%% evolucion mediante runge kutta de 2to orden
+%% evolucion mediante runge kutta de 4to orden
 xcant = centroide(geom);
 geom.velcentroid = [0 0 0];
 geom.xc = xcant;
 for p = paso:numtimesteps
 tic
 % calcule la distancia minima de adaptacion y el paso de tiempo
-    counter = counter + 1;    
+    counter = counter + 1;
+    disp(['iteracion = ', num2str(p)])
    
     if geom.numdrops == 1
         % lmin entre nodos de una misma gota
@@ -243,55 +244,190 @@ tic
     deltat = lmint^1.5/redfactor;
     parms.lmin = lmin;
     
-% primer paso de runge kutta
-   % invoque el problema de flujo de stokes
-   [velnode0,geom,parms] = stokesdrop(geom,parms);
-   
-   if velopt == 1
-       % hidrodinamica + adaptacion
-       veladapt0 = meshadapt2(geom,parms);
-       temporal = repmat(geom.velcentroid,[numnodes 1]);
-       % veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
-       veltan = 0;
-       k1 = deltat.*(velnode0 + veladapt0 + veltan);
-   elseif velopt == 2
-       % normal + adaptacion
-       temporal = repmat(geom.velcentroid,[numnodes 1]);
-       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
-       % veltan = 0;
-%        veladapt = 0;
-       velnormal0 = repmat(sum(velnode0.*geom.normal,2),[1 3]).*geom.normal;
-       veladapt0 = meshadapt2(geom,parms);
-       k1 = deltat.*(velnormal0 + veladapt0 + veltan);
-   end
-   
-   nodesori = geom.nodes;
-   geom.nodes = geom.nodes + (1/2).*k1;
-   
-% segundo paso de runge kutta
-    % invoque el problema de flujo de stokes
-   [velnode,geom,parms] = stokesdrop(geom,parms);
-     
-   if velopt == 1
-       % hidrodinamica + adaptacion
-       temporal = repmat(geom.velcentroid,[numnodes 1]);
-       veladapt = meshadapt2(geom,parms);
-       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
-%        veltan = 0;
-       k2 = deltat.*(velnode + veladapt + veltan);
-   elseif velopt == 2
-       % normal + adaptacion
-       veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
-%        veltan = 0;
-%        veladapt = 0;
-       velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
-       veladapt = meshadapt2(geom,parms);
-       k2 = deltat.*(velnormal + veladapt + veltan);
-   end
-  
-   geom.nodes = nodesori + k2;
+% Para los primeros pasos usamos RK4 para inicializar los puntos de
+% Adams-Bashforth-Moulton
+   if p <=3
+       % primer paso de runge kutta f1
+       % invoque el problema de flujo de stokes
+       [velnode1,geom,parms] = stokesdrop(geom,parms);
+       % invoque la adaptacion de la malla
+       % veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
-% escalaje
+       if velopt == 1
+           % hidrodinamica + adaptacion
+           veladapt1 = meshadapt2(geom,parms);
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+    %        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+           veltan = 0;
+           f1 = deltat.*(velnode1 + veladapt1 + veltan);
+       elseif velopt == 2
+           % normal + adaptacion
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+           veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+    %        veltan = 0;
+    %        veladapt = 0;
+           velnormal1 = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt1 = meshadapt2(geom,parms);
+           f1 = deltat.*(velnormal1 + veladapt1 + veltan);
+       end
+
+       abm{counter} = f1;
+       nodes0 = geom.nodes;
+       geom.nodes = geom.nodes + (1/2).*f1;
+
+    %% segundo paso de runge kutta f2
+       % invoque el problema de flujo de stokes
+       [velnode2,geom,parms] = stokesdrop(geom,parms);
+       % invoque la adaptacion de la malla
+    %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       if velopt == 1
+           % hidrodinamica + adaptacion
+           veladapt2 = meshadapt2(geom,parms);
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+    %        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+           veltan = 0;
+           f2 = deltat.*(velnode2 + veladapt2 + veltan);
+       elseif velopt == 2
+           % normal + adaptacion
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+           veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+    %        veltan = 0;
+    %        veladapt = 0;
+           velnormal2 = repmat(sum(velnode2.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt2 = meshadapt2(geom,parms);
+           f2 = deltat.*(velnormal2 + veladapt2 + veltan);
+       end
+
+       geom.nodes = nodes0 + (1/2).*f2;
+
+    %% tercer paso de runge kutta f3
+       % invoque el problema de flujo de stokes
+       [velnode3,geom,parms] = stokesdrop(geom,parms);
+       % invoque la adaptacion de la malla
+    %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       if velopt == 1
+           % hidrodinamica + adaptacion
+           veladapt3 = meshadapt2(geom,parms);
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+    %        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+           veltan = 0;
+           f3 = deltat.*(velnode3 + veladapt3 + veltan);
+       elseif velopt == 2
+           % normal + adaptacion
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+           veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+    %        veltan = 0;
+    %        veladapt = 0;
+           velnormal3 = repmat(sum(velnode3.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt3 = meshadapt2(geom,parms);
+           f3 = deltat.*(velnormal3 + veladapt3 + veltan);
+       end
+
+       geom.nodes = nodes0 + f3;
+
+    %% cuarto paso de runge kutta f4
+       % invoque el problema de flujo de stokes
+       [velnode,geom,parms] = stokesdrop(geom,parms);
+       % invoque la adaptacion de la malla
+    %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       if velopt == 1
+           % hidrodinamica + adaptacion
+           veladapt = meshadapt2(geom,parms);
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+    %        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+           veltan = 0;
+           f4 = deltat.*(velnode + veladapt + veltan);
+       elseif velopt == 2
+           % normal + adaptacion
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+           veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+    %        veltan = 0;
+    %        veladapt = 0;
+           velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadapt2(geom,parms);
+           f4 = deltat.*(velnormal + veladapt + veltan);
+       end
+
+       geom.nodes = nodes0 + (f1+2*f2+2*f3+f4)/6;
+
+   else
+       
+       % Ahora podemos usar el m?todo Predictor-Corrector de
+       % Adams-Bashforth-Moulton
+       
+       % Paso predictor
+       
+       % Calculo de la velocidad en el punto actual
+       
+       [velnode1,geom,parms] = stokesdrop(geom,parms);
+       % invoque la adaptacion de la malla
+       % veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       if velopt == 1
+           % hidrodinamica + adaptacion
+           veladapt1 = meshadapt2(geom,parms);
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+    %        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+           veltan = 0;
+           f1 = deltat.*(velnode1 + veladapt1 + veltan);
+       elseif velopt == 2
+           % normal + adaptacion
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+           veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+    %        veltan = 0;
+    %        veladapt = 0;
+           velnormal1 = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt1 = meshadapt2(geom,parms);
+           f1 = deltat.*(velnormal1 + veladapt1 + veltan);
+       end
+
+       abm{4} = f1;
+       nodes0 = geom.nodes;
+       geom.nodes = geom.nodes + (-9*abm{1}+37*abm{2}-59*abm{3}+55*abm{4})/24;
+       
+       % Paso corrector
+       
+       % Calculo de la velocidad en el punto siguiente con la prediccion
+       
+       [velnode,geom,parms] = stokesdrop(geom,parms);
+       % invoque la adaptacion de la malla
+       % veladapt0 = meshadapt(geom,adaptparms,velnode0);
+
+       if velopt == 1
+           % hidrodinamica + adaptacion
+           veladapt = meshadapt2(geom,parms);
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+    %        veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+           veltan = 0;
+           f2 = deltat.*(velnode + veladapt + veltan);
+       elseif velopt == 2
+           % normal + adaptacion
+           temporal = repmat(geom.velcentroid,[numnodes 1]);
+           veltan = temporal - repmat(sum(temporal.*geom.normal,2),[1 3]).*geom.normal;
+    %        veltan = 0;
+    %        veladapt = 0;
+           velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadapt2(geom,parms);
+           f2 = deltat.*(velnormal + veladapt + veltan);
+       end
+
+       abm{5} = f2;
+       
+       geom.nodes = nodes0 + (abm{2}-5*abm{3}+19*abm{4}+9*abm{5})/24;
+       
+       % Actualizaci?n nodos
+       
+       abm{1} = abm{2};
+       abm{2} = abm{3};
+       abm{3} = abm{4};
+       
+   
+   end
+
+%% escalaje
     geomprop = normalandgeo(geom,normalandgeoopt);
     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
@@ -306,6 +442,7 @@ tic
     for r=1:geom.numdrops
        if errorvol(r) > errorvoltol
            % invoque escalaje
+           disp('Realizando Escalaje')
            geom = escaling(geom,optesc,r);
        end
     end
@@ -326,14 +463,16 @@ tic
     grafscfld(geom,geom.curv);
     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     getframe; title('curv');
-% grafique la velocidad del centroide
-    figure(2); plot(geom.tiempo,normesp(geom.velcentroid),'*');hold on; title('velcentroid');
-% grafique la velocidad normal
+% % grafique la velocidad del centroide
+%     figure(2); plot(geom.tiempo,normesp(geom.velcentroid),'*');hold on; title('velcentroid');
+% % grafique la velocidad normal
     figure(3); plot(geom.tiempo,velcont,'*');hold on; title('velnormal');
-% grafique error de volumen
-    figure(4); plot(geom.tiempo,errorvol,'*');hold on;title('errorvol');
+% % grafique error de volumen
+%     figure(4); plot(geom.tiempo,errorvol,'*');hold on;title('errorvol');
 % grafique la velocidad del centroide en x3
-    figure(5); plot(geom.tiempo,geom.velcentroid(1,3),'*');hold on; title('velcentroid in x3');    
+    figure(4); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc in x3');
+% grafique la posicion del centroide en x3
+    figure(5); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');   
     
 % guarde resultados
     if counter == outputfreq
@@ -343,7 +482,7 @@ tic
         save(nombrearchivo,'geom','velnode','parms','adim');
     end
     disp(carpetadestino)
-    disp('deltat'); geom.deltat
+    disp(['deltat: ', num2str(geom.deltat)])
     
 toc
 end

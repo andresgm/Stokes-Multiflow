@@ -92,7 +92,7 @@ end
 
 if strcmp(tipo,'single') == 1
     % Si se usa metodo 'single' la normal no se actualiza
-    normal_f = normal_i;
+    normal_f = norm_i;
 elseif strcmp(tipo,'extended') == 1
     normal_f = normalbp;
 end
