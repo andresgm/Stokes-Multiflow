@@ -37,7 +37,7 @@ if parms.curvopt == 1
 elseif parms.curvopt == 2
     % calculo mediante extended paraboloid fitting/bestparaboloid fitting
     paropt.tipo = 'extended';
-    geom.curv = curvparaboloid(geom,paropt);
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
     lapbelmat = laplacebeltramimat(geom);

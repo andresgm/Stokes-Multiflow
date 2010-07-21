@@ -12,3 +12,4 @@ for i=1:numnodes
    temp1 = sort(unique(nodesneigh(:)));
    node2nodecell{i} = temp1;
 end
+end

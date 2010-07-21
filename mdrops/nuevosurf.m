@@ -67,8 +67,7 @@ numtimesteps = 80000;
 redfactor = 100;
 
 % parametros de adaptacion
-% velopt: 1 hidrodinamica velopt:2 normal
-velopt = 2;
+% velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
 % meshadapt lowenberg
 adaptparms.psi = 1;
 adaptparms.lamda = lamda;
@@ -251,7 +250,7 @@ if opcionsim == 0
         % Tabla de conectividad de nodos, bordes, e.t.c  
     geom.nodecon2node = node2node(geom.elements);
         % Tabla de elementos singulares a cada nodo -sparse-
-    geom.e2nsparse = ele2nodesp(geom.elements);
+    % geom.e2nsparse = ele2nodesp(geom.elements);
 
     % calcule el volumen inicial de la gota
     normalandgeoopt.normal = 1;

@@ -16,7 +16,7 @@ geom.elements  = [];
 geom.nnodesdrop = zeros(geom.numdrops,2);
 geom.neledrop = zeros(geom.numdrops,2);
 for j=1:geom.numdrops
-   % extriga las coordendas del centroide de la j esima gota
+   % extraiga las coordendas del centroide de la j esima gota
    xcdrop = xc(j,:);
    %extraiga el radio de la j gota
    xrdrop = xr(j);
