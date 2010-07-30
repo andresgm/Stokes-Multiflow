@@ -20,7 +20,7 @@ temp1 = [jacomp.g1 jacomp.g2 jacomp.g3];
 normele = temp1 ./ repmat(normesp(temp1),1,3);
 % normal Promedio en cada nodo
 normnode = zeros(numnodes,3);
-parfor i = 1:numnodes
+for i = 1:numnodes
    % extraiga los elementos del i nodo
    iele = ele2node{i};
    % extraiga y promedie las normales de los elementos

@@ -46,6 +46,10 @@ matterm1 = c_term1mat(struct,u_s);
 elseif surfopt.opt == 4 
 % los nodos se mueven con la velocidad hidrodinamica y adaptacion
 matterm1 = c_term1mat(struct,u_s + w);
+elseif surfopt.opt == 5 
+% los nodos se mueven con la velocidad normal y adaptacion passive
+% (zinchenco et al. 1997)
+matterm1 = c_term1mat(struct,w);
 end
 
 %% Calculo de la matriz asociada del segundo termino

@@ -64,7 +64,7 @@ xr = 1;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 100;
+redfactor = 50;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
@@ -87,7 +87,8 @@ npolar = 4;
 % surfopt.opt = 2 los nodos se mueven con la velocidad normal y adaptacion
 % surfopt.opt = 3 los nodos se mueven con la velocidad hidrodinamica
 % surfopt.opt = 4 los nodos se mueven con la velocidad hidrodinamica y adaptacion
-surfopt.opt = 2;
+% surfopt.opt = 5 passive (zinchenko et al.)
+surfopt.opt = 5;
 % parametros de tiempo para integracion de surfactantes
 % theta = 0 Euler Explicito
 % theta = 0.5 semi implicito
@@ -251,6 +252,12 @@ if opcionsim == 0
     geom.nodecon2node = node2node(geom.elements);
         % Tabla de elementos singulares a cada nodo -sparse-
     % geom.e2nsparse = ele2nodesp(geom.elements);
+    
+    % Encuentre los vertices de la malla si se va a usar la adaptacion de malla
+    % pasiva de Zinchenco et al. 1997
+    if surfopt.opt == 5
+       geom.vertices = extractvertices(geom);
+    end
 
     % calcule el volumen inicial de la gota
     normalandgeoopt.normal = 1;
@@ -352,7 +359,9 @@ end
 xcant = centroide(geom);
 geom.velcentroid = [0 0 0];
 geom.xc = xcant;
-
+if surfopt.opt == 5
+   veladapt = zeros(numnodes,3);
+end
 for p = 1:numtimesteps
     tic
 % calcule la distancia minima de adaptacion y el paso de tiempo
@@ -413,7 +422,7 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
        end
-       f1 = deltat.*velnormal0;
+       f1 = velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
@@ -424,20 +433,28 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
          ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
        end
-       f1 = deltat.*(velnormal0 + veladapt0 + veltan);
+       f1 = (velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
        end
-       f1 = deltat.*velnode1;
+       f1 = velnode1;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
        end
-       f1 = deltat.*(velnode1 + veladapt0);
+       f1 = (velnode1 + veladapt0);
+    elseif surfopt.opt == 5
+           % passive (zinchenco et al. 1997)
+           velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadaptgrad(geom,velnormal,veladapt);
+       if parms.maran.rkmaran ~= 0
+         ajimat = surfactants(geom,velnode1,veladapt,pe,surfopt);
+       end
+       f1 = (velnormal + veladapt);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -456,10 +473,10 @@ for p = 1:numtimesteps
 
        abm{counter} = f1;
        nodes0 = geom.nodes;
-       geom.nodes = geom.nodes + (1/2).*f1;
-
+       
     %% segundo paso de runge kutta f2
        % invoque el problema de flujo de stokes
+       geom.nodes = geom.nodes + (1/2)*deltat*f1;
        [velnode2,geom] = stokessurf(geom,parms,flds);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -471,7 +488,7 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode2,zeros(numnodes,3),pe,surfopt);
        end
-       f2 = deltat.*velnormal0;
+       f2 = velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
@@ -482,20 +499,28 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode2,veladapt0,pe,surfopt);
        end
-       f2 = deltat.*(velnormal0 + veladapt0 + veltan);
+       f2 = (velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode2,zeros(numnodes,3),pe,surfopt);
        end
-       f2 = deltat.*velnode0;
+       f2 = velnode0;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode2,veladapt0,pe,surfopt);
        end
-       f2 = deltat.*(velnode2 + veladapt0);
+       f2 = (velnode2 + veladapt0);
+    elseif surfopt.opt == 5
+           % passive (zinchenco et al. 1997)
+           velnormal = repmat(sum(velnode2.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadaptgrad(geom,velnormal,veladapt);
+       if parms.maran.rkmaran ~= 0
+         ajimat = surfactants(geom,velnode2,veladapt,pe,surfopt);
+       end
+       f2 = (velnormal + veladapt);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -512,10 +537,9 @@ for p = 1:numtimesteps
         geom.gammatot
     end
 
-       geom.nodes = nodes0 + (1/2).*f2;
-
     %% tercer paso de runge kutta f3
        % invoque el problema de flujo de stokes
+       geom.nodes = nodes0 + (1/2)*deltat*f2;
        [velnode3,geom] = stokessurf(geom,parms,flds);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -527,7 +551,7 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode3,zeros(numnodes,3),pe,surfopt);
        end
-       f3 = deltat.*velnormal0;
+       f3 = velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
@@ -538,20 +562,28 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode3,veladapt0,pe,surfopt);
        end
-       f3 = deltat.*(velnormal0 + veladapt0 + veltan);
+       f3 = (velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode3,zeros(numnodes,3),pe,surfopt);
        end
-       f3 = deltat.*velnode3;
+       f3 = velnode3;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode3,veladapt0,pe,surfopt);
        end
-       f3 = deltat.*(velnode3 + veladapt0);
+       f3 = (velnode3 + veladapt0);
+    elseif surfopt.opt == 5
+           % passive (zinchenco et al. 1997)
+           velnormal = repmat(sum(velnode3.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadaptgrad(geom,velnormal,veladapt);
+       if parms.maran.rkmaran ~= 0
+         ajimat = surfactants(geom,velnode3,veladapt,pe,surfopt);
+       end
+       f3 = (velnormal + veladapt);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -568,10 +600,9 @@ for p = 1:numtimesteps
         geom.gammatot
     end
 
-       geom.nodes = nodes0 + f3;
-
     %% cuarto paso de runge kutta f4
        % invoque el problema de flujo de stokes
+       geom.nodes = nodes0 + deltat*f3;
        [velnode,geom] = stokessurf(geom,parms,flds);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -583,7 +614,7 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
        end
-       f4 = deltat.*velnormal0;
+       f4 = velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
@@ -594,20 +625,28 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
        end
-       f4 = deltat.*(velnormal0 + veladapt0 + veltan);
+       f4 = (velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
        end
-       f4 = deltat.*velnode0;
+       f4 = velnode0;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
        end
-       f4 = deltat.*(velnode + veladapt0);
+       f4 = (velnode + veladapt0);
+    elseif surfopt.opt == 5
+           % passive (zinchenco et al. 1997)
+           velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadaptgrad(geom,velnormal,veladapt);
+       if parms.maran.rkmaran ~= 0
+         ajimat = surfactants(geom,velnode,veladapt,pe,surfopt);
+       end
+       f4 = (velnormal + veladapt);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -624,7 +663,7 @@ for p = 1:numtimesteps
         geom.gammatot
     end
 
-       geom.nodes = nodes0 + (f1+2*f2+2*f3+f4)/6;
+       geom.nodes = nodes0 + deltat*(f1+2*f2+2*f3+f4)/6;
 
    else
        
@@ -646,7 +685,7 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
        end
-       f1 = deltat.*velnormal0;
+       f1 = velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
@@ -657,20 +696,28 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
        end
-       f1 = deltat.*(velnormal0 + veladapt0 + veltan);
+       f1 = (velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,zeros(numnodes,3),pe,surfopt);
        end
-       f1 = deltat.*velnode1;
+       f1 = velnode1;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode1,veladapt0,pe,surfopt);
        end
-       f1 = deltat.*(velnode1 + veladapt0);
+       f1 = (velnode1 + veladapt0);
+    elseif surfopt.opt == 5
+           % passive (zinchenco et al. 1997)
+           velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadaptgrad(geom,velnormal,veladapt);
+       if parms.maran.rkmaran ~= 0
+         ajimat = surfactants(geom,velnode1,veladapt,pe,surfopt);
+       end
+       f1 = (velnormal + veladapt);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -689,7 +736,7 @@ for p = 1:numtimesteps
 
        abm{4} = f1;
        nodes0 = geom.nodes;
-       geom.nodes = geom.nodes + (-9*abm{1}+37*abm{2}-59*abm{3}+55*abm{4})/24;
+       geom.nodes = geom.nodes + deltat*(-9*abm{1}+37*abm{2}-59*abm{3}+55*abm{4})/24;
        
        % Paso corrector
        
@@ -706,7 +753,7 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
        end
-       f2 = deltat.*velnormal0;
+       f2 = velnormal0;
     elseif surfopt.opt == 2
        % normal + adaptacion
        temporal = repmat(geom.velcentroid,[numnodes 1]);
@@ -717,20 +764,28 @@ for p = 1:numtimesteps
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
        end
-       f2 = deltat.*(velnormal0 + veladapt0 + veltan);
+       f2 = (velnormal0 + veladapt0 + veltan);
     elseif surfopt.opt == 3
        % hidrodinamica
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,zeros(numnodes,3),pe,surfopt);
        end
-       f2 = deltat.*velnode0;
+       f2 = velnode0;
     elseif surfopt.opt == 4
        % hidrodinamica + adaptacion      
        veladapt0 = meshadapt2(geom,parms);
        if parms.maran.rkmaran ~= 0
        ajimat = surfactants(geom,velnode,veladapt0,pe,surfopt);
        end
-       f2 = deltat.*(velnode + veladapt0);
+       f2 = (velnode + veladapt0);
+    elseif surfopt.opt == 5
+           % passive (zinchenco et al. 1997)
+           velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
+           veladapt = meshadaptgrad(geom,velnormal,veladapt);
+       if parms.maran.rkmaran ~= 0
+         ajimat = surfactants(geom,velnode,veladapt,pe,surfopt);
+       end
+       f1 = (velnormal + veladapt);
     end
    
     if parms.maran.rkmaran ~= 0
@@ -749,7 +804,7 @@ for p = 1:numtimesteps
 
        abm{5} = f2;
        
-       geom.nodes = nodes0 + (abm{2}-5*abm{3}+19*abm{4}+9*abm{5})/24;
+       geom.nodes = nodes0 + deltat*(abm{2}-5*abm{3}+19*abm{4}+9*abm{5})/24;
        
        % Actualizacion nodos
        
@@ -769,6 +824,8 @@ for p = 1:numtimesteps
     geom.s = geomprop.s;
     geom.vol = geomprop.vol;
     geom.jacmat = geomprop.jacmat;
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     
     errorvol = abs((geom.vol - geom.volini)./geom.volini);
 

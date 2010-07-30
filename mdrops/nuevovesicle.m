@@ -1,16 +1,16 @@
 % CALCULO DEL FLUJO DE STOKES PARA UNA VESICULA
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
-clear;clc;close all;
+clear;clc;%close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3.mat';
+nombreorigen = 'sph ref 3';
 carpetaorigen = '';
 iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_g0_1_validacion_stokes_inf';
+carpetadestino = 'sedimentacion_g0_1_gota_semiinf';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -22,15 +22,19 @@ lamda = 1;
 g0 = 1;
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'inf';
+flow = 'semiinf';
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
 curvopt = 2;
 % Constantes del modelo de bending
     % Constante c del modelo
 c = 0.1;
-    % constante Kbar del modelo
+    % Coeficiente de rigides al doblamiento en KbT (kappa)
 kbar = 40;
+    % Coeficiente adimensional de resistencia al cambio de area: Ka*R_0^2/kappa.
+    % Usar un numero entre 2e2 y 9e5? %TODO
+kext = 2.5e7;
+
 
 % Adimensionalizacion
 adim = 1;
@@ -50,14 +54,14 @@ kd = 0;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 20];
+xc =[0 0 10];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 200;
+redfactor = 4;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
@@ -109,6 +113,7 @@ if adim == 1
         parms.rkbend = 1/g0;
         parms.bending.c = c;
         parms.bending.kbar = kbar;
+        parms.bending.kext = kext;
         parms.bending.sigma = 0;
     else
         parms.rkbend = 0;
@@ -519,7 +524,7 @@ tic
        
    
    end
-
+%   parms.bending.sigma
 %% escalaje
     geomprop = normalandgeo(geom,normalandgeoopt);
     geom.normalele = geomprop.normalele;
@@ -562,21 +567,21 @@ tic
 %     figure(2); plot(geom.tiempo,normesp(geom.velcentroid),'*');hold on; title('velcontrol');
 % grafique sigma
     if kc ~= 0
-    figure(3); plot(geom.tiempo,parms.bending.sigma,'*'); hold on;title('sigma');
-    end
-% % grafique error de volumen
-%     figure(4); plot(geom.tiempo,errorvol,'*');hold on;title('errorvol');
-% grafique laplaciano de la curvatura
-    figure(5);
+    figure(2); plot(geom.tiempo,parms.bending.sigma,'*'); hold on;title('sigma');
+    figure(3);
     grafscfld(geom,geom.lapcurv);
     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     getframe; title('laplace curv');
 % grafique la velocidad del centroide en x3
-    figure(6); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc x3');
+    end
+% % grafique error de volumen
+%     figure(4); plot(geom.tiempo,errorvol,'*');hold on;title('errorvol');
+% grafique laplaciano de la curvatura
+    figure(4); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc x3');
 % grafique la velocidad del centroide en x2
 %    figure(7); plot(geom.tiempo,geom.velcentroid(:,2),'*');hold on; title('vc x2');
 % grafique la posicion del centroide en x3
-    figure(8); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');    
+    figure(5); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');    
 % guarde resultados
     if counter == outputfreq
         itsaved = itsaved + 1;

@@ -9,7 +9,7 @@ carpetaorigen = '';
 iteracion = [];
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_gota_g0_1_lambda_1_validacion_stokes_inf';
+carpetadestino = 'sedimentacion_gota_g0_1_lambda_1_semiinf';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -17,7 +17,7 @@ opcionsim = 0;
 
 % Algoritmo de flujo de stokes.
 % capilar o bond
-ca = 0.1;
+ca = 0;
 % lamda
 lamda = 1;
 % g0: solo aplica para adim = 1. g0 = 1 por defecto
@@ -25,7 +25,7 @@ g0 = 1;
 % campo electrico
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'inf';
+flow = 'semiinf';
 % aplica sol cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: best par (extended);
@@ -40,21 +40,21 @@ outputfreq = 10;
     % Tension superficial
 ka = 1;
     % gravedad
-kb = 0;
+kb = 1;
     % campo electrico
 kd = 0;
 
 % numero de gotas
-geom.numdrops = 2;
+geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[-3 0 1; 3 0 -1];
+xc =[0 0 10];
 % Introduzca el/los radios de la/s gotas
-xr=[1;1];
+xr=[1];
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 5;
+redfactor = 2;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)

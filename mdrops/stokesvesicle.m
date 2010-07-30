@@ -61,20 +61,29 @@ else
 end
 
 if rkbend ~= 0
-    if parms.curvopt ~= 3
-        % calcule la matriz de laplace beltrami de la curvatura
-        lapbelmat = laplacebeltramimat(geom);
-    end
-    % calcule el laplace beltrami de la curvatura
-    geom.lapcurv = lapbelmat*geom.curv;
+%     if parms.curvopt ~= 3
+%         % calcule la matriz de laplace beltrami de la curvatura
+%         lapbelmat = laplacebeltramimat(geom);
+%     end
+%     % calcule el laplace beltrami de la curvatura
+%     geom.lapcurv = lapbelmat*geom.curv;
+    geom.lapcurv = lapbel(geom,geom.curv);
     % calcule el delta de fuerza por bending
     [rdeltafcurv,rdeltafbend,parms.bending.sigma] = deltafbending(geom,parms);
     geom.deltafcurv = rdeltafcurv;
     geom.deltafbend = rdeltafbend;
-    figure(5);
-    grafscfld(geom,geom.lapcurv);
-    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    getframe; title('laplace curv');
+%     figure(6);
+%     grafscfld(geom,geom.lapcurv);
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     getframe; title('laplace curv');
+%     figure(7);
+%     grafscfld(geom,geom.deltafcurv);
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     getframe; title('Tension');
+%     figure(8);
+%     grafscfld(geom,geom.deltafbend);
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     getframe; title('Bending');
 else
     rdeltafbend = 0; 
 end

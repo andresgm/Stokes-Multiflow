@@ -13,7 +13,7 @@ numpoints = size(zitavect,2);
 elements = geom.elements;
 nodes = geom.nodes;
 
-% Derivadas locales de cada punto de integraci???n.
+% Derivadas locales de cada punto de integracion.
     dx1z1 = zeros(numelements,numpoints);
     dx1z2 = zeros(numelements,numpoints);
     dx2z1 = zeros(numelements,numpoints);
