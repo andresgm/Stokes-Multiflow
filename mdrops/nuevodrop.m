@@ -30,7 +30,7 @@ flow = 'semiinf';
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: best par (extended);
 % 3: basado en laplace beltrami
-curvopt = 2;
+curvopt = 3;
 % Adimensionalizacion
 adim = 1;
 % frecuencia de guardar resultados
@@ -52,7 +52,7 @@ xc =[0 0 10];
 xr=[1];
 
 % pasos de tiempo de la simulacion
-numtimesteps = 80000;
+numtimesteps = 10;
 
 redfactor = 2;
 
@@ -388,7 +388,9 @@ tic
        % Paso predictor
        
        % Calculo de la velocidad en el punto actual
-       
+       if p==4
+       profile on
+       end
        [velnode1,geom,parms] = stokesdrop(geom,parms);
        % invoque la adaptacion de la malla
        % veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -465,6 +467,9 @@ tic
    end
 
 %% escalaje
+    if p==5
+       profile viewer
+    end
     geomprop = normalandgeo(geom,normalandgeoopt);
     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;

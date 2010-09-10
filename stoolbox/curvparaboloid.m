@@ -15,7 +15,7 @@ else
            && isfield(paropt,'itmax') ~= 1
         % use opciones para extended por defecto
 
-        tol = 1e-6;
+        tol = 1e-8;
         itmax = 100;
     elseif strcmp(tipo,'extended') == 1 && isfield(paropt,'tol') == 1 ...
            && isfield(paropt,'itmax') == 1
@@ -97,11 +97,6 @@ if strcmp(tipo,'single') == 1
 elseif strcmp(tipo,'extended') == 1
     normal_f = normalbp;
 end
-
-    figure(8);
-    grafscfld(geom,cmean);
-    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    getframe; title('Curvatura Media');
 
 end
    
@@ -196,7 +191,8 @@ function [normal,cmean,Kg] = bestparaboloid(nbcoord,normal,tol,itmax)
     % matriz de rotaciones
        r3 = normalnew;
        pga = eye(3)-normalnew'*normalnew;
-       r1 = pga(:,1)';
+       %r1 = pga(:,1)';
+       r1 = (pga*nbcoord(:,1))';
        r1 = univect(r1);
        r2 = crossv(r3,r1);
             

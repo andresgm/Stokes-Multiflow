@@ -376,21 +376,27 @@ if ~exist('v','var'),
     error(msg);
 end
 
-X = v(:,1);
-Y = v(:,2);
-Z = v(:,3);
+% X = v(:,1);
+% Y = v(:,2);
+% Z = v(:,3);
 
 if ~exist('c','var'),
-    xo = 0;
-    yo = 0;
-    zo = 0;
-else
-    xo = c(1);
-    yo = c(2);
-    zo = c(3);
+%     xo = 0;
+%     yo = 0;
+%     zo = 0;
+    c = [0,0,0];
+% else
+%     xo = c(1);
+%     yo = c(2);
+%     zo = c(3);
 end
 
 if ~exist('r','var'), r = 1; end
+
+for i = 1:size(v,1)
+   V(i,:) = (v(i,:)./normesp(v(i,:)))*r;
+end
+
 
 % alternate method is to use unit vector of V
 % [ n = 'magnitude(V)'; unitV = V ./ n; ]
@@ -399,17 +405,18 @@ if ~exist('r','var'), r = 1; end
 % use of arctan functions, which have branches.
 
 
-% Convert Cartesian X,Y,Z to spherical (radians)
-theta = atan2( (Y-yo), (X-xo) );
-phi   = atan2( sqrt( (X-xo).^2 + (Y-yo).^2 ), (Z-zo) );
-% do not calc: r = sqrt( (X-xo).^2 + (Y-yo).^2 + (Z-zo).^2);
 
-%   Recalculate X,Y,Z for constant r, given theta & phi.
-R = ones(size(phi)) * r;
-x = R .* sin(phi) .* cos(theta);
-y = R .* sin(phi) .* sin(theta);
-z = R .* cos(phi);
-
-V = [x y z];
+% % Convert Cartesian X,Y,Z to spherical (radians)
+% theta = atan2( (Y-yo), (X-xo) );
+% phi   = atan2( sqrt( (X-xo).^2 + (Y-yo).^2 ), (Z-zo) );
+% % do not calc: r = sqrt( (X-xo).^2 + (Y-yo).^2 + (Z-zo).^2);
+% 
+% %   Recalculate X,Y,Z for constant r, given theta & phi.
+% R = ones(size(phi)) * r;
+% x = R .* sin(phi) .* cos(theta);
+% y = R .* sin(phi) .* sin(theta);
+% z = R .* cos(phi);
+% 
+% V = [x y z];
 
 return

@@ -15,7 +15,7 @@ function [l,Kg] = laplacebeltramimat(geom,type)
 if nargin < 3
     %   TODO activar suo de area mixta y voronio
     type = 'voronio';
-elseif strcmp(type,'voronoi') == 1
+elseif strcmp(type,'voronio') == 1
     
 end
 

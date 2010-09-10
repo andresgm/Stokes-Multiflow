@@ -42,8 +42,8 @@ elseif parms.curvopt == 2
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
-    lapbelmat = laplacebeltramimat(geom);
-    [geom.curv,geom.Kg] = curvlb(geom,lapbelmat);
+    [lapbelmat,geom.Kg] = laplacebeltramimat(geom);
+    [geom.curv] = curvlb(geom,lapbelmat);
 end
 
 % calcule los esfuerzos por tension superficial
@@ -61,21 +61,17 @@ else
 end
 
 if rkbend ~= 0
-%     if parms.curvopt ~= 3
-%         % calcule la matriz de laplace beltrami de la curvatura
-%         lapbelmat = laplacebeltramimat(geom);
-%     end
-%     % calcule el laplace beltrami de la curvatura
-%     geom.lapcurv = lapbelmat*geom.curv;
-    geom.lapcurv = lapbel(geom,geom.curv);
+    if parms.curvopt ~= 3
+        % calcule la matriz de laplace beltrami de la curvatura
+        lapbelmat = laplacebeltramimat(geom);
+    end
+    % calcule el laplace beltrami de la curvatura
+    geom.lapcurv = lapbelmat*geom.curv;
+    % geom.lapcurv = lapbel(geom,geom.curv);
     % calcule el delta de fuerza por bending
     [rdeltafcurv,rdeltafbend,parms.bending.sigma] = deltafbending(geom,parms);
     geom.deltafcurv = rdeltafcurv;
     geom.deltafbend = rdeltafbend;
-%     figure(6);
-%     grafscfld(geom,geom.lapcurv);
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     getframe; title('laplace curv');
 %     figure(7);
 %     grafscfld(geom,geom.deltafcurv);
 %     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
@@ -112,7 +108,7 @@ for k=1:geom.numdrops
     nodesperdrop{k} = geom.nodes(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
 end
 
-parfor j=1:numnodes
+for j=1:numnodes
     % calcule la integral de la gota a la que pertenece el polo xj
     % pregunte en que gota esta el polo xj
     for k=1:geom.numdrops
