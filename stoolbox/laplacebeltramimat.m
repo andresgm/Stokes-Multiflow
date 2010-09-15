@@ -134,55 +134,57 @@ teta = acos(sum(u.*v)/(du*dv));
 % compute de area surrounding a node for a circuncentric dual
 function area2nodo = area2nodes(nodes,elements,angles2ele)
 
-numelements = size(elements,1);
-numnodes = size(nodes,1);
+   numelements = size(elements,1);
+   numnodes = size(nodes,1);
 
-% Coordenadas nodos 1, 2 y 3 vertices cada elemento
-nodo1 = nodes(elements(:,1),:);
-nodo2 = nodes(elements(:,2),:);
-nodo3 = nodes(elements(:,3),:);
-% Coordenadas nodo 4, 5 y 6 intermedios
-nodo4 = (nodes(elements(:,1),:) + nodes(elements(:,2),:)).*0.5;
-nodo5 = (nodes(elements(:,3),:) + nodes(elements(:,2),:)).*0.5;
-nodo6 = (nodes(elements(:,3),:) + nodes(elements(:,1),:)).*0.5;
-% circuncentro de cada triangulo 
-nodo7 = circuncentre(nodo1,nodo2,nodo3);
+   % Coordenadas nodos 1, 2 y 3 vertices cada elemento
+   nodo1 = nodes(elements(:,1),:);
+   nodo2 = nodes(elements(:,2),:);
+   nodo3 = nodes(elements(:,3),:);
+   % Coordenadas nodo 4, 5 y 6 intermedios
+   nodo4 = (nodes(elements(:,1),:) + nodes(elements(:,2),:)).*0.5;
+   nodo5 = (nodes(elements(:,3),:) + nodes(elements(:,2),:)).*0.5;
+   nodo6 = (nodes(elements(:,3),:) + nodes(elements(:,1),:)).*0.5;
+   % circuncentro de cada triangulo 
+   nodo7 = circuncentre(nodo1,nodo2,nodo3);
 
-% Subareas a cada nodo
-sarea1 = trianglearea(nodo1,nodo4,nodo7);
-sarea2 = trianglearea(nodo4,nodo2,nodo7);
-sarea3 = trianglearea(nodo2,nodo5,nodo7);
-sarea4 = trianglearea(nodo7,nodo5,nodo3);
-sarea5 = trianglearea(nodo7,nodo3,nodo6);
-sarea6 = trianglearea(nodo7,nodo6,nodo1);
+   % Subareas a cada nodo
+   sarea1 = trianglearea(nodo1,nodo4,nodo7);
+   sarea2 = trianglearea(nodo4,nodo2,nodo7);
+   sarea3 = trianglearea(nodo2,nodo5,nodo7);
+   sarea4 = trianglearea(nodo7,nodo5,nodo3);
+   sarea5 = trianglearea(nodo7,nodo3,nodo6);
+   sarea6 = trianglearea(nodo7,nodo6,nodo1);
 
-area1 = sarea1 + sarea6;
-area2 = sarea2 + sarea3;
-area3 = sarea4 + sarea5;
+   area1 = sarea1 + sarea6;
+   area2 = sarea2 + sarea3;
+   area3 = sarea4 + sarea5;
 
-% Indexing areas for each local node
+   % Indexing areas for each local node
 
-area2nodolocal = [area1 area2 area3];
+   area2nodolocal = [area1 area2 area3];
 
-% Area of each element
-elementarea = trianglearea(nodo1,nodo2,nodo3);
+   % Area of each element
+   elementarea = trianglearea(nodo1,nodo2,nodo3);
 
-area2nodo = zeros(numnodes,1);
+   area2nodo = zeros(numnodes,1);
 
-for i=1:numelements
-    nodesele = elements(i,:);
-    anglesele = angles2ele(i,:);
-    % pregunte si algun angulo del elemento es obtuso
-    obtind = anglesele>pi/2;
-    if anglesele(obtind) > pi/2
-        % el triangulo es obtuso
-        % para el nodo del triangulo obstuso        
-        area2nodo(nodesele(obtind)) = area2nodo(nodesele(obtind)) + elementarea(i)./2;
-        % para los nodos del triangulo no obtuso
-        area2nodo(nodesele(obtind == 0)) = area2nodo(nodesele(obtind == 0)) + elementarea(i)./4;
-    else
-        % el triangulo no es obtuso Voronoi area safe
-        area2nodo(nodesele) = area2nodo(nodesele) + area2nodolocal(i,:)';
-    end
+   for i=1:numelements
+       nodesele = elements(i,:);
+       anglesele = angles2ele(i,:);
+       % pregunte si algun angulo del elemento es obtuso
+       obtind = anglesele>pi/2;
+       if anglesele(obtind) > pi/2
+           % el triangulo es obtuso
+           % para el nodo del triangulo obstuso        
+           area2nodo(nodesele(obtind)) = ...
+              area2nodo(nodesele(obtind)) + elementarea(i)./2;
+           % para los nodos del triangulo no obtuso
+           area2nodo(nodesele(obtind == 0)) = ...
+              area2nodo(nodesele(obtind == 0)) + elementarea(i)./4;
+       else
+           % el triangulo no es obtuso Voronoi area safe
+           area2nodo(nodesele) = area2nodo(nodesele) + area2nodolocal(i,:)';
+       end
 
 end
