@@ -39,13 +39,34 @@ for i = 1:numnodes
         vj = nodes(j,:);
         vk = nodes(k,:);
         % angles
-        alpha = angleedges(vk-vi,vk-vj);
-        beta = angleedges(vj-vi,vj-vk);
-        thetat = thetat + angleedges(vi-vk,vi-vj);
+        beta = angleedges(vi-vk,vj-vk);
+        alpha = angleedges(vi-vj,vk-vj);
+        thetat = thetat + angleedges(vk-vi,vj-vi);
         % add weight
-        l(i,j) = l(i,j) + cot(alpha);
-        l(i,k) = l(i,k) + cot(beta);
+        l(i,j) = l(i,j) + cot(beta);
+        l(i,k) = l(i,k) + cot(alpha);
     end
     % element angle at node i
     sumtheta(i) = thetat;
 end
+
+L = l - diag(sum(l,2));
+
+Avor = L*normesp(geom.nodes).^2./8
+
+for j = 1:numnodes
+   L(:,j) = L(:,j)./(2.*Avor);
+end
+
+% Gaussian Curvature
+Kg = ((2.*pi) - sumtheta)./Avor;
+
+
+
+function teta = angleedges(u,v)
+
+du = sqrt(sum(u.^2));
+dv = sqrt(sum(v.^2));
+du = max(du,eps); dv = max(dv,eps);
+% cos(teta) = <u,v>/(|u|*|b|)
+teta = acos(sum(u.*v)/(du*dv));
