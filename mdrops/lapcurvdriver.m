@@ -1,6 +1,6 @@
 clc; clear;
 
-nombreorigen = 'sph ref 3';
+nombreorigen = 'sph ref 5';
 sbar = systembar();
 load([cd sbar nombreorigen]);
 

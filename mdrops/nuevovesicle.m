@@ -10,7 +10,7 @@ iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_1_test';
+carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -19,7 +19,7 @@ opcionsim = 0;
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
 lamda = 1;
-g0 = 10;
+g0 = 100;
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'semiinf';
@@ -30,7 +30,7 @@ curvopt = 3;
     % Constante c del modelo
 c = 0.1;
     % Coeficiente de rigides al doblamiento en KbT (kappa)
-kbar = 80;
+kbar = 20;
     % Coeficiente adimensional de resistencia al cambio de area: Ka*R_0^2/kappa.
     % Usar un numero entre 2e2 y 9e5? %TODO
 kext = 2.5e4;

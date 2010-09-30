@@ -42,7 +42,7 @@ elseif parms.curvopt == 2
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
-    [lapbelmat,geom.Kg] = laplacebeltramimat(geom);
+    [lapbelmat,geom.Kg] = discretelaplacebeltrami(geom);
     [geom.curv] = curvlb(geom,lapbelmat);
 end
 
@@ -63,7 +63,7 @@ end
 if rkbend ~= 0
     if parms.curvopt ~= 3
         % calcule la matriz de laplace beltrami de la curvatura
-        lapbelmat = laplacebeltramimat(geom);
+        lapbelmat = discretelaplacebeltrami(geom);
     end
     % calcule el laplace beltrami de la curvatura
     geom.lapcurv = lapbelmat*geom.curv;

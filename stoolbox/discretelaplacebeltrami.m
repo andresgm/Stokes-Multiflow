@@ -22,6 +22,7 @@ sumtheta = zeros(numnodes,1);
 for i = 1:numnodes
     ele2nodev = ele2node{i};
     thetat = 0;
+    dist2 = zeros(numnodes,1);
     for b = ele2nodev
         % b is elements adyacent to i node
         bf = elements(b,:);
@@ -42,24 +43,26 @@ for i = 1:numnodes
         beta = angleedges(vi-vk,vj-vk);
         alpha = angleedges(vi-vj,vk-vj);
         thetat = thetat + angleedges(vk-vi,vj-vi);
+        dist2(j) = normesp(vi-vj)^2;
         % add weight
         l(i,j) = l(i,j) + cot(beta);
         l(i,k) = l(i,k) + cot(alpha);
     end
     % element angle at node i
     sumtheta(i) = thetat;
+    
+    Avor(i) = l(i,:)*dist2/8;
+    
 end
 
 L = l - diag(sum(l,2));
 
-Avor = L*normesp(geom.nodes).^2./8
-
-for j = 1:numnodes
-   L(:,j) = L(:,j)./(2.*Avor);
+for i = 1:numnodes
+   L(i,:) = L(i,:)./(2.*Avor(i));
 end
 
 % Gaussian Curvature
-Kg = ((2.*pi) - sumtheta)./Avor;
+Kg = ((2.*pi) - sumtheta)./Avor';
 
 
 

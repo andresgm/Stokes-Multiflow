@@ -31,8 +31,7 @@ for iter = 1:maxit
    dfdepsprima = dFdepsprima(geom,fi);
    for k = 1:maxit
       eps = eps - dfdeps/dfdepsprima;
-      dfdeps = dFdeps(geom,fi,Vel,eps);
-      dfdepsprima = dFdepsprima(geom,fi);
+      [dfdeps,dfdepsprima] = dFdepsfast(geom,fi,Vel,eps);
       if (dfdeps < tolerance)
          flag = 0;
          break;
@@ -58,6 +57,23 @@ if flag0 == 0
 else
    error('Algoritmo de minimizacion no convergio')
 end
+
+end
+
+function [dfdeps,dfdepsprima] = dFdepsfast(geom,f,Vel,eps)
+
+   numvertices = size(geom.vertices,1);
+   
+   dfdeps = 0;
+   dfdepsprima = 0;
+   for i = 1:numvertices
+      xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
+      producto1 = xij*(Vel(geom.vertices(i,2),:)+eps*f(geom.vertices(i,2),:)...
+         -Vel(geom.vertices(i,1),:)-eps*f(geom.vertices(i,1),:))';
+      producto2 = xij*(f(geom.vertices(i,2),:)-f(geom.vertices(i,1),:))';
+      dfdeps = dfdeps + producto1*producto2;
+      dfdepsprima = dfdepsprima + producto2*producto2;
+   end
 
 end
 
