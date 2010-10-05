@@ -5,7 +5,7 @@ function veladapt = meshadaptgrad(geom,velnormal,veladapt)
 numnodes = geom.numnodes;
 
 fi = zeros(numnodes,3);
-maxit = 1000;
+maxit = 10000;
 tolerance = 1e-6;
 flag0 = 1;
 
@@ -27,8 +27,7 @@ for iter = 1:maxit
 
    eps = 1;
    flag = 1;
-   dfdeps = dFdeps(geom,fi,Vel,eps);
-   dfdepsprima = dFdepsprima(geom,fi);
+   [dfdeps,dfdepsprima] = dFdepsfast(geom,fi,Vel,eps);
    for k = 1:maxit
       eps = eps - dfdeps/dfdepsprima;
       [dfdeps,dfdepsprima] = dFdepsfast(geom,fi,Vel,eps);
@@ -77,33 +76,33 @@ function [dfdeps,dfdepsprima] = dFdepsfast(geom,f,Vel,eps)
 
 end
 
-function dfdeps = dFdeps(geom,f,Vel,eps)
-
-   numvertices = size(geom.vertices,1);
-   
-   suma = 0;
-   for i = 1:numvertices
-      xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
-      producto1 = xij*(Vel(geom.vertices(i,2),:)+eps*f(geom.vertices(i,2),:)...
-         -Vel(geom.vertices(i,1),:)-eps*f(geom.vertices(i,1),:))';
-      producto2 = xij*(f(geom.vertices(i,2),:)-f(geom.vertices(i,1),:))';
-      suma = suma + producto1*producto2;
-   end
-   dfdeps = suma;
-end      
-
-function dfdepsprima = dFdepsprima(geom,f)
-
-   numvertices = size(geom.vertices,1);
-   
-   suma = 0;
-   for i = 1:numvertices
-      xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
-      producto = xij*(f(geom.vertices(i,2),:)-f(geom.vertices(i,1),:))';
-      suma = suma + producto*producto;
-   end
-   dfdepsprima = suma;
-end
+% function dfdeps = dFdeps(geom,f,Vel,eps)
+% 
+%    numvertices = size(geom.vertices,1);
+%    
+%    suma = 0;
+%    for i = 1:numvertices
+%       xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
+%       producto1 = xij*(Vel(geom.vertices(i,2),:)+eps*f(geom.vertices(i,2),:)...
+%          -Vel(geom.vertices(i,1),:)-eps*f(geom.vertices(i,1),:))';
+%       producto2 = xij*(f(geom.vertices(i,2),:)-f(geom.vertices(i,1),:))';
+%       suma = suma + producto1*producto2;
+%    end
+%    dfdeps = suma;
+% end      
+% 
+% function dfdepsprima = dFdepsprima(geom,f)
+% 
+%    numvertices = size(geom.vertices,1);
+%    
+%    suma = 0;
+%    for i = 1:numvertices
+%       xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
+%       producto = xij*(f(geom.vertices(i,2),:)-f(geom.vertices(i,1),:))';
+%       suma = suma + producto*producto;
+%    end
+%    dfdepsprima = suma;
+% end
 
 function fdev = FdeV(geom,Vel)
 
