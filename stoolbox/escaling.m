@@ -1,8 +1,7 @@
 % Funcion de escalaje de malla
-function geom = escaling(geom,optesc,r)
+function geom = escaling(geom,optesc,r,ErrorVol)
 
 % recupere las variabels geometricas
-Nodes = geom.nodes;
 NormalAtNodes = geom.normal;
 NodesBC = geom.nodes;
 VolumeIni = geom.volini;
@@ -22,44 +21,41 @@ else
 end
     
 % opciones para la rutina de calculo de volumen
-normalandgeoopt.normal = 1;
+normalandgeoopt.normal = 0;
 normalandgeoopt.areas = 1;
 normalandgeoopt.vol = 1;
 
 % Bandera para entrar al bucle de correccion
-ErrorVol = ones(r,1);
 
 % Velocidad de correccion
 VelCor = 1;
 
 k = 0;
-while abs(ErrorVol(r))>TolErrorVol
+while abs(ErrorVol)>TolErrorVol
     k = k +1;
-    % Calculo de Volumen antes de la correccion
-    geomprop = normalandgeo(geom,normalandgeoopt);
-    geom.normalele = geomprop.normalele;
-    geom.normal = geomprop.normal;
-    geom.dsi = geomprop.dsi;
-    geom.ds = geomprop.ds;
-    geom.s = geomprop.s;
-    geom.vol = geomprop.vol;
-    geom.jacmat = geomprop.jacmat;
-    
-    % Calculo del Error en Volumen
-    ErrorVol(r) = (VolumeIni(r) - geom.vol(r))/VolumeIni(r); 
-    
+        
     % Accion de Control CORRECION
-    VelCorN = ErrorVol(r)*VelCor*Kp;
+    VelCorN = ErrorVol*VelCor*Kp;
     % Actualice los nodos a la nueva pos corregida Correccion
     VelDesp = ...
         (DeltaTe).*(VelCorN.*NormalAtNodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:));
     
     geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:) = ...
         geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:) + VelDesp;
+     
+    % Calculo de Volumen antes de la correccion
+    geomprop = normalandgeo(geom,normalandgeoopt);
+%     geom.normalele = geomprop.normalele;
+    %geom.normal = geomprop.normal;
+    geom.dsi = geomprop.dsi;
+    geom.ds = geomprop.ds;
+    geom.s = geomprop.s;
+    geom.vol = geomprop.vol;
+    %geom.jacmat = geomprop.jacmat;
         
 
     % Calculo del Error en Volumen despues de correccion
-    ErrorVol(r) = (VolumeIni(r) - geom.vol(r))/VolumeIni(r); 
+    ErrorVol = (VolumeIni(r) - geom.vol(r))/VolumeIni(r); 
     
     if k == maxit
         % deje la gota como esta

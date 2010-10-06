@@ -3,7 +3,7 @@
 % elemento de un arreglo de elementos Elements
 % Tomado de Brebbia: Boundary elements - An introductory course pg 120-122
 
-function [jacomp,dx1,dx2,dx3] = metrictrans(geom,zitavect,opcion)
+function [jacomp,dx1,dx2,dx3] = metrictrans(geom,zitavect)
 
 % recupere las variables
 numelements = size(geom.elements,1);

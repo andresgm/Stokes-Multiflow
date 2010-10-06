@@ -1,4 +1,4 @@
-function geomprop = normalandgeo(geom,normalandgeoopt,opcion)
+function geomprop = normalandgeo(geom,normalandgeoopt)
 % calcula la normal promedio en los nodos de una malla triangular
 % calcula el area superficial de cada elemento y total
 % calcula el area baricentrica alrededor de cada nodo
@@ -31,25 +31,38 @@ function geomprop = normalandgeo(geom,normalandgeoopt,opcion)
 % geom.vol: volumen total del enmallado
 
 % calcule la metrica de transformacion a cada punto
-if nargin < 3
-    jacomp = metrictrans(geom,[1/3;1/3]);
-else
-    jacomp = metrictrans(geom,[1/3;1/3],opcion);
-end
+jacomp = metrictrans(geom,[1/3;1/3]);
 
 geomprop.jacmat = jacomp.jacinv;
 geomprop.g = jacomp.g;
 
-[geomprop.normal,geomprop.normalele] = normal(geom,jacomp);
+if isfield(normalandgeoopt,'normal') == 0
+   normalandgeoopt.normal = 0;
+end
 
-if isfield(normalandgeoopt,'areas') == 1 
+if isfield(normalandgeoopt,'areas') == 0
+   normalandgeoopt.areas = 0;
+end
+
+if isfield(normalandgeoopt,'vol') == 0
+   normalandgeoopt.vol = 0;
+end
+
+if normalandgeoopt.normal == 1
+   [geomprop.normal,geomprop.normalele] = normal(geom,jacomp);
+elseif normalandgeoopt.normal == 0 && isfield(geom,'normal') == 0
+   warning('No hay normal calculada y no se solicito el calculo')
+else
+   geomprop.normal = geom.normal;
+end
+
+if normalandgeoopt.areas == 1 
     [geomprop.s,geomprop.ds,geomprop.dsi] = areas(geom);
 end
    
-if isfield(normalandgeoopt,'vol') == 1 && isfield(normalandgeoopt,'areas') == 0
+if normalandgeoopt.vol == 1 && normalandgeoopt.areas == 0
     error('To calculate volume surface areas must be computed use normalandgeoopt.areas = 1');
-elseif isfield(normalandgeoopt,'vol') == 1 ...
-        && isfield(normalandgeoopt,'areas') == 1
+elseif normalandgeoopt.vol == 1 && normalandgeoopt.areas == 1
     parfield.jacomp = jacomp;
     parfield.normal = geomprop.normal;
     parfield.dsi = geomprop.dsi;

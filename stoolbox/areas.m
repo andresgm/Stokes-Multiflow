@@ -30,7 +30,7 @@ else
 end
 % asigne la 3ra parte a cada nodo y sume (area baricentrica)
 dsi = zeros(numnodes,1);
-parfor i = 1:numnodes
+for i = 1:numnodes
    % extraiga los elementos del i nodo
    iele = ele2node{i};
    dsi(i) = (1/3)*sum(ds(iele),1);

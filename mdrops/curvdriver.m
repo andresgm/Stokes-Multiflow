@@ -27,20 +27,20 @@ geom.normalele = geomprop.normalele;
 geom.normal = geomprop.normal;
 clear Elements Nodes nombreorigen;
 
-% paropt.tipo = 'extended';
-% [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-% geom.lapcurv = lapbel(geom,geom.curv);
+paropt.tipo = 'extended';
+[geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
+geom.lapcurv = lapbel(geom,geom.curv);
 
 lapbelmat = laplacebeltramimat(geom);
 % geom.lapcurv2 = lapbelmat*geom.curv;
 [geom.curv2] = curvlb(geom,lapbelmat);
 geom.lapcurv3 = lapbelmat*geom.curv2;
 
-% figure(1);
-% % hold on
-% grafscfld(geom,geom.lapcurv);
-% axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-% getframe; title('laplace curv');
+figure(1);
+% hold on
+grafscfld(geom,geom.lapcurv);
+axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+getframe; title('laplace curv');
 % 
 % figure(2)
 % grafscfld(geom,geom.lapcurv2);
@@ -51,10 +51,10 @@ geom.lapcurv3 = lapbelmat*geom.curv2;
 % %   geom.normal(:,1),geom.normal(:,2),geom.normal(:,3))
 % %hold off
 % 
-% figure(3);
-% grafscfld(geom,geom.curv);
-% axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-% getframe; title('Curv');
+figure(3);
+grafscfld(geom,geom.curv);
+axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+getframe; title('Curv');
 % 
 % figure(4);
 % grafscfld(geom,geom.Kg);
