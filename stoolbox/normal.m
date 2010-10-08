@@ -1,4 +1,4 @@
-% calcula el vector normal exterior a los elementsos y a los nodos
+% calcula el vector normal exterior a los elementos y a los nodos
 function [normnode,normele] = normal(geom,jacomp)
 
 if nargin < 2
