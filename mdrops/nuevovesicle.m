@@ -10,7 +10,7 @@ iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20';
+carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20_profile';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -61,7 +61,7 @@ xr=[1];
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 10;
+redfactor = 5;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -182,7 +182,7 @@ if opcionsim == 0
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
     geomprop = normalandgeo(geom,normalandgeoopt);
-    geom.normalele = geomprop.normalele;
+%     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
     geom.ds = geomprop.ds;
@@ -192,6 +192,11 @@ if opcionsim == 0
     geom.volini = geom.vol;
     geom.areaini = geom.s;
     geom.xcini = centroide(geom);
+    
+    % Calculo inicial de la curvatura usando ajuste a superficie cuadratica
+    
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     
     if isempty(carpetadestino) == 1
         direccion = [cd  sbar nombredestino num2str(iteracion) '.mat'];   
@@ -279,6 +284,10 @@ tic
 % calcule la distancia minima de adaptacion y el paso de tiempo
     counter = counter + 1;
     disp(['iteracion = ', num2str(p)])
+    
+    if p == 4
+       profile on
+    end
    
     if geom.numdrops == 1
         % lmin entre nodos de una misma gota
@@ -354,6 +363,10 @@ tic
 
        nodes0 = geom.nodes;
        geom.nodes = geom.nodes + (1/2)*deltat*f1;
+       
+       paropt.tipo = 'extended';
+       [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+       
        % segundo paso de runge kutta f4
        % invoque el problema de flujo de stokes
        [velnode,geom,parms] = stokesvesicle(geom,parms);
@@ -384,6 +397,9 @@ tic
        end
        
        geom.nodes = nodes0 + deltat*f2;
+       
+       paropt.tipo = 'extended';
+       [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
        
     elseif inttype == 2
        % Runge-Kutta de cuarto orden
@@ -422,6 +438,10 @@ tic
     %% segundo paso de runge kutta f2
        % invoque el problema de flujo de stokes
        geom.nodes = geom.nodes + (1/2)*deltat*f1;
+       
+       paropt.tipo = 'extended';
+       [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+       
        [velnode2,geom,parms] = stokesvesicle(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -452,6 +472,10 @@ tic
     %% tercer paso de runge kutta f3
        % invoque el problema de flujo de stokes
        geom.nodes = nodes0 + (1/2)*deltat*f2;
+       
+       paropt.tipo = 'extended';
+       [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+       
        [velnode3,geom,parms] = stokesvesicle(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -482,6 +506,10 @@ tic
     %% cuarto paso de runge kutta f4
        % invoque el problema de flujo de stokes
        geom.nodes = nodes0 + deltat*f3;
+       
+       paropt.tipo = 'extended';
+       [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+       
        [velnode,geom,parms] = stokesvesicle(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -510,6 +538,9 @@ tic
        end
 
        geom.nodes = nodes0 + deltat*(f1+2*f2+2*f3+f4)/6;
+       
+       paropt.tipo = 'extended';
+       [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
        
    elseif inttype == 3
     
@@ -551,6 +582,10 @@ tic
        %% segundo paso de runge kutta f2
           % invoque el problema de flujo de stokes
           geom.nodes = geom.nodes + (1/2)*deltat*f1;
+          
+          paropt.tipo = 'extended';
+          [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+          
           [velnode2,geom,parms] = stokesvesicle(geom,parms);
           % invoque la adaptacion de la malla
        %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -581,6 +616,10 @@ tic
        %% tercer paso de runge kutta f3
           % invoque el problema de flujo de stokes
           geom.nodes = nodes0 + (1/2)*deltat*f2;
+          
+          paropt.tipo = 'extended';
+          [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+          
           [velnode3,geom,parms] = stokesvesicle(geom,parms);
           % invoque la adaptacion de la malla
        %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -611,6 +650,10 @@ tic
        %% cuarto paso de runge kutta f4
           % invoque el problema de flujo de stokes
           geom.nodes = nodes0 + deltat*f3;
+          
+          paropt.tipo = 'extended';
+          [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
+          
           [velnode,geom,parms] = stokesvesicle(geom,parms);
           % invoque la adaptacion de la malla
        %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -639,6 +682,9 @@ tic
           end
 
           geom.nodes = nodes0 + deltat*(f1+2*f2+2*f3+f4)/6;
+          
+          paropt.tipo = 'extended';
+          [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
 
       else
 
@@ -679,6 +725,9 @@ tic
           abm{4} = f1;
           nodes0 = geom.nodes;
           geom.nodes = geom.nodes + deltat*(-9*abm{1}+37*abm{2}-59*abm{3}+55*abm{4})/24;
+          
+          paropt.tipo = 'extended';
+          [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
 
           % Paso corrector
 
@@ -714,6 +763,9 @@ tic
           abm{5} = f2;
 
           geom.nodes = nodes0 + deltat*(abm{2}-5*abm{3}+19*abm{4}+9*abm{5})/24;
+          
+          paropt.tipo = 'extended';
+          [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
 
           % Actualizaci?n nodos
 
@@ -726,15 +778,13 @@ tic
 %   parms.bending.sigma
 %% escalaje
     geomprop = normalandgeo(geom,normalandgeoopt);
-    geom.normalele = geomprop.normalele;
-    geom.normal = geomprop.normal;
+%     geom.normalele = geomprop.normalele;
+    % geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
     geom.ds = geomprop.ds;
     geom.s = geomprop.s;
     geom.vol = geomprop.vol;
-    geom.jacmat = geomprop.jacmat;
-    paropt.tipo = 'extended';
-    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
+%     geom.jacmat = geomprop.jacmat;
     
     errorvol = abs((geom.vol - geom.volini)./geom.volini);
 
@@ -742,7 +792,7 @@ tic
        if errorvol(r) > errorvoltol
            % invoque escalaje
            disp('Realizando Escalaje')
-           geom = escaling(geom,optesc,r);
+           geom = escaling(geom,optesc,r,errorvol);
        end
     end
 
@@ -783,6 +833,10 @@ tic
     end
     disp(carpetadestino)
     disp(['deltat: ', num2str(geom.deltat)])
+    
+    if p == 14
+       profile viewer
+    end
     
 toc
 end

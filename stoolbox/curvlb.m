@@ -4,7 +4,8 @@ function curv = curvlb(geom,l)
 
 if isfield(geom,'normal') ~= 1
     % no existe calculo de la normal ejecutelo
-    normal_i = normal(geom);
+    % normal_i = normal(geom);
+    error('No se ha calculado el vector normal');
 else
    normal_i = geom.normal; 
 end

@@ -16,21 +16,22 @@ rksl = parms.rksl;
 rkextf = parms.rkextf;
 
 % calcule el vector normal a cada nodo
-normalandgeoopt.normal = 1;
+normalandgeoopt.normal = 0;
 normalandgeoopt.areas = 1;
-normalandgeoopt.vol = 1;
+normalandgeoopt.vol = 0;
 geomprop = normalandgeo(geom,normalandgeoopt);
 
 if  isfield(geom,'normal') ~= 1
     % no se ha calculado la normal inicial calcularla
-    geom.normal = geomprop.normal;
+    %geom.normal = geomprop.normal;
+    error('No ha calculado la normal')
 end
-geom.normalele = geomprop.normalele;
+% geom.normalele = geomprop.normalele;
 geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
 geom.s = geomprop.s;
-geom.vol = geomprop.vol;
-geom.jacmat = geomprop.jacmat;
+% geom.vol = geomprop.vol;
+%geom.jacmat = geomprop.jacmat;
 
 % calculo de la curvatura media
 if parms.curvopt == 1
@@ -273,7 +274,7 @@ for zz=1:100
             Temp2 = W - repmat(W(i,:),[NumXpoles 1]);
             Temp3 = sum(r.*Temp2,2);
             Cf1 = Temp1.*Temp3./rquint;
-            Cf1(find(isnan(Cf1) == 1)) = 0;
+            Cf1(isnan(Cf1) == 1) = 0;
             % 
             IntTstInf(i,:) = (0.5*W(i,:) + (3/(4*pi)).*sum(dSiV.*repmat(Cf1,[1 3]).*r,1));
         end
