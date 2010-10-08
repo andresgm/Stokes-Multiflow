@@ -39,7 +39,7 @@ C     Array information:
 C     Arguments for computational routine:
       real*8  tol, cmean, kg
       integer maxit
-      real*8 normalin(3), normalout(3)
+      real*8 normalin(3), normalout(3), nb(3,6)
 
 C-----------------------------------------------------------------------
 C     Check for proper number of arguments. 
@@ -61,6 +61,7 @@ C     Get the size of the input arrays.
 
 C     Create Fortran array from the input arguments.
       pr_nb = mxGetPr(prhs(1))
+      call mxCopyPtrToReal8(pr_nb,nb,size_nb)
       pr_normal = mxGetPr(prhs(2))
       call mxCopyPtrToReal8(pr_normal,normal_in,size_normal)
       pr_tol = mxGetPr(prhs(3))
@@ -91,10 +92,140 @@ C     Load the data into pointers, which is the output to MATLAB.
 C-----------------------------------------------------------------------
 C     Computational routine
 
-      subroutine bestparaboloid(%VAL(pr_nb),normal_in,tol,itmax,
+      subroutine bestparaboloid(nb,normal_in,tol,itmax,
      +                          m_nb,n_nb,normalout,cmean,kg)
-      real*8 x_input, y_output
+      mwSize m_nb,n_nb,it
+      real*8 normalin(3), normalout(3), nb(m_nb,n_nb)
+      real*8  tol, cmean, kg
+      integer maxit
+      
+      real*8 normalant(3), normalnew(3), r3(3), eye(3,3), pga(3,3)
+      real*8 xlocnodes(3,n_nb), mata(5,5), vectb(5,1), paramvec(5)
+      real*8 xi,yi,zi,dist,a,b,c,d,e
+      
+      eye(:,1) = [1,0,0]
+      eye(:,2) = [0,1,0]
+      eye(:,3) = [0,0,1]
 
-      y_output = 2.0 * x_input
+      normalant = [0,0,0]
+      normalnew = normal_in
+      it = 0
+      do while (normesp(normalnew - normalant) > tol)
+      it = it + 1
+C     matriz de rotaciones
+         r3 = normalnew
+         pga = eye-nn(normalnew)
+         r1 = matmul(pga,nbcoord(:,1))
+         r1 = univect(r1)
+         r2 = crossv(r3,r1)
+      
+         mr(:,1) = r1
+         mr(:,2) = r2
+         mr(:,3) = r3
+         
+         mr = transpose(mr)
+      
+         
+         for k=1:n_nb
+             xlocnodes(:,k) = matmul(mr,nbcoord(:,k))
+         end
+         
+         mata = 0
+         vectb = 0
+         
+         do i = 1,n_nb
+            xi = xlocnodes(1,i)
+            yi = xlocnodes(2,i)
+            zi = xlocnodes(3,i)
+            dist = xi**2+yi**2+zi**2
+            mata(1,1) = mata(1,1) + xi**4/dist
+            mata(1,2) = mata(1,2) + xi**3*yi/dist
+            mata(1,3) = mata(1,3) + yi**2*xi**2/dist
+            mata(1,4) = mata(1,4) + xi**3/dist
+            mata(1,5) = mata(1,5) + xi**2*yi/dist
+            mata(2,1) = mata(2,1) + xi**3*yi/dist
+            mata(2,2) = mata(2,2) + xi**2*yi**2/dist
+            mata(2,3) = mata(2,3) + xi*yi**3/dist
+            mata(2,4) = mata(2,4) + xi**2*yi/dist
+            mata(2,5) = mata(2,5) + xi*yi**2/dist
+            mata(3,1) = mata(3,1) + xi**2*yi**2/dist
+            mata(3,2) = mata(3,2) + xi*yi**3/dist
+            mata(3,3) = mata(3,3) + yi**4/dist
+            mata(3,4) = mata(3,4) + xi*yi**2/dist
+            mata(3,5) = mata(3,5) + yi**3/dist
+            mata(4,1) = mata(4,1) + xi**3/dist
+            mata(4,2) = mata(4,2) + xi**2*yi/dist
+            mata(4,3) = mata(4,3) + xi*yi**2/dist
+            mata(4,4) = mata(4,4) + xi**2/dist
+            mata(4,5) = mata(4,5) + xi*yi/dist
+            mata(5,1) = mata(5,1) + xi**2*yi/dist
+            mata(5,2) = mata(5,2) + xi*yi**2/dist
+            mata(5,3) = mata(5,3) + yi**3/dist
+            mata(5,4) = mata(5,4) + xi*yi/dist
+            mata(5,5) = mata(5,5) + yi**2/dist
+            vectb(1) = vectb(1) + xi**2*zi/dist
+            vectb(2) = vectb(2) + xi*yi*zi/dist
+            vectb(3) = vectb(3) + yi**2*zi/dist
+            vectb(4) = vectb(4) + xi*zi/dist
+            vectb(5) = vectb(5) + yi*zi/dist
+         end do
+         paramvec = mata\vectb;
+         a = paramvec(1);
+         b = paramvec(2);
+         c = paramvec(3);
+         d = paramvec(4);
+         e = paramvec(5);
+         normalant = normalnew;
+         normalnewl = [-d,-e,1]./(sqrt(d^2 + e^2 + 1));
+         % transforme la normal a la base Global
+         normalnew = (mr'*normalnewl)';
+         % curvatura media
+         cmean = -(a+c+a*e^2+c*d^2-b*d*e)/(1 + d^2 + e^2)^1.5;
+         % curvatura gaussiana
+         Kg= (4*a*c-b^2)/(1 + d^2 + e^2)^2;
+         if it >= itmax
+            error('Calculo fallido en la curvatura, fin de simulacion!')
+         end if
+      end do
+      normal = normalnew;
+      
       return
-      end
+      
+      contains
+
+      function nn(n)
+          real*8 nn(3,3), n(:)
+
+          do i=1,3
+              do j=1,3
+                  nn(i,j) = n(i)*n(j)
+              end do
+          end do
+      end function
+      
+      function normesp(x)
+        real*8 x(:)
+        real*8 normesp
+        
+        normesp = sqrt(x(1)^2+x(2)^2+x(3)^2)
+      end function
+      
+      function univect(x)
+        real*8 x(:), univect(3)
+        
+        univect=x/normesp(x)
+      end function
+      
+      function crossv(a,b)
+        real*8 a(3),b(3),crossv(3)
+        
+        c1 = a(2)*b(3)-a(3)*b(2)
+        c2 = a(3)*b(1)-a(1)*b(3)
+        c3 = a(1)*b(2)-a(2)-b(1)
+        
+        crossv = [c1,c2,c3]
+      end function
+      
+      end subroutine
+      
+      
