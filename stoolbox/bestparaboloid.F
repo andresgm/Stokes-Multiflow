@@ -31,6 +31,7 @@ C     Function declarations:
 
 C     Pointers to input/output mxArrays:
       mwPointer pr_nb,pr_normal,pr_tol,pr_itmax, pr_out
+      mwPointer out_normal, out_cmean, out_kg
 
 C     Array information:
       mwSize m_nb, n_nb, size_nb
@@ -38,7 +39,7 @@ C     Array information:
       
 C     Arguments for computational routine:
       real*8  tol, cmean, kg
-      integer maxit
+      integer itmax
       real*8 normalin(3), normalout(3), nb(3,6)
 
 C-----------------------------------------------------------------------
@@ -63,7 +64,7 @@ C     Create Fortran array from the input arguments.
       pr_nb = mxGetPr(prhs(1))
       call mxCopyPtrToReal8(pr_nb,nb,size_nb)
       pr_normal = mxGetPr(prhs(2))
-      call mxCopyPtrToReal8(pr_normal,normal_in,size_normal)
+      call mxCopyPtrToReal8(pr_normal,normalin,size_normal)
       pr_tol = mxGetPr(prhs(3))
       call mxCopyPtrToReal8(pr_tol,tol,1)
       pr_itmax = mxGetPr(prhs(4))
@@ -78,7 +79,7 @@ C     Create matrix for the return argument.
       out_kg = mxGetPr(plhs(3))
 
 C     Call the computational routine.
-      call bestparaboloid(%VAL(pr_nb),normal_in,tol,itmax,m_nb,n_nb,
+      call bestparaboloid(nb,normalin,tol,itmax,m_nb,n_nb,
      +                       normalout,cmean,kg)
       
 C     Load the data into pointers, which is the output to MATLAB.
@@ -98,10 +99,19 @@ C     Computational routine
       real*8 normalin(3), normalout(3), nb(m_nb,n_nb)
       real*8  tol, cmean, kg
       integer maxit
+      real*8 rhs(5), am(5,5)
+      integer n,nrhs,lda,ldb,ipiv(5),info
       
-      real*8 normalant(3), normalnew(3), r3(3), eye(3,3), pga(3,3)
-      real*8 xlocnodes(3,n_nb), mata(5,5), vectb(5,1), paramvec(5)
+      real*8 normalant(3), normalnew(3), normalnewl(3)
+      real*8 r1(3),r2(3),r3(3)
+      real*8 mr(3,3), eye(3,3), pga(3,3)
+      real*8 xlocnodes(3,n_nb), mata(5,5), vectb(5), paramvec(5)
       real*8 xi,yi,zi,dist,a,b,c,d,e
+      
+      n= 5
+      nrhs = 1
+      lda = 5
+      ldb = 5
       
       eye(:,1) = [1,0,0]
       eye(:,2) = [0,1,0]
@@ -115,7 +125,7 @@ C     Computational routine
 C     matriz de rotaciones
          r3 = normalnew
          pga = eye-nn(normalnew)
-         r1 = matmul(pga,nbcoord(:,1))
+         r1 = matmul(pga,nb(:,1))
          r1 = univect(r1)
          r2 = crossv(r3,r1)
       
@@ -126,9 +136,9 @@ C     matriz de rotaciones
          mr = transpose(mr)
       
          
-         for k=1:n_nb
-             xlocnodes(:,k) = matmul(mr,nbcoord(:,k))
-         end
+         do k = 1,n_nb
+             xlocnodes(:,k) = matmul(mr,nb(:,k))
+         enddo
          
          mata = 0
          vectb = 0
@@ -169,32 +179,37 @@ C     matriz de rotaciones
             vectb(4) = vectb(4) + xi*zi/dist
             vectb(5) = vectb(5) + yi*zi/dist
          end do
-         paramvec = mata\vectb;
-         a = paramvec(1);
-         b = paramvec(2);
-         c = paramvec(3);
-         d = paramvec(4);
-         e = paramvec(5);
-         normalant = normalnew;
-         normalnewl = [-d,-e,1]./(sqrt(d^2 + e^2 + 1));
-         % transforme la normal a la base Global
-         normalnew = (mr'*normalnewl)';
-         % curvatura media
-         cmean = -(a+c+a*e^2+c*d^2-b*d*e)/(1 + d^2 + e^2)^1.5;
-         % curvatura gaussiana
-         Kg= (4*a*c-b^2)/(1 + d^2 + e^2)^2;
-         if it >= itmax
-            error('Calculo fallido en la curvatura, fin de simulacion!')
-         end if
-      end do
-      normal = normalnew;
+         
+         am = mata
+         rhs = vectb
+         call dgesv(n,nrhs,am,lda,ipiv,rhs,ldb,info)
+         paramvec = rhs
+         a = paramvec(1)
+         b = paramvec(2)
+         c = paramvec(3)
+         d = paramvec(4)
+         e = paramvec(5)
+         normalant = normalnew
+         normalnewl = [-d,-e,1.d0]/(sqrt(d**2 + e**2 + 1))
+C          transforme la normal a la base Global
+         normalnew = matmul(mr,normalnewl)
+C          curvatura media
+         cmean = -(a+c+a*e**2+c*d**2-b*d*e)/(1 + d**2 + e**2)**1.5
+C          curvatura gaussiana
+         Kg= (4*a*c-b**2)/(1 + d**2 + e**2)**2
+         if (it >= itmax) then
+            print*,'Calculo fallido en la curvatura, fin de simulacion!'
+            return
+         endif
+      enddo
+      normalout = normalnew
       
       return
       
       contains
 
       function nn(n)
-          real*8 nn(3,3), n(:)
+          real*8 nn(3,3), n(3)
 
           do i=1,3
               do j=1,3
@@ -204,14 +219,14 @@ C     matriz de rotaciones
       end function
       
       function normesp(x)
-        real*8 x(:)
+        real*8 x(3)
         real*8 normesp
         
-        normesp = sqrt(x(1)^2+x(2)^2+x(3)^2)
+        normesp = sqrt(x(1)**2+x(2)**2+x(3)**2)
       end function
       
       function univect(x)
-        real*8 x(:), univect(3)
+        real*8 x(3), univect(3)
         
         univect=x/normesp(x)
       end function
