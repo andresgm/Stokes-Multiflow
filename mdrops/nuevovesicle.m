@@ -10,7 +10,7 @@ iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20_profile';
+carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20_electrostatic';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -50,6 +50,15 @@ kb = 1;
 kc = 1;
     % campo electrico
 kd = 0;
+    % interaccion electrostatica
+ke = 1;
+
+
+lie = 48.75;
+psi1ie = 47.73;
+psi2ie = 3.36;
+gammaie = 26300;
+
 
 % numero de gotas
 geom.numdrops = 1;
@@ -128,7 +137,15 @@ if adim == 1
         parms.rkelect = e0/g0;
     else
         parms.rkelect = 0;
-    end    
+    end
+    
+    if ke == 1
+       % Interaccion electrostatica
+       parms.rkelestat = gammaie;
+       parms.elestat.l = lie;
+       parms.elestat.psi1 = psi1ie;
+       parms.elestat.psi2 = psi2ie;
+    end
     
 else
     error('Wrong adim parameter')
@@ -285,9 +302,9 @@ tic
     counter = counter + 1;
     disp(['iteracion = ', num2str(p)])
     
-    if p == 4
-       profile on
-    end
+%     if p == 4
+%        profile on
+%     end
    
     if geom.numdrops == 1
         % lmin entre nodos de una misma gota
@@ -834,9 +851,9 @@ tic
     disp(carpetadestino)
     disp(['deltat: ', num2str(geom.deltat)])
     
-    if p == 14
-       profile viewer
-    end
+%     if p == 14
+%        profile viewer
+%     end
     
 toc
 end

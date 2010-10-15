@@ -9,6 +9,7 @@ rkcurv = parms.rkcurv;
 
 rkbend = parms.rkbend;
 rkelect = parms.rkelect;
+rkelestat = parms.rkelestat;
 
 % constante del single layer
 rksl = parms.rksl;
@@ -92,8 +93,16 @@ else
     rdeltafelec = 0; 
 end
 
+if rkelestat ~= 0
+   rdeltafelestat = deltafelestatic(geom,parms);
+   geom.deltafelestat = rdeltafelestat;
+else
+   rdeltafelestat =0;
+end
+
 % calcule el delta de fuerza total
-rdeltaftot = rdeltafcurv + rdeltafgrav + rdeltafbend + rdeltafelec;
+rdeltaftot = ...
+   rdeltafcurv + rdeltafgrav + rdeltafbend + rdeltafelec + rdeltafelestat;
 
 % calcule la integral de single layer caso normal y tangencial
 rintsln = zeros(numnodes,3);
