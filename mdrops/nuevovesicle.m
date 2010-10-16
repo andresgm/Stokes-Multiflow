@@ -840,6 +840,12 @@ tic
       getframe; title('laplace curv');
       figure(5); plot(geom.tiempo,parms.bending.sigma,'*'); hold on;title('sigma');
     end
+    
+    if ke ~= 0
+       figure(6); plot(geom.tiempo,geom.deltafelestat(1),'*r');hold on;
+       title('Electrostat vs. Grav');
+       plot(geom.tiempo,max(geom.deltafgrav),'*b')
+    end
 
 % guarde resultados
     if counter == outputfreq
