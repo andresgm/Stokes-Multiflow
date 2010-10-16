@@ -70,7 +70,7 @@ xr=[1];
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 5;
+redfactor = 10;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -842,10 +842,12 @@ tic
     end
     
     if ke ~= 0
-       figure(6); plot(geom.tiempo,geom.deltafelestat(1),'*r');hold on;
+       figure(6); plot(geom.tiempo,max(geom.deltafelestat),'*r');hold on;
        title('Electrostat vs. Grav');
        plot(geom.tiempo,max(geom.deltafgrav),'*b')
     end
+    disp(['Grav: ', num2str(max(geom.deltafgrav)),' Electroestatica: ', ...
+       max(geom.deltafelestat)]);
 
 % guarde resultados
     if counter == outputfreq
