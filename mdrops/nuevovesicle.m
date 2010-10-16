@@ -57,7 +57,7 @@ ke = 1;
 lie = 48.75;
 psi1ie = 47.73;
 psi2ie = 3.36;
-gammaie = 26300;
+gammaie = 26301;
 
 
 % numero de gotas
@@ -141,7 +141,7 @@ if adim == 1
     
     if ke == 1
        % Interaccion electrostatica
-       parms.rkelestat = gammaie;
+       parms.rkelestat = (gammaie/g0)*0.08;
        parms.elestat.l = lie;
        parms.elestat.psi1 = psi1ie;
        parms.elestat.psi2 = psi2ie;
@@ -846,8 +846,8 @@ tic
        title('Electrostat vs. Grav');
        plot(geom.tiempo,max(geom.deltafgrav),'*b')
     end
-    disp(['Grav: ', num2str(max(geom.deltafgrav)),' Electroestatica: ', ...
-       max(geom.deltafelestat)]);
+    disp(['Grav: ', num2str(max(abs(geom.deltafgrav))),' Electroestatica: ', ...
+       num2str(max(abs(geom.deltafelestat)))]);
 
 % guarde resultados
     if counter == outputfreq
