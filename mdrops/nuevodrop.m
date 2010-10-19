@@ -9,7 +9,7 @@ carpetaorigen = '';
 iteracion = [];
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_gota_g0_1_lambda_1_semiinf';
+carpetadestino = 'sedimentacion_gota_g0_1_lambda_1';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -21,11 +21,11 @@ ca = 0;
 % lamda
 lamda = 1;
 % g0: solo aplica para adim = 1. g0 = 1 por defecto
-g0 = 1;
+g0 = 100;
 % campo electrico
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 % aplica sol cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: best par (extended);
@@ -52,7 +52,7 @@ xc =[0 0 10];
 xr=[1];
 
 % pasos de tiempo de la simulacion
-numtimesteps = 10;
+numtimesteps = 1000;
 
 redfactor = 2;
 
@@ -388,9 +388,9 @@ tic
        % Paso predictor
        
        % Calculo de la velocidad en el punto actual
-       if p==4
-       profile on
-       end
+%        if p==4
+%        profile on
+%        end
        [velnode1,geom,parms] = stokesdrop(geom,parms);
        % invoque la adaptacion de la malla
        % veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -467,9 +467,9 @@ tic
    end
 
 %% escalaje
-    if p==5
-       profile viewer
-    end
+%     if p==5
+%        profile viewer
+%     end
     geomprop = normalandgeo(geom,normalandgeoopt);
     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
@@ -487,7 +487,7 @@ tic
        if errorvol(r) > errorvoltol
            % invoque escalaje
            disp('Realizando Escalaje')
-           geom = escaling(geom,optesc,r);
+           geom = escaling(geom,optesc,r,errorvol);
        end
     end
 

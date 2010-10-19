@@ -54,7 +54,7 @@ end
 
 % calcule la fuerza de gravedad
 if rkgrav ~= 0
-    rdeltafgrav = deltafgrav(geom.nodes,rkgrav);
+    rdeltafgrav = deltafgrav(geom,rkgrav);
     geom.deltafgrav = rdeltafgrav;
 else
     rdeltafgrav = 0;
