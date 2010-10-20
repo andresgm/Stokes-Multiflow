@@ -6,8 +6,7 @@ rkelestat = parms.rkelestat;
 l = parms.elestat.l;
 psi1 = parms.elestat.psi1;
 psi2 = parms.elestat.psi2;
-h = centroide(geom);
-h = h(3);
+h = min(geom.nodes(:,3));
 elest = [0 0 -1];
 
 propnorm = sum(geom.normal.*repmat(elest,geom.numnodes,1),2);

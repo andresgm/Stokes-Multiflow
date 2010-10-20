@@ -10,7 +10,7 @@ iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20_test';
+carpetadestino = 'sedimentacion_vesicle_g0_214_kbar20_ei_cerca';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -19,7 +19,7 @@ opcionsim = 0;
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
 lamda = 1;
-g0 = 100;
+g0 = 214;
 e0 = 0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'semiinf';
@@ -45,7 +45,7 @@ outputfreq = 10;
     % Tension (superficial)
 ka = 1;
     % gravedad
-kb = 1;
+kb = 0;
     % bending
 kc = 1;
     % campo electrico
