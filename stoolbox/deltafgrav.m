@@ -4,7 +4,6 @@ function [rdeltafgrav,fuerzagrav] = deltafgrav(geom,rkgrav)
 % Vector Unitario de Gravedad
 rg=[0 0 1];
 
-rdeltafgrav = sum(geom.nodes.*repmat(rg,geom.numnodes,1),2).*rkgrav;
+rdeltafgrav = (geom.nodes*rg').*rkgrav;
 
-fuerzagrav = sum(sum(geom.normal.*repmat(rg,geom.numnodes,1),2)...
-    .*rdeltafgrav);
+fuerzagrav = ((geom.normal*rg').*rdeltafgrav)'*geom.dsi;

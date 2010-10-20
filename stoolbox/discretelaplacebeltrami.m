@@ -12,6 +12,8 @@ end
 %recupere las variables
 nodes = geom.nodes;
 elements = geom.elements;
+% [Kg,Avor,l] = discreteLaplaceBeltramiC(ele2node,nodes',elements');
+
 numnodes = max(elements(:));
 numelements = size(elements,1);
 

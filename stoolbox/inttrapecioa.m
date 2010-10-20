@@ -5,6 +5,4 @@
 % salida integral de dimension 1 x i componentes.
 function rintegral = inttrapecioa(rdsi,rintegrand)
 
-[numnodes,comp,s] = size(rintegrand);
-
-rintegral = sum(rintegrand.*repmat(rdsi,[1 comp]),1);
+rintegral = (rintegrand'*rdsi)';

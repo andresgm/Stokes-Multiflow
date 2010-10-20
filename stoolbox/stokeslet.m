@@ -13,7 +13,7 @@
 
 %% Tomado de Pozrikidis Boundary Integral and singularity Methods for
 %% Linearized Viscous Flow Chap 2 pg 22
-%% Adaptado de c???digo stokes Flow Pozrikidis - BeMLIB
+%% Adaptado de codigo stokes Flow Pozrikidis - BeMLIB
 
 function [g,closenode] = stokeslet(x0,x)
 

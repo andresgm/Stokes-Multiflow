@@ -10,7 +10,7 @@ iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20_electrostatic_lejos';
+carpetadestino = 'sedimentacion_vesicle_g0_100_kbar20_test';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -63,7 +63,7 @@ gammaie = 26301;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 20];
+xc =[0 0 1.1];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
