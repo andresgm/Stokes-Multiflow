@@ -45,7 +45,7 @@ outputfreq = 10;
     % Tension (superficial)
 ka = 1;
     % gravedad
-kb = 0;
+kb = 1;
     % bending
 kc = 1;
     % campo electrico
@@ -63,7 +63,7 @@ gammaie = 26301;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 1.1];
+xc =[0 0 1.18];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 

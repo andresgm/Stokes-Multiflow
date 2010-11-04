@@ -6,4 +6,4 @@ rg=[0 0 1];
 
 rdeltafgrav = (geom.nodes*rg').*rkgrav;
 
-fuerzagrav = ((geom.normal*rg').*rdeltafgrav)'*geom.dsi;
+fuerzagrav = rkgrav*geom.vol;
