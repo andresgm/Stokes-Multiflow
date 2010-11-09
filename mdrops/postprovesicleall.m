@@ -4,25 +4,25 @@ sbar = systembar();
 % nombreorigenv =  {'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it'
 % 'it'};
 
-carpetaorigenv = {'sedimentacion_g0_1000'};
+carpetaorigenv = {'sedimentacion_vesicle_g0_214_kbar20_ei'};
 nombreorigenv =  {'it'};
 
 % COLOQUE AQUI LA ITERACION MAXIMA QUE HAY DE CADA CARPETA DE ORIGEN
 % itmaxv = [81 90 135 135 135 135 150 150 145 155 150 160];
 
-itmaxv = [2118];
+itmaxv = [250];
 
 % COLOQUE AQUI LA ITERACION MINIMA (1) DE CADA CARPETA DE ORIGEN
 % itminv = ones(1,size(itmaxv,2));
 
-itminv = itmaxv
+itminv = [1];
 %itminv = ones(1,size(itmaxv,2));
 
 % ESCRIBA AQUI EL INTERVALO DE CADA CUANTO QUIERE POPROCESAR (PILAS ESTE
 % VALOR DEPENDE DE CUANTAS ITERACIONES HAY DISPONIBLE SEN LA CARPETA
 % intervalv = [2 2 2 2 2 2 2 2 2 2 2 2];
 
-intervalv = [1];
+intervalv = [10];
 
 % OJO LA CANTIDAD DE ELEMENTOS DE CARPETAORIGENV, ... HASTA INTERVAL V DEBE
 % SER EL MISMO.... EL RESTO ES CORRER Y YA... LE GENERA LAS IMAGENES EN

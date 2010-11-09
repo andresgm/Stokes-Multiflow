@@ -12,9 +12,10 @@ end
 %recupere las variables
 nodes = geom.nodes;
 elements = geom.elements;
-% [Kg,Avor,l] = discreteLaplaceBeltramiC(ele2node,nodes',elements');
+% [Kg,Avor,L]= discreteLBC(ele2node, nodes', elements')
 
 numnodes = max(elements(:));
+%% Inicio comentario Cpp
 numelements = size(elements,1);
 
 % conformal laplacian
@@ -58,6 +59,8 @@ for i = 1:numnodes
 end
 
 L = l - diag(sum(l,2));
+
+%% Fin comentario Cpp
 
 for i = 1:numnodes
    L(i,:) = L(i,:)./(2.*Avor(i));
