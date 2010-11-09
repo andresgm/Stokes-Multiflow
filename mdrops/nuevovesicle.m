@@ -4,17 +4,17 @@
 clear;clc;%close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3';
-carpetaorigen = '';
-iteracion = [];
+nombreorigen = 'it';
+carpetaorigen = 'sedimentacion_vesicle_g0_214_kbar20_ei';
+iteracion = [2498];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_214_kbar20_ei_cerca';
+carpetadestino = 'sedimentacion_vesicle_g0_214_kbar20_ei';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 0;
+opcionsim = 1;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
@@ -63,14 +63,14 @@ gammaie = 26301;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 1.18];
+xc =[0 0 10];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 10;
+redfactor = 50;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -231,6 +231,10 @@ if opcionsim == 0
     counter = 0;
     geom.tiempo = 0;
     itsaved = 0;
+    
+    normalandgeoopt.normal = 0;
+    normalandgeoopt.areas = 1;
+    normalandgeoopt.vol = 1;
 
 elseif opcionsim == 1
     % cargue desde resultados y continue la simulacion
@@ -253,11 +257,13 @@ elseif opcionsim == 1
     mkdir([cd sbar,carpetadestino]);
     numnodes = size(geom.nodes,1);
     numelements = size(geom.elements,1);    
-    normalandgeoopt.normal = 1;
+    
+    parms.curvopt = parmstemp.curvopt;
+    
+    normalandgeoopt.normal = 0;
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
     
-    parms.curvopt = parmstemp.curvopt;
 elseif opcionsim == 2
     % cargue desde resultados y realice una nueva simulacion
     % cargue desde resultados y continue la simulacion
@@ -285,9 +291,11 @@ elseif opcionsim == 2
     itsaved = 0;
     numnodes = size(geom.nodes,1);
     numelements = size(geom.elements,1);
-    normalandgeoopt.normal = 1;
+    
+    normalandgeoopt.normal = 0;
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
+    
 end
 
 
@@ -295,6 +303,8 @@ end
 xcant = centroide(geom);
 geom.velcentroid = [0 0 0];
 geom.xc = xcant;
+abmcount = 0;
+      
 if velopt == 3
    veladapt = zeros(numnodes,3);
 end
@@ -564,10 +574,11 @@ tic
    elseif inttype == 3
     
    %% Para los primeros pasos usamos RK4 para inicializar los puntos de
-   %% Adams-Bashforth-Moulton
-      if p <=3
+   %% Adams-Bashforthabmcount = 0;
+      if (p <=3 || (opcionsim == 1 && p-paso < 3))
           % primer paso de runge kutta f1
           % invoque el problema de flujo de stokes
+          abmcount = abmcount+1;
           [velnode1,geom,parms] = stokesvesicle(geom,parms);
           % invoque la adaptacion de la malla
           % veladapt0 = meshadapt(geom,adaptparms,velnode0);
@@ -595,7 +606,7 @@ tic
               f1 = (velnormal + veladapt);
           end
 
-          abm{p} = f1;
+          abm{abmcount} = f1;
           nodes0 = geom.nodes;
 
        %% segundo paso de runge kutta f2
