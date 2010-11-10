@@ -2,7 +2,8 @@
 function deltafelec = deltafelectric(geom,parms)
 
 % Vector Unitario del campo electrico
-ele = [0 1 0];
+ele = [0 0 1];
+
 % Calculo de E0*<ele,n>
-deltafelec = -sum(geom.normal.*repmat(ele,geom.numnodes,1),2)...
-            *(parms.rkelect); 
+deltafelec = (geom.normal*ele')*(parms.rkelect);
+
