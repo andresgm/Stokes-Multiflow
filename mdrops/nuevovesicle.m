@@ -4,17 +4,17 @@
 clear;clc;%close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 2';
-carpetaorigen = '';
-iteracion = [];
+nombreorigen = 'it';
+carpetaorigen = 'sedimentacion_vesicle_g0_214_kbar20_ei';
+iteracion = [200];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_214_iesup_test';
+carpetadestino = 'sedimentacion_vesicle_g0_214_iesurf';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 0;
+opcionsim = 2;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
@@ -22,7 +22,7 @@ lamda = 1;
 g0 = 214;
 e0 = g0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
 curvopt = 3;
@@ -63,14 +63,14 @@ gammaie = 26301;
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 5];
+xc =[0 0 10];
 % Introduzca el/los radios de la/s gotas
 xr=[1];
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 5;
+redfactor = 10;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
