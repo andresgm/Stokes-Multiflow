@@ -4,9 +4,9 @@
 clear;clc;%close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'it';
-carpetaorigen = 'sedimentacion_vesicle_g0_214_kbar20_ei';
-iteracion = [200];
+nombreorigen = 'sph ref 3';
+carpetaorigen = '';
+iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
@@ -14,7 +14,7 @@ carpetadestino = 'sedimentacion_vesicle_g0_214_iesurf';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 2;
+opcionsim = 0;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
@@ -55,9 +55,7 @@ ke = 1;
 
 
 lie = 48.75;
-psi1ie = 47.73;
-psi2ie = 3.36;
-gammaie = 26301;
+gammaie = 56250;
 
 
 % numero de gotas
@@ -70,7 +68,7 @@ xr=[1];
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 10;
+redfactor = 5;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -141,10 +139,8 @@ if adim == 1
     
     if ke == 1
        % Interaccion electrostatica
-       parms.rkelestat = (gammaie/g0)*0.08;
+       parms.rkelestat = gammaie/g0;
        parms.elestat.l = lie;
-       parms.elestat.psi1 = psi1ie;
-       parms.elestat.psi2 = psi2ie;
     else
         parms.rkelestat = 0;
     end
