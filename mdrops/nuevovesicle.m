@@ -4,22 +4,22 @@
 clear;clc;%close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3';
-carpetaorigen = '';
-iteracion = [];
+nombreorigen = 'it';
+carpetaorigen = 'sedimentacion_vesicle_g0_13.6_iesurfv2_40kbT_R15';
+iteracion = [626];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_214_iesurf';
+carpetadestino = 'sedimentacion_vesicle_g0_13.6_iesurfv2_40kbT_R15_noie';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 0;
+opcionsim = 2;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
 lamda = 1;
-g0 = 214;
+g0 = 2.68;
 e0 = g0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'semiinf';
@@ -30,10 +30,10 @@ curvopt = 3;
     % Constante c del modelo
 c = 0.1;
     % Coeficiente de rigides al doblamiento en KbT (kappa)
-kbar = 20;
-    % Coeficiente adimensional de resistencia al cambio de area: Ka*R_0^2/kappa.
-    % Usar un numero entre 2e2 y 9e5? %TODO
-kext = 2.5e4;
+kbar = 40;
+    % Coeficiente adimensional de resistencia al cambio de area:
+    % Ka*R_0^2/kappa.
+kext = 2.5e8;
 
 
 % Adimensionalizacion
@@ -51,11 +51,11 @@ kc = 1;
     % campo electrico
 kd = 0;
     % interaccion electrostatica
-ke = 1;
+ke = 0;
 
 
-lie = 48.75;
-gammaie = 56250;
+lie = 32.57;
+gammaie = 497.36;
 
 
 % numero de gotas
@@ -68,7 +68,7 @@ xr=[1];
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 10;
+redfactor = 50;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford

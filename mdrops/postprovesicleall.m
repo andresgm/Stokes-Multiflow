@@ -4,13 +4,13 @@ sbar = systembar();
 % nombreorigenv =  {'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it'
 % 'it'};
 
-carpetaorigenv = {'sedimentacion_vesicle_g0_214_kbar20_ei'};
+carpetaorigenv = {'sedimentacion_vesicle_g0_337.7_iesurfv2_40kbT_R20'};
 nombreorigenv =  {'it'};
 
 % COLOQUE AQUI LA ITERACION MAXIMA QUE HAY DE CADA CARPETA DE ORIGEN
 % itmaxv = [81 90 135 135 135 135 150 150 145 155 150 160];
 
-itmaxv = [250];
+itmaxv = [573];
 
 % COLOQUE AQUI LA ITERACION MINIMA (1) DE CADA CARPETA DE ORIGEN
 % itminv = ones(1,size(itmaxv,2));
@@ -29,7 +29,7 @@ intervalv = [10];
 % *.FIG, *.PDF, Y *PNG DE TODO.
 
 % OJO depende de la simulacion (sedimentacion o cortante)
-ejes = [-1.5 1.5 -1.5 1.5 0 16];
+ejes = [-1.5 1.5 -1.5 1.5 0 9];
 ejesequil = [-1.5 1.5 -1.5 1.5 0 3];
 
 % Quiere que se guarde la pelicula de la sedimentacion? Si = 1, No = 0.

@@ -7,7 +7,12 @@ l = parms.elestat.l;
 h = geom.nodes(:,3);
 relest = [0 0 -1];
 
-fuerzaelest = l*rkelestat*exp(-l.*h);
+% Version1 de fuerza
+% fuerzaelest = l*rkelestat*exp(-l.*h);
+
+% Version 2 de Derjaguin
+
+fuerzaelest = l*rkelestat./cosh(l*h/2);
 
 % Fuerza volumetrica
 % rdeltafelestat = (geom.nodes*relest').*(fuerzaelest/geom.vol);
