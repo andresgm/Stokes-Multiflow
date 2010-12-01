@@ -11,7 +11,6 @@ reflevel = 3
 excesoareaobj = 0.3465
 num2save = 10
 
-
 if num2save < 6
     error('el numero del archivo a guardar debe ser mayor que 5')
 end
