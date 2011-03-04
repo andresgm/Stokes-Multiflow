@@ -38,7 +38,8 @@ while abs(ErrorVol)>TolErrorVol
     VelCorN = ErrorVol*VelCor*Kp;
     % Actualice los nodos a la nueva pos corregida Correccion
     VelDesp = ...
-        (DeltaTe).*(VelCorN.*NormalAtNodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:));
+        (DeltaTe).*...
+        (VelCorN.*NormalAtNodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:));
     
     geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:) = ...
         geom.nodes(geom.nnodesdrop(r,1):geom.nnodesdrop(r,2),:) + VelDesp;

@@ -8,7 +8,7 @@ clc;
 clear;
 
 reflevel = 3
-excesoareaobj = 0.3465
+excesoareaobj = 1
 num2save = 10
 
 if num2save < 6
@@ -52,43 +52,64 @@ geom.ds = geomprop.ds;
 geom.s = geomprop.s;
 geom.vol = geomprop.vol;
 geom.jacmat = geomprop.jacmat;
-geom.volini = 4.*pi/3.;
-geom.areaini = 4.*pi;
+geom.volini = geomprop.vol;
+geom.areaini = geomprop.s;
 
 errorvoltol = 1e-6;
-optesc.maxit = 1000;
+optesc.maxit = 15000;
 optesc.kp = 20;
 optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
-geom = escaling(geom,optesc,1);
+geom = escaling(geom,optesc,1,.1);
+geom.vertices = extractvertices(geom);
+veladapt = zeros(geom.numnodes,3);
 
-errorexcesoarea = 0 - excesoareaobj;
+errorexcesoarea = (0 - excesoareaobj)/excesoareaobj;
 tolarea = 1e-6;
-kprop = 0.8;
+kprop1 = 1e-2;
+kprop2 = 5e-3;
+kprop3 = 1e-2;
 k = 0;
-maxit = 1000;
+maxit = 100;
 nodosori = geom.nodes;
-a = 1.0 - errorexcesoarea*kprop
-b = 1.0 - errorexcesoarea*kprop
-c = 1.0;
+eje1 = [1 0 0];
+eje2 = [0 1 0];
+eje3 = [0 0 1];
 
 while abs(errorexcesoarea) > tolarea;
-    k = k + 1;     
-    % extrapole los nodos hacia elk elipsoide
-    geom.nodes = [geom.nodes(:,1).*a geom.nodes(:,2).*b geom.nodes(:,3).*c];
+    k = k + 1
+    % Calcule velocidad de desplazamiento
+    velnode1 = repmat((geom.normal*eje1')*kprop1,[1 3])...
+        .*geom.normal.*repmat((geom.normal*eje1'),[1 3]);
+    velnode2 = -repmat((geom.normal*eje2')*kprop2,[1 3])...
+        .*geom.normal.*repmat((geom.normal*eje2'),[1 3]);
+    velnode3 = -repmat((geom.normal*eje3')*kprop3,[1 3])...
+        .*geom.normal.*repmat((geom.normal*eje3'),[1 3]);
+    velnode = velnode1 + velnode2 + velnode3;
+    velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+    veladapt = meshadaptgrad(geom,velnormal,veladapt);
+    f1 = (velnormal + veladapt);
+    geom.nodes = geom.nodes + errorexcesoarea*f1;
     grafscfld(geom,1);
     xlabel('x1'); ylabel('x2'); zlabel('x3'); view(90,0); axis equal
     getframe;
     % invoque rutina de escalaje para escalar el elipsoide a igual volumen
-    geom = escaling(geom,optesc,1);
-
+    geomprop = normalandgeo(geom,normalandgeoopt);
+    geom.normalele = geomprop.normalele;
+    geom.normal = geomprop.normal;
+    geom.dsi = geomprop.dsi;
+    geom.ds = geomprop.ds;
+    geom.s = geomprop.s;
+    geom.vol = geomprop.vol;
+    geom.jacmat = geomprop.jacmat;
+    errorvol = abs((geom.vol - geom.volini)./geom.volini);
+    geom = escaling(geom,optesc,1,errorvol);
+    
     areafinal = geom.s
     volumen = geom.vol
-    excesoarea = (areafinal - geom.areaini)/geom.areaini;
-    errorexcesoarea = excesoarea - excesoareaobj
+    excesoarea = areafinal - geom.areaini;
+    errorexcesoarea = (excesoarea - excesoareaobj)/excesoareaobj
     disp(['exceso area ' num2str(excesoarea)]);
-    a = 1.0 - errorexcesoarea*kprop
-    b = 1.0 - errorexcesoarea*kprop
     if k == maxit
         error ('El escalaje no convergio')
     end
