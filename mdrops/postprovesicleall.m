@@ -1,16 +1,17 @@
 % clear;clc;
+clear sigmav excesarea, minxvert;
 sbar = systembar();
 % Carpeta y nombre de archivo de origen
 % nombreorigenv =  {'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it'
 % 'it'};
 
-carpetaorigenv = {'sedimentacion_vesicle_g0_337.7_iesurfv2_40kbT_R20'};
+carpetaorigenv = {'sedimentacion_vesicle_g0_75.053_iesurfv2_180kbT_R2'};
 nombreorigenv =  {'it'};
 
 % COLOQUE AQUI LA ITERACION MAXIMA QUE HAY DE CADA CARPETA DE ORIGEN
 % itmaxv = [81 90 135 135 135 135 150 150 145 155 150 160];
 
-itmaxv = [573];
+itmaxv = [105];
 
 % COLOQUE AQUI LA ITERACION MINIMA (1) DE CADA CARPETA DE ORIGEN
 % itminv = ones(1,size(itmaxv,2));
@@ -22,7 +23,7 @@ itminv = [1];
 % VALOR DEPENDE DE CUANTAS ITERACIONES HAY DISPONIBLE SEN LA CARPETA
 % intervalv = [2 2 2 2 2 2 2 2 2 2 2 2];
 
-intervalv = [10];
+intervalv = [5];
 
 % OJO LA CANTIDAD DE ELEMENTOS DE CARPETAORIGENV, ... HASTA INTERVAL V DEBE
 % SER EL MISMO.... EL RESTO ES CORRER Y YA... LE GENERA LAS IMAGENES EN
@@ -30,10 +31,10 @@ intervalv = [10];
 
 % OJO depende de la simulacion (sedimentacion o cortante)
 ejes = [-1.5 1.5 -1.5 1.5 0 9];
-ejesequil = [-1.5 1.5 -1.5 1.5 0 3];
+ejesequil = [-1.5 1.5 -1.5 1.5 0 2.5];
 
 % Quiere que se guarde la pelicula de la sedimentacion? Si = 1, No = 0.
-peliculaopt = 0;
+peliculaopt = 1;
 
 pelicula = 0;
 
@@ -76,6 +77,8 @@ for i = 1:size(itmaxv,2)
         velcentm(contador) = normesp(geom.velcentroid);
         % vector de tiempo
         tiempov(contador) = geom.tiempo;
+        % Vector iteracion
+        iterv(contador) = k;
 
     % grafique la geometria
         figure(1);
@@ -145,7 +148,16 @@ for i = 1:size(itmaxv,2)
     ylabel('Vertical centroid velocity (V_{xc})');
     saveas(9,[nameydir 'velcentm'],'fig')
     saveas(9,[nameydir 'velcentm'],'pdf')
-
+    
+    figure(10); plot(tiempov,minxvert);
+    xlabel('Time (t)');
+    ylabel('Vesicle distance from wall');
+    saveas(10,[nameydir 'disttime'],'fig')
+    saveas(10,[nameydir 'disttime'],'pdf')
+    
+%     figure(11); plot(tiempov,iterv);
+%     xlabel('Time (t)');
+%     ylabel('Iteration');
     
     % distancia del centroide a la pared
     disp(['xvert = ' num2str(xvert(end))])
