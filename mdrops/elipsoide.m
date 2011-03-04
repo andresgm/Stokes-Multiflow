@@ -7,9 +7,13 @@
 clc;
 clear;
 
-reflevel = 3
-excesoareaobj = 1
-num2save = 10
+reflevel = 3;
+excesoareaobj = 1;
+num2save = 10;
+
+a = 1;
+b = 1;
+c = .97;
 
 if num2save < 6
     error('el numero del archivo a guardar debe ser mayor que 5')
@@ -62,56 +66,12 @@ optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
 geom = escaling(geom,optesc,1,.1);
 geom.vertices = extractvertices(geom);
-veladapt = zeros(geom.numnodes,3);
 
-errorexcesoarea = (0 - excesoareaobj)/excesoareaobj;
-tolarea = 1e-6;
-kprop1 = 1e-2;
-kprop2 = 5e-3;
-kprop3 = 1e-2;
-k = 0;
-maxit = 100;
-nodosori = geom.nodes;
-eje1 = [1 0 0];
-eje2 = [0 1 0];
-eje3 = [0 0 1];
-
-while abs(errorexcesoarea) > tolarea;
-    k = k + 1
-    % Calcule velocidad de desplazamiento
-    velnode1 = repmat((geom.normal*eje1')*kprop1,[1 3])...
-        .*geom.normal.*repmat((geom.normal*eje1'),[1 3]);
-    velnode2 = -repmat((geom.normal*eje2')*kprop2,[1 3])...
-        .*geom.normal.*repmat((geom.normal*eje2'),[1 3]);
-    velnode3 = -repmat((geom.normal*eje3')*kprop3,[1 3])...
-        .*geom.normal.*repmat((geom.normal*eje3'),[1 3]);
-    velnode = velnode1 + velnode2 + velnode3;
-    velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
-    veladapt = meshadaptgrad(geom,velnormal,veladapt);
-    f1 = (velnormal + veladapt);
-    geom.nodes = geom.nodes + errorexcesoarea*f1;
-    grafscfld(geom,1);
-    xlabel('x1'); ylabel('x2'); zlabel('x3'); view(90,0); axis equal
-    getframe;
-    % invoque rutina de escalaje para escalar el elipsoide a igual volumen
-    geomprop = normalandgeo(geom,normalandgeoopt);
-    geom.normalele = geomprop.normalele;
-    geom.normal = geomprop.normal;
-    geom.dsi = geomprop.dsi;
-    geom.ds = geomprop.ds;
-    geom.s = geomprop.s;
-    geom.vol = geomprop.vol;
-    geom.jacmat = geomprop.jacmat;
-    errorvol = abs((geom.vol - geom.volini)./geom.volini);
-    geom = escaling(geom,optesc,1,errorvol);
-    
-    areafinal = geom.s
-    volumen = geom.vol
-    excesoarea = areafinal - geom.areaini;
-    errorexcesoarea = (excesoarea - excesoareaobj)/excesoareaobj
-    disp(['exceso area ' num2str(excesoarea)]);
-    if k == maxit
-        error ('El escalaje no convergio')
+for i = 1:geom.numnodes
+    if geom.nodes(i,3) >= 0
+        geom.nodes(i,3) = c*(1-geom.nodes(i,1).^2-geom.nodes(i,2).^2);
+    else
+        geom.nodes(i,3) = -c*(1-geom.nodes(i,1).^2-geom.nodes(i,2).^2);
     end
 end
 
