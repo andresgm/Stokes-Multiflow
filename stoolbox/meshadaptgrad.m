@@ -65,7 +65,7 @@ function [dfdeps,dfdepsprima] = dFdepsfast(geom,f,Vel,eps)
    
    dfdeps = 0;
    dfdepsprima = 0;
-   for i = 1:numvertices
+   parfor i = 1:numvertices
       xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
       producto1 = xij*(Vel(geom.vertices(i,2),:)+eps*f(geom.vertices(i,2),:)...
          -Vel(geom.vertices(i,1),:)-eps*f(geom.vertices(i,1),:))';

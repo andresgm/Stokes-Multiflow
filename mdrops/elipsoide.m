@@ -11,9 +11,10 @@ reflevel = 3;
 excesoareaobj = 1;
 num2save = 10;
 
-a = 1;
-b = 1;
-c = .97;
+a = 1.1;
+b = 1.1;
+c = 1;
+r = 1;
 
 if num2save < 6
     error('el numero del archivo a guardar debe ser mayor que 5')
@@ -37,6 +38,16 @@ geom.numelements = size(geom.elements,1);
 
 geom = drops(geom,xc,xr);
 
+for i = 1:geom.numnodes
+    x = geom.nodes(i,1)^2;
+    y = geom.nodes(i,2)^2;
+    z = geom.nodes(i,3)^2;
+    mag = sqrt(x+y+z);
+    geom.nodes(i,1) = geom.nodes(i,1)*r*a/mag;
+    geom.nodes(i,2) = geom.nodes(i,2)*r*b/mag;
+    geom.nodes(i,3) = geom.nodes(i,3)*r*c/mag;
+end
+
 % calcule las propiedades y tablas de la malla
 % Index table
 geom.indextable = 1:1:geom.numnodes;
@@ -56,29 +67,24 @@ geom.ds = geomprop.ds;
 geom.s = geomprop.s;
 geom.vol = geomprop.vol;
 geom.jacmat = geomprop.jacmat;
-geom.volini = geomprop.vol;
-geom.areaini = geomprop.s;
+geom.volini = 4.*pi/3.;
+geom.areaini = 4.*pi;
 
 errorvoltol = 1e-6;
-optesc.maxit = 15000;
+optesc.maxit = 1000;
 optesc.kp = 20;
 optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
-geom = escaling(geom,optesc,1,.1);
-geom.vertices = extractvertices(geom);
+errorvol = abs((geom.vol - geom.volini)./geom.volini);
+geom = escaling(geom,optesc,1,errorvol);
 
-for i = 1:geom.numnodes
-    if geom.nodes(i,3) >= 0
-        geom.nodes(i,3) = c*(1-geom.nodes(i,1).^2-geom.nodes(i,2).^2);
-    else
-        geom.nodes(i,3) = -c*(1-geom.nodes(i,1).^2-geom.nodes(i,2).^2);
-    end
-end
+Exceso = geom.s - geom.areaini
 
 Nodes = geom.nodes;
 Elements = geom.elements;
 
-grafscfld(geom,1); xlabel('x1'); ylabel('x2'); zlabel('x3'); view(90,0); axis equal
+grafscfld(geom,1); xlabel('x1'); ylabel('x2'); zlabel('x3'); view(90,0); 
+axis equal;
 nombrearchivo = ['sph ref ' num2str(num2save) '.mat'];
 save(nombrearchivo,'Nodes','Elements');
 disp(['archivo ' nombrearchivo ' guardado'])
