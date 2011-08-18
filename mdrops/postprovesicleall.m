@@ -1,17 +1,17 @@
 % clear;clc;
-clear sigmav excesarea, minxvert;
+clear sigmav excesarea minxvert velcentx3 sedrate;
 sbar = systembar();
 % Carpeta y nombre de archivo de origen
 % nombreorigenv =  {'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it'
 % 'it'};
 
-carpetaorigenv = {'sedimentacion_vesicle_g0_75.053_iesurfv2_180kbT_R2'};
+carpetaorigenv = {'sedimentacion_vesicle_g0_68.74_25kbT'};
 nombreorigenv =  {'it'};
 
 % COLOQUE AQUI LA ITERACION MAXIMA QUE HAY DE CADA CARPETA DE ORIGEN
 % itmaxv = [81 90 135 135 135 135 150 150 145 155 150 160];
 
-itmaxv = [105];
+itmaxv = [195];
 
 % COLOQUE AQUI LA ITERACION MINIMA (1) DE CADA CARPETA DE ORIGEN
 % itminv = ones(1,size(itmaxv,2));

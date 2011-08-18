@@ -11,9 +11,9 @@ reflevel = 3;
 excesoareaobj = 1;
 num2save = 10;
 
-a = 1.1;
-b = 1.1;
-c = 1;
+a = .8;
+b = 1.2;
+c = .8;
 r = 1;
 
 if num2save < 6

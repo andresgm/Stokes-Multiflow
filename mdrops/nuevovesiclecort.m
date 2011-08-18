@@ -10,15 +10,15 @@ iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'cort_excarea_0.0032_ca_.1';
+carpetadestino = 'cort_excarea_0.2716_ca_0.3_lambda_8';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 0;
 
 % Algoritmo de flujo de stokes con surfactantes.
-ca = 0.01;
-lamda = 1;
+ca = 0.3;
+lamda = 8;
 g0 = 1;
 e0 = g0;
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -30,7 +30,7 @@ curvopt = 3;
     % Constante c del modelo
 c = 0.1;
     % Coeficiente de rigides al doblamiento en KbT (kappa)
-kbar = 180;
+kbar = 20;
     % Coeficiente adimensional de resistencia al cambio de area:
     % Ka*R_0^2/kappa.
 kext = 4e8;
@@ -68,7 +68,7 @@ xr=[1];
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-redfactor = 200;
+redfactor = 500;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -76,7 +76,7 @@ inttype = 3;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
-velopt = 3;
+velopt = 1;
 % meshadapt lowenberg
 adaptparms.psi = 1;
 adaptparms.lamda = lamda;
@@ -844,10 +844,14 @@ tic
     grafscfld(geom,geom.curv);
     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     getframe; title('curv');
+    figure(2);
+    grafscfld(geom,geom.curv);
+    axis equal; view(0,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+    getframe; title('curv');
     
-    figure(2); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc x3');
-
-    figure(3); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');    
+%     figure(2); plot(geom.tiempo,geom.velcentroid(:,3),'*');hold on; title('vc x3');
+% 
+%     figure(3); plot(geom.tiempo,geom.xc(:,3),'*');hold on; title('xc x3');    
     
     if kc ~= 0
       figure(4); grafscfld(geom,geom.lapcurv);
