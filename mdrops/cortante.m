@@ -1,16 +1,16 @@
 % CALCULO DEL FLUJO DE STOKES PARA UNA VESICULA
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
-clear;clc;%close all;
+clear;clc; %close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 10';
+nombreorigen = 'ellipsoid.mat';
 carpetaorigen = '';
 iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'cort_excarea_0.2716_ca_0.3_lambda_8';
+carpetadestino = 'pruebacortante_fem';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
@@ -19,8 +19,7 @@ opcionsim = 0;
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0.3;
 lamda = 8;
-g0 = 1;
-e0 = g0;
+
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
