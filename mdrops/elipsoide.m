@@ -9,16 +9,13 @@ clear;
 
 reflevel = 3;
 excesoareaobj = 1;
-num2save = 10;
+name2save = 'ellipsoide64';
 
 a = .8;
 b = 1.2;
 c = .8;
 r = 1;
 
-if num2save < 6
-    error('el numero del archivo a guardar debe ser mayor que 5')
-end
 % cargue la esfera
 fileload = ['sph ref ' num2str(reflevel) '.mat'];
 % Cargue el archivo de solucion *.mat
@@ -85,7 +82,7 @@ Elements = geom.elements;
 
 grafscfld(geom,1); xlabel('x1'); ylabel('x2'); zlabel('x3'); view(90,0); 
 axis equal;
-nombrearchivo = ['sph ref ' num2str(num2save) '.mat'];
+nombrearchivo = [name2save '.mat'];
 save(nombrearchivo,'Nodes','Elements');
 disp(['archivo ' nombrearchivo ' guardado'])
 

@@ -4,12 +4,9 @@
 function [velnode,geom,parms] = stokesvesicle(geom,parms)
 
 numnodes = size(geom.nodes,1);
-rkgrav = parms.rkgrav;
-rkcurv = parms.rkcurv;
 
+rkcurv = parms.rkcurv;
 rkbend = parms.rkbend;
-rkelect = parms.rkelect;
-rkelestat = parms.rkelestat;
 
 % constante del single layer
 rksl = parms.rksl;
@@ -48,100 +45,48 @@ elseif parms.curvopt == 3
     [geom.curv] = curvlb(geom,lapbelmat);
 end
 
-% calcule los esfuerzos por tension superficial
-if rkbend == 0
-    rdeltafcurv = deltafcurv(geom.curv,rkcurv);
-    geom.deltafcurv = rdeltafcurv;
+if parms.curvopt ~= 3
+    % calcule la matriz de laplace beltrami de la curvatura
+    lapbelmat = discretelaplacebeltrami(geom);
 end
-
-% calcule la fuerza de gravedad
-if rkgrav ~= 0
-    [rdeltafgrav,fuerzagrav] = deltafgrav(geom,rkgrav);
-    geom.deltafgrav = rdeltafgrav;
-    geom.fuerzagrav = fuerzagrav;
-else
-    rdeltafgrav = 0;
-end
-
-if rkbend ~= 0
-    if parms.curvopt ~= 3
-        % calcule la matriz de laplace beltrami de la curvatura
-        lapbelmat = discretelaplacebeltrami(geom);
-    end
-    % calcule el laplace beltrami de la curvatura
-    geom.lapcurv = lapbelmat*geom.curv;
-    % geom.lapcurv = lapbel(geom,geom.curv);
-    % calcule el delta de fuerza por bending
-    [rdeltafcurv,rdeltafbend,parms.bending.sigma] = deltafbending(geom,parms);
-    geom.deltafcurv = rdeltafcurv;
-    geom.deltafbend = rdeltafbend;
-%     figure(7);
-%     grafscfld(geom,geom.deltafcurv);
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     getframe; title('Tension');
-%     figure(8);
-%     grafscfld(geom,geom.deltafbend);
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     getframe; title('Bending');
-else
-    rdeltafbend = 0; 
-end
-
-if rkelect ~= 0
-    rdeltafelec = deltafelectric(geom,parms);
-    geom.deltafelec = rdeltafelec;
-else
-    rdeltafelec = 0; 
-end
-
-if rkelestat ~= 0
-   [rdeltafelestat,fuerzaelest] = deltafelestatic(geom,parms);
-   geom.deltafelestat = rdeltafelestat;
-   geom.fuerzaelest = fuerzaelest;
-else
-   rdeltafelestat =0;
-end
+% calcule el laplace beltrami de la curvatura
+geom.lapcurv = lapbelmat*geom.curv;
+% geom.lapcurv = lapbel(geom,geom.curv);
+% calcule el delta de fuerza por bending
+[rdeltafcurv,rdeltafbend,parms.bending.sigma] = deltafbending(geom,parms);
+geom.deltafcurv = rdeltafcurv;
+geom.deltafbend = rdeltafbend;
 
 % calcule el delta de fuerza total
-rdeltaftot = ...
-   rdeltafcurv + rdeltafgrav + rdeltafbend + rdeltafelec + rdeltafelestat;
+rdeltaftot = rdeltafcurv + rdeltafbend;
 
 % calcule la integral de single layer caso normal y tangencial
 rintsln = zeros(numnodes,3);
 
-rdeltafperdrop = cell(geom.numdrops,1);
-normalesperdrop = cell(geom.numdrops,1);
-dsiperdrop = cell(geom.numdrops,1);
-nodesperdrop = cell(geom.numdrops,1);
-for k=1:geom.numdrops
-    rdeltafperdrop{k} = rdeltaftot(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);  
-    normalesperdrop{k} = geom.normal(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
-    dsiperdrop{k} = geom.dsi(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
-    nodesperdrop{k} = geom.nodes(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
-end
+% rdeltafperdrop = cell(geom.numdrops,1);
+% normalesperdrop = cell(geom.numdrops,1);
+% dsiperdrop = cell(geom.numdrops,1);
+% nodesperdrop = cell(geom.numdrops,1);
+% for k=1:geom.numdrops
+%     rdeltafperdrop{k} = rdeltaftot(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);  
+%     normalesperdrop{k} = geom.normal(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
+%     dsiperdrop{k} = geom.dsi(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
+%     nodesperdrop{k} = geom.nodes(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
+% end
 
 for j=1:numnodes
-    % calcule la integral de la gota a la que pertenece el polo xj
-    % pregunte en que gota esta el polo xj
-    for k=1:geom.numdrops
-       if j >= geom.nnodesdrop(k,1) && j <= geom.nnodesdrop(k,2)
-           gotanum = k;
-       else
-           gotaext = k; 
-       end
-    end    
-             
+           
     % Calcule la funcion de green
-    rgreenfcn = stokeslet(geom.nodes(j,:),nodesperdrop{gotanum});
+    rgreenfcn = stokeslet(geom.nodes(j,:),geom.nodes);
     % limpie singularidades
     rgreenfcn(isnan(rgreenfcn)) = 0;
     % calcule deltaf - deltaf*
-    rdeltaffpole = repmat((rdeltafperdrop{gotanum} - rdeltaftot(j)),[1 3])...
-        .*normalesperdrop{gotanum}; 
+    rdeltaffpole = repmat((rdeltaftot - rdeltaftot(j)),[1 3])...
+        .*geom.normal; 
     % calcule el producto gij*dfi (opt:2)
     rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
     % ejecute integral del trapecio sobre la gota que contiene el polo xj
-    rintsln(j,:) = inttrapecioa(dsiperdrop{gotanum},rintegrandsl);
+    rintsln(j,:) = inttrapecioa(geom.dsi,rintegrandsl);
   
     % Parte semiinfinita
     if strcmp(parms.flow,'semiinf') == 1
@@ -159,39 +104,19 @@ for j=1:numnodes
             rdeltafim = rdeltafim(1);
         end
         % calcule deltaf - deltaf*
-        rdeltaffpole = repmat((rdeltafperdrop{gotanum} - rdeltafim),[1 3]).*normalesperdrop{gotanum};
+        rdeltaffpole = repmat((rdeltaftot - rdeltafim),[1 3]).*geom.normal;
         % calcule el producto gij*dfi (opt:2)
         rintegrandsl = matvect(rgreenwallfcn,rdeltaffpole,2);
         % ejecute integral del trapecio sobre la gota que contiene el polo xj
-        rintsln(j,:) = rintsln(j,:) + inttrapecioa(dsiperdrop{gotanum},rintegrandsl);
+        rintsln(j,:) = rintsln(j,:) + inttrapecioa(geom.dsi,rintegrandsl);
     end
     
-    % calcule la integral de las demas gotas TODO: ESTA PARA DOS GOTAS - GENERALIZAR PARA J GOTAS
-    if geom.numdrops ~= 1
-        % Calcule la funcion de green
-        [rgreenfcn,closenode] = stokeslet(geom.nodes(j,:),geom.nodes(geom.nnodesdrop(gotaext,1):geom.nnodesdrop(gotaext,2),:));
-        % limpie singularidades
-        rgreenfcn(isnan(rgreenfcn)) = 0;
-        % calcule deltaf - deltaf*
-        rdeltafgotaext = rdeltaftot(geom.nnodesdrop(gotaext,1):geom.nnodesdrop(gotaext,2));
-
-        rdeltaffpole = repmat((rdeltafgotaext - rdeltafgotaext(closenode)),[1 3]).*geom.normal(geom.nnodesdrop(gotaext,1):geom.nnodesdrop(gotaext,2),:); 
-        % calcule el producto gij*dfi (opt:2)
-        rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
-        % ejecute integral del trapecio de gotaext al polo xj
-        rintsln(j,:) = rintsln(j,:) + inttrapecioa(geom.dsi(geom.nnodesdrop(gotaext,1):geom.nnodesdrop(gotaext,2),:),rintegrandsl);
-    end
 end
-
 
 rintsln = rksl.*rintsln;
 
 % calcule el flujo externo
-if rkextf ~= 0
-    rextf = geom.nodes(:,3).*rkextf;
-else
-    rextf = 0;
-end
+rextf = geom.nodes(:,3).*rkextf;
 
 % calcule wielandt deflaction si lamda .ne. 1
 if parms.lamda ~= 1

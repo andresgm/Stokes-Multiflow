@@ -15,19 +15,7 @@ nodo2 = geom.nodes(geom.elements(:,2),:);
 nodo3 = geom.nodes(geom.elements(:,3),:);
 
 ds = trianglearea(nodo1,nodo2,nodo3);
-if isfield(geom,'numdrops') == 1
-   if geom.numdrops == 1 
-        s = sum(ds,1);
-   else
-        s = zeros(geom.numdrops,1);
-        for j=1:geom.numdrops
-           % extraiga los elementos de la j malla
-           s(j) = sum(ds(geom.neledrop(j,1):geom.neledrop(j,2)),1);
-        end
-   end
-else
-    s = sum(ds,1);
-end
+s = sum(ds,1);
 % asigne la 3ra parte a cada nodo y sume (area baricentrica)
 dsi = zeros(numnodes,1);
 for i = 1:numnodes
