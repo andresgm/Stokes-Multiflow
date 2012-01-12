@@ -1,10 +1,15 @@
-% Funcion para el calculo de las funciones de forma lineales para usar
-% en el algoritmo de los elementos finitos lineales.
+% Funcion para el calculo de las tensiones elasticas usando el metodo
+% de elementos finitos lineales.
 function [tensionelas] = fuerzaElast(geom,kaes,mues)
 
 % Entrada:
 % geom: estructura que contiene entre otras variables las matrices de
 %       coordenadas y coordinacion de la malla.
+% kaes: coeficiente de resistencia al cambio de area.
+% mues: coeficiente de resistencia al cortante.
+%
+% Salida:
+% tensionelas: vector de fuerza debido al estado de deformacion.
 
 % El siguiente algoritmo sigue la metodologia propuesta en Charrier et al.
 % Journal of Strain Analysis Vol 24 No 2 1983

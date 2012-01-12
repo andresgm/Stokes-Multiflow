@@ -5,8 +5,8 @@ clear;clc; %close all;
 nombreorigen = 'sph ref 3.mat';
 
 noiseint = 0.02;
-noiserep = 1;
-def = .2;
+noiserep = 4;
+def = .01;
 
 geom.ks = 1e6;
 geom.mu = 1;
@@ -82,15 +82,11 @@ geom.nodes = geom.nodes + def*geom.normal;
 
 %% Calculo de la fuerza elastica mediante metodo de los elementos finitos
 [geom.shapeA, geom.shapeB, geom.refrot] = shapefun(geom);
-rdeltafelast = fuerzaElast(geom,geom.ks,geom.mu);
-
-for i=1:geom.numnodes
-    rdeltafelastmag = norm(rdeltafelast(i,:));
-end
+[isotens] = isotension(geom,geom.ks);
 
 
 %% Resultados
 figure(1);
-grafscfld(geom,rdeltafelastmag);
+grafscfld(geom,isotens);
 axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
 getframe; title('area');
