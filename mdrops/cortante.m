@@ -16,6 +16,12 @@ carpetadestino = 'pruebacortante_fem';
     % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 0;
 
+% Parametros introduccion ruido para minimizar efecto de la simetria de la
+% malla
+
+noiseint = 0.05;
+noiserep = 4;
+
 % Algoritmo de flujo de stokes.
 ca = 0.1;
 lamda = 6.4;
@@ -51,6 +57,7 @@ inttype = 3;
 
 % Estamos usando solo la adaptacion de malla pasiva propuesta por Zinchenko
 % et al. 1997 y 1999.
+% Sin adaptacion de malla. OJO!
 
 % escalaje
 errorvoltol = 1e-6;
@@ -103,19 +110,12 @@ if opcionsim == 0
        geom.W = zeros(numnodes,3); 
        geom.velnodeant = zeros(numnodes,3);
     end
-
-    % Index table
-    % geom.indextable = [1:1:geom.numnodes];
-    % Tabla de elementos singulares a cada nodo
+    
+    % Elementos que contienen cada nodo
     geom.element2node = element2node(geom.elements);
-    % Elementos singulares a cada nodo tabla SPARSE
-    % geom.e2nsparse = ele2nodesp(geom.elements);
-    % TODO: Borrar de la rutina ele2nodesp
     % Tabla de conectividad de nodos, bordes, e.t.c
     geom.nodecon2node = node2node(geom.elements);
-    % geom.edgeindex = edges(geom.elements);
-    % TODO: si no se necesita borrar edges
-    
+
     % Encuentre los vertices de la malla si se va a usar la adaptacion de malla
     % pasiva de Zinchenco et al. 1997
     geom.vertices = extractvertices(geom);
@@ -134,8 +134,30 @@ if opcionsim == 0
     geom.jacmat = geomprop.jacmat;
     geom.volini = geom.vol;
     geom.areaini = geom.s;
-    geom.xcini = centroide(geom);
     
+    % Introduccion de ruido para minimizar efecto de simetria en creacion
+    % de la malla.
+    
+    % Primero se calcula la longitud minima entre los nodos para que el
+    % ruido sea una fraccion de esta longitud.
+    lmin = zeros(numnodes,1);
+    for k = 1:numnodes
+       nodesadj = geom.nodecon2node{k};
+       lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
+          - geom.nodes(nodesadj,:)));  
+    end
+
+    lmint = min(lmin);
+
+    for k = 1:noiserep
+        noisevel = ones(size(geom.nodes))...
+            .*(rand(size(geom.nodes))-0.5)*lmint*noiseint;
+        noisenormal = repmat(sum(noisevel.*geom.normal,2),[1 3]).*geom.normal;
+        noisetan = noisevel - noisenormal;
+
+        geom.nodes = geom.nodes + noisetan;
+    end
+     
     % Calculo inicial de la curvatura usando ajuste a superficie cuadratica
     
     paropt.tipo = 'extended';
@@ -221,6 +243,11 @@ elseif opcionsim == 2
     normalandgeoopt.vol = 1;
     
 end
+
+% Calculo funciones de forma y demas parametros para el metodo de los 
+% elementos finitos que solo depende del estado inicial.
+
+[geom.shapeA, geom.shapeB, geom.refrot] = shapefun(geom);
 
 
 %% Ciclo principal

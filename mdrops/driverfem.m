@@ -4,7 +4,7 @@ clear;clc; %close all;
 % nombre de archivo a cargar y carpeta
 nombreorigen = 'sph ref 3.mat';
 
-noiseint = 0.02;
+noiseint = 0.05;
 noiserep = 4;
 def = .01;
 
@@ -54,7 +54,8 @@ end
 lmint = min(lmin);
 
 for k = 1:noiserep
-    noisevel = ones(size(geom.nodes)).*rand(size(geom.nodes))*lmint*noiseint;
+    noisevel = ones(size(geom.nodes))...
+            .*(rand(size(geom.nodes))-0.5)*lmint*noiseint;
     noisenormal = repmat(sum(noisevel.*geom.normal,2),[1 3]).*geom.normal;
     noisetan = noisevel - noisenormal;
 

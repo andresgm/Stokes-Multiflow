@@ -52,13 +52,18 @@ end
 % calcule el laplace beltrami de la curvatura
 geom.lapcurv = lapbelmat*geom.curv;
 % geom.lapcurv = lapbel(geom,geom.curv);
-% calcule el delta de fuerza por bending
-[rdeltafcurv,rdeltafbend,parms.bending.sigma] = deltafbending(geom,parms);
-geom.deltafcurv = rdeltafcurv;
+% calcule el delta de fuerza debido a la resistencia al doblamiento.
+rdeltafbend = -(rkbend).*...
+           (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
 geom.deltafbend = rdeltafbend;
 
+% Calculo de la tension isotropica
+
+[isotens] = isotension(geom,geom.ks);
+
+
 % calcule el delta de fuerza total
-rdeltaftot = rdeltafcurv + rdeltafbend;
+rdeltafnorm = rdeltafcurv + rdeltafbend;
 
 % calcule la integral de single layer caso normal y tangencial
 rintsln = zeros(numnodes,3);
