@@ -1,7 +1,7 @@
 % Calcula el gradiente superficial gradsnodes de un campo escalar scfld en
 % cada nodo de una malla triangular struct
-% basado en Xu Guoliang, "Convergent Discrete Laplace-Beltrami Operators 
-% over Triangular Surfaces" 
+% basado en Xu Guoliang, 
+% "Discrete Laplace-Beltrami operators and their convergence" 
 
 function gradsnodes = grad_s(struct,scfld)
 

@@ -7,11 +7,17 @@ numnodes = size(geom.nodes,1);
 
 rkcurv = parms.rkcurv;
 rkbend = parms.rkbend;
+rkmaran = parms.rkmaran;
 
 % constante del single layer
 rksl = parms.rksl;
 % constante del flujo externo
 rkextf = parms.rkextf;
+% constante del double layer
+rkdl = parms.rkdl;
+
+% funcion de green
+greenfunction = parms.greenfunction;
 
 % calcule el vector normal a cada nodo
 normalandgeoopt.normal = 0;
@@ -55,81 +61,114 @@ geom.lapcurv = lapbelmat*geom.curv;
 % calcule el delta de fuerza debido a la resistencia al doblamiento.
 rdeltafbend = -(rkbend).*...
            (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
-geom.deltafbend = rdeltafbend;
+geom.rdeltafbend = rdeltafbend;
 
 % Calculo de la tension isotropica
 
-[isotens] = isotension(geom,geom.ks);
+isotens = isotension(geom,geom.ks);
+rdeltafcurv = ((2*rkcurv).*geom.curv).*isotens;
+geom.rdeltafcurv = rdeltafcurv;
 
+% delta fuerza normal total
+rdeltaftot = rdeltafcurv + rdeltafbend;
 
-% calcule el delta de fuerza total
-rdeltafnorm = rdeltafcurv + rdeltafbend;
+% calculo de la componente tangencial de la tension
+rdeltafmaran = grad_s(geom,isotens);
 
 % calcule la integral de single layer caso normal y tangencial
 rintsln = zeros(numnodes,3);
+rintsltanens = zeros(numnodes,3);
+rintsltanes = zeros(numnodes,3);
 
-% rdeltafperdrop = cell(geom.numdrops,1);
-% normalesperdrop = cell(geom.numdrops,1);
-% dsiperdrop = cell(geom.numdrops,1);
-% nodesperdrop = cell(geom.numdrops,1);
-% for k=1:geom.numdrops
-%     rdeltafperdrop{k} = rdeltaftot(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);  
-%     normalesperdrop{k} = geom.normal(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
-%     dsiperdrop{k} = geom.dsi(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
-%     nodesperdrop{k} = geom.nodes(geom.nnodesdrop(k,1):geom.nnodesdrop(k,2),:);
-% end
+polos = geom.nodes;
 
-for j=1:numnodes
-           
-    % Calcule la funcion de green
-    rgreenfcn = stokeslet(geom.nodes(j,:),geom.nodes);
+for j = 1:numnodes
+    
+% calcule la integral desingularizada de INT(gij(x,x0)fn(x))ds
+    % calcule la funcion de green
+    rgreenfcn = stokeslet(polos(j,:),geom.nodes);
     % limpie singularidades
     rgreenfcn(isnan(rgreenfcn)) = 0;
     % calcule deltaf - deltaf*
-    rdeltaffpole = repmat((rdeltaftot - rdeltaftot(j)),[1 3])...
-        .*geom.normal; 
+    rdeltaffpole = repmat((rdeltaftot - rdeltaftot(j)),[1 3]).*geom.normal; 
     % calcule el producto gij*dfi (opt:2)
     rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
-    % ejecute integral del trapecio sobre la gota que contiene el polo xj
+    % ejecute integral del trapecio
     rintsln(j,:) = inttrapecioa(geom.dsi,rintegrandsl);
-  
-    % Parte semiinfinita
-    if strcmp(parms.flow,'semiinf') == 1
-        % calcule la funcion de green 
-        rgreenwallfcn = stokesletwall(geom.nodes(j,:),geom.nodes,parms.w);
-        % limpie singularidades
-        rgreenwallfcn(isnan(rgreenwallfcn)) = 0;
-        % determine el deltaf*
-        nodex0_im = [geom.nodes(j,1), geom.nodes(j,2), 2*parms.w - geom.nodes(j,3)];
-        r = geom.nodes - repmat(nodex0_im,[numnodes 1]);
-        rn = normesp(r);
-        % Determine el nodo mas cercano a NodeX0_IM
-        rdeltafim = rdeltaftot(rn == min(rn));
-        if size(rdeltafim,1) ~= 1
-            rdeltafim = rdeltafim(1);
+       
+    if rkmaran ~= 0
+    % calcule la parte de elementos no singulares de INT(gij(x,x0)ft(x))ds
+        % extraiga los elements vecinos al jnodes
+        elevecino = geom.element2node{j};
+        % calcule la integral no singular
+        % calcule el producto gij*ft (opt:2)
+        rintegrandsl = matvect(rgreenfcn,rdeltafmaran,2);
+
+        metrica = repmat(geom.g.*(1/3*0.5),[1 3]);
+        % integracion de elementos no singulares
+        intn1 = rintegrandsl(geom.elements(:,1),:).*metrica;
+        intn2 = rintegrandsl(geom.elements(:,2),:).*metrica;
+        intn3 = rintegrandsl(geom.elements(:,3),:).*metrica;
+        
+        intn1(elevecino,:) = 0;
+        intn2(elevecino,:) = 0;
+        intn3(elevecino,:) = 0;
+        rintsltanens(j,:) = sum(intn1 + intn2 + intn3,1);
+
+    % calcule la parte de elementos singulares de INT(gij(x,x0)ft(x))ds
+        intval = zeros(1,3);
+        for k = elevecino
+            % extraiga los indices de los nodos del kelemento
+            nodesk = geom.elements(k,:);
+            % reorganice los indices del elemento tal que el jnode (polo) quede
+            % en P3
+            posj = j == nodesk;
+            if posj(1) == 1
+                % el jnode esta en la posicion 1 local: reorganice
+                elenew = [nodesk(2) nodesk(3) nodesk(1)];
+            elseif posj(2) == 1
+                % el jnode esta en la posicion 2 local: reorganice
+                elenew = [nodesk(3) nodesk(1) nodesk(2)];
+            end
+            triandata.nodes = geom.nodes(elenew,:);
+            vectfld = rdeltafmaran(elenew,:);
+            triandata.g = geom.g(k);
+            intval = intval + gausslegmatvect2d(greenfunction,vectfld,triandata,polarparms);
         end
-        % calcule deltaf - deltaf*
-        rdeltaffpole = repmat((rdeltaftot - rdeltafim),[1 3]).*geom.normal;
-        % calcule el producto gij*dfi (opt:2)
-        rintegrandsl = matvect(rgreenwallfcn,rdeltaffpole,2);
-        % ejecute integral del trapecio sobre la gota que contiene el polo xj
-        rintsln(j,:) = rintsln(j,:) + inttrapecioa(geom.dsi,rintegrandsl);
+        rintsltanes(j,:) = intval; 
+    else
+            rintsltanens = 0;
+            rintsltanes = 0;
     end
-    
+        
 end
 
-rintsln = rksl.*rintsln;
+% parte total de INT(gij(x,x0)ft(x))ds
+rintslt = rintsltanens + rintsltanes;
+
+% integral total del single layer incluido constante
+rintsl = rksl.*(rintslt + rintsln);
 
 % calcule el flujo externo
-rextf = geom.nodes(:,3).*rkextf;
+if rkextf ~= 0
+    rextf = geom.nodes(:,3).*rkextf;
+else
+    rextf = 0;
+end
 
 % calcule wielandt deflaction si lamda .ne. 1
 if parms.lamda ~= 1
-    [velnode,geom.W] = doublewielandt(geom,rintsln,rextf,geom.velnodeant,geom.W,parms);
+    if strcmp(parms.dlmod,'deflaction') == 1
+        % invoque wielandt deflaction para el double layer
+        [velnode,geom.W] = doublewielandt(geom,rintsl,rextf,geom.velnodeant,geom.W,parms);
+    elseif strcmp(parms.dlmod,'subsust') == 1
+        % invoque substituciones sucesivas
+        [velnode,geom.velnodeant] = sucesivesubs(geom,geom.velnodeant,rintsl,parms);
+    end
     geom.velnodeant = velnode;
 else
     % calcule la velocidad total
-    velnode = rintsln;
+    velnode = rintsl;
 
     % calcule el flujo externo y sumelo
     if rkextf ~= 0
