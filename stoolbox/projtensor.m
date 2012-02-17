@@ -13,7 +13,7 @@ function pg = projtensor(normal)
 
 numnodes = size(normal,1);
 
-pg = zeros (3,3,numnodes);
+% pg = zeros (3,3,numnodes);
 
 normal = reshape(normal',1,3,numnodes);
 

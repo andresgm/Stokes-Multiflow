@@ -8,7 +8,7 @@
 % const(2): lamda
 
 
-function strtensornode = strtensorreologia(deltaf,nodes,velnode,normalv,const,nnodesdrop,z)
+function strtensornode = strtensorreologia(deltaf,nodes,velnode,normalv,const)
 
 kappa = (1-const)/(1+const);
 strtensornode = [];
@@ -17,12 +17,8 @@ strtensornode = [];
 
 for i = 1:3
     for j = 1:3
-        strtensornode(i,j,:) = nodes(nnodesdrop(z,1):nnodesdrop(z,2),j).*...
-            deltaf(nnodesdrop(z,1):nnodesdrop(z,2),i) - kappa.*...
-            (velnode(nnodesdrop(z,1):nnodesdrop(z,2),i).*...
-            normalv(nnodesdrop(z,1):nnodesdrop(z,2),j) + ...
-            velnode(nnodesdrop(z,1):nnodesdrop(z,2),j).*...
-            normalv(nnodesdrop(z,1):nnodesdrop(z,2),i));
+        strtensornode(i,j,:) = nodes(:,j).*deltaf(:,i) - kappa.*...
+            (velnode(:,i).*normalv(:,j) + velnode(:,j).*normalv(:,i));
     end
 end
 

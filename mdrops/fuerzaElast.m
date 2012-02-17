@@ -14,7 +14,6 @@ function [tensionelas] = fuerzaElast(geom,kaes,mues)
 % El siguiente algoritmo sigue la metodologia propuesta en Charrier et al.
 % Journal of Strain Analysis Vol 24 No 2 1983
 
-R = zeros(3,3);
 tensionelas = zeros(geom.numnodes,3);
 
 for i=1:size(geom.elements,1)

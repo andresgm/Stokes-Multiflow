@@ -44,18 +44,7 @@ end
 
 % calculo del producto punto <xnode,normalatnodes>
 xdotn = sum(geom.nodes.*normalnode,2);
-if isfield(geom,'numdrops') == 1
-   if geom.numdrops == 1 
-        volumen = sum(xdotn.*dsi)/3;
-   else
-        volumen = zeros(geom.numdrops,1);
-        for j=1:geom.numdrops
-           % extraiga los elementos de la j malla
-           volumen(j) = sum(xdotn(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2)).*dsi(geom.nnodesdrop(j,1):geom.nnodesdrop(j,2)))/3;
-        end
-   end
-else
-    volumen = sum(xdotn.*dsi)/3;
+volumen = sum(xdotn.*dsi)/3;
 end
 
 

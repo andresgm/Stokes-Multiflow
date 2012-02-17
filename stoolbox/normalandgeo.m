@@ -1,4 +1,4 @@
-function geomprop = normalandgeo(geom,normalandgeoopt)
+function geomprop = normalandgeo(geom,normalandgeoopt,opcion)
 % calcula la normal promedio en los nodos de una malla triangular
 % calcula el area superficial de cada elemento y total
 % calcula el area baricentrica alrededor de cada nodo
@@ -31,7 +31,11 @@ function geomprop = normalandgeo(geom,normalandgeoopt)
 % geom.vol: volumen total del enmallado
 
 % calcule la metrica de transformacion a cada punto
-jacomp = metrictrans(geom,[1/3;1/3]);
+if nargin < 3
+    jacomp = metrictrans(geom,[1/3;1/3]);
+else
+    jacomp = metrictrans(geom,[1/3;1/3],opcion);
+end
 
 geomprop.jacmat = jacomp.jacinv;
 geomprop.g = jacomp.g;

@@ -16,11 +16,12 @@ elements = geom.elements;
 
 numnodes = max(elements(:));
 %% Inicio comentario Cpp
-numelements = size(elements,1);
 
 % conformal laplacian
-l = sparse(numnodes,numnodes);
+l = zeros(numnodes,numnodes);
 sumtheta = zeros(numnodes,1);
+
+Avor = zeros(numnodes,1);
 
 for i = 1:numnodes
     ele2nodev = ele2node{i};
@@ -67,7 +68,7 @@ for i = 1:numnodes
 end
 
 % Gaussian Curvature
-Kg = ((2.*pi) - sumtheta)./Avor';
+Kg = ((2.*pi) - sumtheta)./Avor;
 
 
 

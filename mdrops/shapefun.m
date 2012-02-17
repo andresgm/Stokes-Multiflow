@@ -2,9 +2,9 @@
 % finitos lineales.
 function [shapeA, shapeB, refrot] = shapefun(geom)
 
-refrot = zeros(size(geom.elements,1),3,3);
-shapeA = zeros(size(geom.elements,1),3);
-shapea = zeros(size(geom.elements,1),3);
+refrot = zeros(3,3,size(geom.elements,1));
+shapeA = zeros(3,size(geom.elements,1));
+shapeB = zeros(3,size(geom.elements,1));
 
 for i=1:size(geom.elements,1)
     xi = geom.ref(geom.elements(i,1),1);
@@ -25,9 +25,17 @@ for i=1:size(geom.elements,1)
     
     vxk = [xk,yk,zk];
     
-    ve1 = (vxj-vxi)./norm(vxj-vxi);
-    vetemp = (vxk-vxi)./norm(vxk-vxi);
-    ve3 = cross(ve1,vetemp);
+    % A continuacion se desarrolla el calculo de la matriz de rotacion siguiendo
+    % y usando la notacion de Wu 1984.
+    
+    m1 = norm(vxj-vxi);
+    m2 = norm(vxk-vxi);
+    
+    ve1 = (vxj-vxi)./m1;
+    ve4 = (vxk-vxi)./m2;
+    cv1v4 = cross(ve1,ve4);
+    m3 = norm(cv1v4);
+    ve3 = cv1v4/m3;
     ve2 = cross(ve3,ve1);
     
     r = [ve1;ve2;ve3];
@@ -36,12 +44,12 @@ for i=1:size(geom.elements,1)
     vxjl = r*(vxj-vxi)';
     vxkl = r*(vxk-vxi)';
     
-    refrot(i,:,:) = [vxil;vxjl';vxkl'];
+    refrot(:,:,i) = [vxil;vxjl';vxkl']';
     
     ai = vxjl(2) - vxkl(2);
     bi = vxkl(1) - vxjl(1);
     ci = vxjl(1)*vxkl(2) - vxkl(1)*vxjl(2);
-    Li = ci; % Notese que tango xi como yi son zero en el marco de referencia 
+    Li = ci; % Notese que tanto xi como yi son zero en el marco de referencia 
              % rotado.
     
     aj = vxkl(2) - vxil(2);
@@ -54,6 +62,6 @@ for i=1:size(geom.elements,1)
     ck = vxil(1)*vxjl(2) - vxjl(1)*vxil(2);
     Lk = ak*vxkl(1)+bk*vxkl(2)+ck;
     
-    shapeA(i,:) = [ai/Li,aj/Lj,ak/Lk];
-    shapeB(i,:) = [bi/Li,bj/Lj,bk/Lk];
+    shapeA(:,i) = [ai/Li,aj/Lj,ak/Lk]';
+    shapeB(:,i) = [bi/Li,bj/Lj,bk/Lk]';
 end

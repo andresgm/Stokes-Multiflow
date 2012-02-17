@@ -124,61 +124,61 @@ function [cmeancen,Kg] = simplequadric(xlocnodes)
     
 end
 
-function [cmeancen,normalcen,Kg] = extendedquatric(deltax,normalnew,tol,itmax)
-
-    normalant = [0,0,0];
-    it = 0;
-    while normesp(normalnew - normalant) > tol
-        it = it + 1;
-        % matriz de rotaciones
-        r3 = normalnew;
-        pga = projtensor(normalnew);
-        r1 = pga(:,1)';
-        r1 = univect(r1);
-        r2 = crossv(r3,r1);
-            
-        mr = [r1;r2;r3];
-        
-        xlocnodes = zeros(3,size(deltax,2));
-        for k=1:size(deltax,2)
-            xlocnodes(:,k) = mr*deltax(:,k);
-        end
-        xlocnodes = xlocnodes';
-        
-    % ensamble la matriz del sistema lineal
-        col1 = xlocnodes(:,1).^2;
-        col2 = xlocnodes(:,1).*xlocnodes(:,2);
-        col3 = xlocnodes(:,2).^2;
-        col4 = xlocnodes(:,1);
-        col5 = xlocnodes(:,2);
-        
-        matriz = [col1 col2 col3 col4 col5];
-        zeta = xlocnodes(:,3);
-
-        % Solucion en minimos cuadrados
-        alfa = matriz\zeta;
-
-        % extraccion de propiedades
-        % normal en la base local
-        normalant = normalnew;
-        normalnewl = (1/(alfa(4)^2 + alfa(5)^2 + 1)^0.5).*[-alfa(4),-alfa(5),1]';
-        % transforme la normal a la base Global
-        normalnew = (mr'*normalnewl)';
-        % curvatura media
-        cmeancen = -(alfa(1) + alfa(3) + alfa(1)*alfa(5)^2 + alfa(3)*alfa(4)^2 ...
-            - alfa(2)*alfa(4)*alfa(5))/(1 + alfa(4)^2 + alfa(5)^2)^1.5;
-        
-        
-        % curvatura gaussiana
-        Kg= ((4.*alfa(1).*alfa(3) - alfa(2)^2)./(1 + alfa(4)^2 + alfa(5)^2)^2);
-                
-        if it >= itmax
-           error('Calculo fallido en la curvatura, fin de simulacion!')
-        end
-    end
-normalcen = normalnew;
-
-end
+% function [cmeancen,normalcen,Kg] = extendedquatric(deltax,normalnew,tol,itmax)
+% 
+%     normalant = [0,0,0];
+%     it = 0;
+%     while normesp(normalnew - normalant) > tol
+%         it = it + 1;
+%         % matriz de rotaciones
+%         r3 = normalnew;
+%         pga = projtensor(normalnew);
+%         r1 = pga(:,1)';
+%         r1 = univect(r1);
+%         r2 = crossv(r3,r1);
+%             
+%         mr = [r1;r2;r3];
+%         
+%         xlocnodes = zeros(3,size(deltax,2));
+%         for k=1:size(deltax,2)
+%             xlocnodes(:,k) = mr*deltax(:,k);
+%         end
+%         xlocnodes = xlocnodes';
+%         
+%     % ensamble la matriz del sistema lineal
+%         col1 = xlocnodes(:,1).^2;
+%         col2 = xlocnodes(:,1).*xlocnodes(:,2);
+%         col3 = xlocnodes(:,2).^2;
+%         col4 = xlocnodes(:,1);
+%         col5 = xlocnodes(:,2);
+%         
+%         matriz = [col1 col2 col3 col4 col5];
+%         zeta = xlocnodes(:,3);
+% 
+%         % Solucion en minimos cuadrados
+%         alfa = matriz\zeta;
+% 
+%         % extraccion de propiedades
+%         % normal en la base local
+%         normalant = normalnew;
+%         normalnewl = (1/(alfa(4)^2 + alfa(5)^2 + 1)^0.5).*[-alfa(4),-alfa(5),1]';
+%         % transforme la normal a la base Global
+%         normalnew = (mr'*normalnewl)';
+%         % curvatura media
+%         cmeancen = -(alfa(1) + alfa(3) + alfa(1)*alfa(5)^2 + alfa(3)*alfa(4)^2 ...
+%             - alfa(2)*alfa(4)*alfa(5))/(1 + alfa(4)^2 + alfa(5)^2)^1.5;
+%         
+%         
+%         % curvatura gaussiana
+%         Kg= ((4.*alfa(1).*alfa(3) - alfa(2)^2)./(1 + alfa(4)^2 + alfa(5)^2)^2);
+%                 
+%         if it >= itmax
+%            error('Calculo fallido en la curvatura, fin de simulacion!')
+%         end
+%     end
+% normalcen = normalnew;
+% 
+% end
 
 function [normal,cmean,Kg] = bestparaboloid(nbcoord,normal,tol,itmax)
 % Calcula la normal y curvaturas media y gaussiana usando el metodo de ajuste al

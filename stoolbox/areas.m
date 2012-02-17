@@ -17,6 +17,7 @@ nodo3 = geom.nodes(geom.elements(:,3),:);
 ds = trianglearea(nodo1,nodo2,nodo3);
 s = sum(ds,1);
 % asigne la 3ra parte a cada nodo y sume (area baricentrica)
+% TODO: Revisar, esta si es el ?rea m?s conveniente? Voronoi?
 dsi = zeros(numnodes,1);
 for i = 1:numnodes
    % extraiga los elementos del i nodo

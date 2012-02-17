@@ -1,5 +1,5 @@
 % Funcion de escalaje de malla
-function geom = escaling(geom,optesc,ErrorVol)
+function geom = scaling(geom,optesc,ErrorVol)
 
 % recupere las variabels geometricas
 NormalAtNodes = geom.normal;
@@ -43,14 +43,10 @@ while abs(ErrorVol)>TolErrorVol
      
     % Calculo de Volumen antes de la correccion
     geomprop = normalandgeo(geom,normalandgeoopt);
-%     geom.normalele = geomprop.normalele;
-    %geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
     geom.ds = geomprop.ds;
     geom.s = geomprop.s;
     geom.vol = geomprop.vol;
-    %geom.jacmat = geomprop.jacmat;
-        
 
     % Calculo del Error en Volumen despues de correccion
     ErrorVol = (VolumeIni - geom.vol)/VolumeIni; 
@@ -63,4 +59,4 @@ while abs(ErrorVol)>TolErrorVol
         break
     end
 end
-% disp(['Rescaling' num2str(ErrorVol(r))]);
+disp(['Rescaling: ' num2str(ErrorVol), ' it: ', num2str(k)]);

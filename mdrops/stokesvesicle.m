@@ -13,29 +13,45 @@ rkmaran = parms.rkmaran;
 rksl = parms.rksl;
 % constante del flujo externo
 rkextf = parms.rkextf;
-% constante del double layer
-rkdl = parms.rkdl;
+
+ks = parms.kext;
+mu = parms.mu;
 
 % funcion de green
 greenfunction = parms.greenfunction;
 
-% calcule el vector normal a cada nodo
-normalandgeoopt.normal = 0;
-normalandgeoopt.areas = 1;
-normalandgeoopt.vol = 0;
-geomprop = normalandgeo(geom,normalandgeoopt);
-
-if  isfield(geom,'normal') ~= 1
-    % no se ha calculado la normal inicial calcularla
-    %geom.normal = geomprop.normal;
-    error('No ha calculado la normal')
+if  isfield(parms,'polarparms') == 1
+    polarparms = parms.polarparms;
+else
+     % calcule los parametros de integracion polar
+    n = 4;
+    [zz,ww] = gausslegabsweights(n);
+    % coordenadas y pesos de los puntos de integracion gauss-Leg 2D
+    [rmaxh,wwrho,r,xin,etn,ztn] = gausslegintpt(zz,ww);
+    % parametros de intergacion polar 2D
+    polarparms.rmaxh = rmaxh;
+    polarparms.wwrho = wwrho;
+    polarparms.ww = ww;
+    polarparms.xin = xin;
+    polarparms.etn = etn;
+    polarparms.ztn = ztn;
+    polarparms.r = r;
 end
-% geom.normalele = geomprop.normalele;
+
+% calcule el vector normal a cada nodo
+normalandgeoopt.normal = 1;
+normalandgeoopt.areas = 1;
+normalandgeoopt.vol = 1;
+% calcule la matriz jacobiano invertido
+geomprop = normalandgeo(geom,normalandgeoopt,1);
+geom.normal = geomprop.normal;
+geom.normalele = geomprop.normalele;
 geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
 geom.s = geomprop.s;
-% geom.vol = geomprop.vol;
-%geom.jacmat = geomprop.jacmat;
+geom.vol = geomprop.vol;
+geom.jacmat = geomprop.jacmat;
+geom.g = geomprop.g;
 
 % calculo de la curvatura media
 if parms.curvopt == 1
@@ -47,6 +63,8 @@ elseif parms.curvopt == 2
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     [lapbelmat,geom.Kg] = discretelaplacebeltrami(geom);
     [geom.curv] = curvlb(geom,lapbelmat);
 end
@@ -59,21 +77,25 @@ end
 geom.lapcurv = lapbelmat*geom.curv;
 % geom.lapcurv = lapbel(geom,geom.curv);
 % calcule el delta de fuerza debido a la resistencia al doblamiento.
-rdeltafbend = -(rkbend).*...
+rdeltafbend = -(rkbend).*...%zeros(numnodes,1);%
            (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
 geom.rdeltafbend = rdeltafbend;
 
 % Calculo de la tension isotropica
 
-isotens = isotension(geom,geom.ks);
-rdeltafcurv = ((2*rkcurv).*geom.curv).*isotens;
-geom.rdeltafcurv = rdeltafcurv;
+isotens = isotension(geom,ks,mu);
+rdeltafcurv = repmat(sum(isotens'.*geom.normal,2),[1 3]).*geom.normal;
+geom.rdeltafcurv = rkcurv.*rdeltafcurv;
+
+geom.rdeltafnorm = repmat(rdeltafbend,[1 3]).*geom.normal + geom.rdeltafcurv;
 
 % delta fuerza normal total
-rdeltaftot = rdeltafcurv + rdeltafbend;
+rdeltaftot = sum(geom.rdeltafnorm.*geom.normal,2);
 
-% calculo de la componente tangencial de la tension
-rdeltafmaran = grad_s(geom,isotens);
+% Esfuerzos de marangoni
+rdeltafmaran = isotens'-rdeltafcurv;
+
+geom.rdeltafmaran = rkmaran*rdeltafmaran;
 
 % calcule la integral de single layer caso normal y tangencial
 rintsln = zeros(numnodes,3);
