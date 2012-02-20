@@ -6,7 +6,7 @@ clear;clc; %close all;
 % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
 carpetaorigen = 'cortante_95_mu0_ca1';
-iteracion = [160];
+iteracion = 160;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
@@ -24,7 +24,7 @@ noiserep = 0;
 
 % Algoritmo de flujo de stokes.
 ca = 1;
-lamda = 1;
+lamda = 8;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
@@ -295,15 +295,17 @@ elseif opcionsim == 2
     numnodes = size(geom.nodes,1);
     numelements = size(geom.elements,1);
     
+    if parms.lamda ~= 1
+       geom.W = zeros(numnodes,3); 
+       geom.velnodeant = zeros(numnodes,3);
+    end
+    
     % Geometria de referencia
     geom.ref = geom.nodes;
     geom.dsref = geom.ds;
     
     % volumen reducido inicial
-    volredini = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
-    geom.volredini = volredini;
-    disp(['Volumen reducido incial: ',num2str(volredini)]);
-       
+    volredini = geom.volredini;
 end
 
 % Calculo funciones de forma y demas parametros para el metodo de los 
