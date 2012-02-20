@@ -18,9 +18,9 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'pruebacortante_fem'};
+carpetaorigenv = {'pruebacortante_95_mu0_ca1'};
 nombreorigenv =  {'it'};
-itmaxv = [32];
+itmaxv = [85];
 itminv = ones(1,size(itmaxv,2));
 intervalv = [1];
 
@@ -35,7 +35,7 @@ intervalv = [1];
 % *.FIG, *.PDF, Y *PNG DE TODO.
 
 % OJO dependiendo de la simulacion (sedimentacion o cortante) usted coloca los ejes
-ejes = [-3 3 -3 3 -3 3];
+ejes = [-1.8 1.8 -1.8 1.8 -1.8 1.8];
 
 % voy a ir a almorzar mientras posprocese lo que hace falta
 

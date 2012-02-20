@@ -4,26 +4,26 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'ellipsoide95.mat';
-carpetaorigen = '';
-iteracion = [];
+nombreorigen = 'it';
+carpetaorigen = 'pruebacortante_95_mu0_ca1';
+iteracion = [163];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'pruebacortante_95_mu0';
+carpetadestino = 'pruebacortante_95_mu0_ca1';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 0;
+opcionsim = 1;
 
 % Parametros introduccion ruido para minimizar efecto de la simetria de la
 % malla
 
 noiseint = 0.025;
-noiserep = 20;
+noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0;
+ca = 4;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -35,7 +35,7 @@ curvopt = 3;
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
-kext = 1e4;
+kext = 1e3;
 mu = 0;
 %
 
@@ -259,6 +259,7 @@ elseif opcionsim == 1
     numelements = size(geom.elements,1);    
     
     parms.curvopt = parmstemp.curvopt;
+    volredini = geom.volredini;
        
 elseif opcionsim == 2
     % cargue desde resultados y realice una nueva simulacion
@@ -277,16 +278,21 @@ elseif opcionsim == 2
     mkdir([cd sbar,carpetadestino]);
         
     paso = 1;    
-    if parmstemp.rkbend ~= 0
-        % asigne el bending de la simulacion cargada
-        parmstemp.bending.sigma = parms.bending.sigma;
-    end
     parms = parmstemp;
     counter = 0;
     geom.tiempo = 0;
     itsaved = 0;
     numnodes = size(geom.nodes,1);
     numelements = size(geom.elements,1);
+    
+    % Geometria de referencia
+    geom.ref = geom.nodes;
+    geom.dsref = geom.ds;
+    
+    % volumen reducido inicial
+    volredini = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
+    geom.volredini = volredini;
+    disp(['Volumen reducido incial: ',num2str(volredini)]);
        
 end
 
