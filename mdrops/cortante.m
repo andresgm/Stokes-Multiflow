@@ -5,12 +5,12 @@ clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
-carpetaorigen = 'pruebacortante_95_mu0_ca1';
-iteracion = [163];
+carpetaorigen = 'cortante_95_mu0_ca1';
+iteracion = [160];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'pruebacortante_95_mu0_data';
+carpetadestino = 'cortante_95_ca1_lambda8';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,7 +23,7 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 4;
+ca = 1;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
