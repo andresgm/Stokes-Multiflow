@@ -204,7 +204,7 @@ if opcionsim == 0
     
     direcciondestino = ...
         [cd  sbar '..' sbar 'data' sbar carpetadestino sbar nombredestino];
-    mkdir([cd sbar,carpetadestino]);
+    mkdir([cd  sbar '..' sbar 'data' sbar carpetadestino]);
         
     paso = 1;
     counter = 0;
@@ -260,7 +260,7 @@ elseif opcionsim == 1
 
     direcciondestino = ...
         [cd  sbar '..' sbar 'data' sbar carpetadestino sbar nombredestino];
-    mkdir([cd sbar,carpetadestino]);
+    mkdir([cd  sbar '..' sbar 'data' sbar carpetadestino]);
     numnodes = size(geom.nodes,1);
     numelements = size(geom.elements,1);    
     
@@ -285,7 +285,7 @@ elseif opcionsim == 2
     
     direcciondestino = ...
         [cd  sbar '..' sbar 'data' sbar carpetadestino sbar nombredestino];
-    mkdir(direcciondestino);
+    mkdir([cd  sbar '..' sbar 'data' sbar carpetadestino]);
         
     paso = 1;    
     parms = parmstemp;
