@@ -3,18 +3,18 @@
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
 clear;clc; %close all;
 %% opciones de carga de archivos
-    % nombre de archivo a cargar y carpeta
+% nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
 carpetaorigen = 'pruebacortante_95_mu0_ca1';
 iteracion = [163];
 
-    % nombre de archivo a guardar y carpeta
+% nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'pruebacortante_95_mu0_ca1';
-    % simulacion nueva desde cero optsim = 0
-    % continue la simulacion optsim = 1
-    % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 1;
+carpetadestino = 'pruebacortante_95_mu0_data';
+% simulacion nueva desde cero optsim = 0
+% continue la simulacion optsim = 1
+% simulacion nueva desde archivo de resultados optsim = 2
+opcionsim = 2;
 
 % Parametros introduccion ruido para minimizar efecto de la simetria de la
 % malla
@@ -37,7 +37,6 @@ curvopt = 3;
 % Ka*R_0^2/kappa.
 kext = 1e3;
 mu = 0;
-%
 
 % aplica solo cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
@@ -194,13 +193,17 @@ if opcionsim == 0
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     
     if isempty(carpetadestino) == 1
-        direccion = [cd  sbar nombredestino num2str(iteracion) '.mat'];   
+        direccion = ...
+        [cd  sbar '..' sbar 'data' sbar  sbar nombredestino ...
+        num2str(iteracion) '.mat'];   
     else
         direccion = ...
-         [cd  sbar carpetadestino sbar nombredestino num2str(iteracion) '.mat'];        
+         [cd  sbar '..' sbar 'data' sbar carpetadestino sbar...
+         nombredestino num2str(iteracion) '.mat'];        
     end
     
-    direcciondestino = [cd sbar carpetadestino sbar nombredestino];
+    direcciondestino = ...
+        [cd  sbar '..' sbar 'data' sbar carpetadestino sbar nombredestino];
     mkdir([cd sbar,carpetadestino]);
         
     paso = 1;
@@ -241,10 +244,12 @@ elseif opcionsim == 1
     carpetadestino = carpetaorigen;
     nombredestino = nombreorigen;
     if isempty(carpetaorigen) == 1
-        direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
+        direccion = ...
+        [cd  sbar '..' sbar 'data' sbar nombreorigen num2str(iteracion) '.mat'];        
     else
         direccion = ...
-         [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];
+         [cd  sbar '..' sbar 'data' sbar carpetaorigen sbar nombreorigen...
+         num2str(iteracion) '.mat'];
     end
     
     load(direccion);
@@ -253,7 +258,8 @@ elseif opcionsim == 1
     counter = 0;
     itsaved = iteracion;
 
-    direcciondestino = [cd  sbar carpetadestino sbar nombredestino];
+    direcciondestino = ...
+        [cd  sbar '..' sbar 'data' sbar carpetadestino sbar nombredestino];
     mkdir([cd sbar,carpetadestino]);
     numnodes = size(geom.nodes,1);
     numelements = size(geom.elements,1);    
@@ -265,17 +271,21 @@ elseif opcionsim == 2
     % cargue desde resultados y realice una nueva simulacion
     % cargue desde resultados y continue la simulacion
     if isempty(carpetaorigen) == 1
-        direccion = [cd  sbar nombreorigen num2str(iteracion) '.mat'];        
+        direccion = ...
+            [cd  sbar '..' sbar 'data' sbar nombreorigen ...
+            num2str(iteracion) '.mat'];        
         
     else
         direccion = ...
-         [cd  sbar carpetaorigen sbar nombreorigen num2str(iteracion) '.mat'];        
+         [cd  sbar '..' sbar 'data' sbar carpetaorigen sbar nombreorigen...
+         num2str(iteracion) '.mat'];        
     end
     
     load(direccion);
     
-    direcciondestino = [cd  sbar carpetadestino sbar nombredestino];
-    mkdir([cd sbar,carpetadestino]);
+    direcciondestino = ...
+        [cd  sbar '..' sbar 'data' sbar carpetadestino sbar nombredestino];
+    mkdir(direcciondestino);
         
     paso = 1;    
     parms = parmstemp;
