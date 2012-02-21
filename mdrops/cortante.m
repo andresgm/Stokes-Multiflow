@@ -5,8 +5,8 @@ clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
-carpetaorigen = 'cortante_95_mu0_ca1';
-iteracion = 160;
+carpetaorigen = 'cortante_95_ca1_lambda8';
+iteracion = 500;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
@@ -14,7 +14,7 @@ carpetadestino = 'cortante_95_ca1_lambda8';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 2;
+opcionsim = 1;
 
 % Parametros introduccion ruido para minimizar efecto de la simetria de la
 % malla
@@ -52,7 +52,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-deltat = 1e-5;
+deltat = 5e-6;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -469,7 +469,7 @@ for p = paso:numtimesteps
 %     disp(carpetadestino)
     disp(['tiempo: ', num2str(geom.tiempo)])
     volred = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
-    disp(['Volumen reducido: ',num2str(volred)]);
+%     disp(['Volumen reducido: ',num2str(volred)]);
     errorvolred = abs(volred-volredini)/volredini;
     disp(['Error volumen reducido: ',num2str(errorvolred)]);
     

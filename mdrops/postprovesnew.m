@@ -18,11 +18,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'pruebacortante_95_mu0_ca1'};
+carpetaorigenv = {'cortante_95_ca1_lambda8'};
 nombreorigenv =  {'it'};
-itmaxv = [85];
+itmaxv = 590;
 itminv = ones(1,size(itmaxv,2));
-intervalv = [1];
+intervalv = 10;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};
@@ -56,7 +56,7 @@ for i = 1:size(itmaxv,2)
     
     for k = itmin:interval:itmax
         contador = contador + 1;
-        direccion = [cd  sbar carpetaorigen sbar nombreorigen num2str(k) '.mat'];
+        direccion = [cd  sbar '..' sbar 'data' sbar carpetaorigen sbar nombreorigen num2str(k) '.mat'];
         load(direccion);
 
         % exceso de area
@@ -86,8 +86,8 @@ for i = 1:size(itmaxv,2)
         pelicula(contador) = getframe; title('curv');
         
     end
-        nameydir = [raiz sbar carpetaorigen sbar];
-        movie2avi(pelicula,[nameydir carpetaorigen '.avi'])
+        nameydir = [cd  sbar '..' sbar 'data' sbar carpetaorigen sbar];
+%         movie2avi(pelicula,[nameydir carpetaorigen '.avi'])
         figure(1);
         grafscfld(geom,geom.curv);
         axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;

@@ -330,8 +330,8 @@ for zz=1:100
     ErrorInVel = normesp(VelAtNode - VelAtNodeAnt);
     ErrorMax = max(abs(ErrorInVel));
     if ErrorMax < 1e-6
-        disp(['It Deflaction: ' num2str(zz)]);
-        disp(['Error Deflaction: ' num2str(ErrorMax)]);
+%         disp(['It Deflaction: ' num2str(zz)]);
+%         disp(['Error Deflaction: ' num2str(ErrorMax)]);
         break
     end
 end
