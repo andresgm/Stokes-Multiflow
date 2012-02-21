@@ -6,7 +6,7 @@ clear;clc; %close all;
 % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
 carpetaorigen = 'cortante_95_ca1_lambda8';
-iteracion = 500;
+iteracion = 555;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
@@ -440,23 +440,23 @@ for p = paso:numtimesteps
     geom.deltat = deltat;
 
 % Visualizacion
-    figure(1);
-    grafscfld(geom,normesp(geom.rdeltafnorm));
-    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    hold on
-    quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-        geom.rdeltafnorm(:,1),geom.rdeltafnorm(:,2),geom.rdeltafnorm(:,3));
-    getframe; title('Tension normal');
-    hold off
-        
-    figure(2);
-    grafscfld(geom,normesp(geom.rdeltafmaran));
-    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    hold on
-    quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-        geom.rdeltafmaran(:,1),geom.rdeltafmaran(:,2),geom.rdeltafmaran(:,3));
-    getframe; title('Marangoni');
-    hold off
+%     figure(1);
+%     grafscfld(geom,normesp(geom.rdeltafnorm));
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     hold on
+%     quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+%         geom.rdeltafnorm(:,1),geom.rdeltafnorm(:,2),geom.rdeltafnorm(:,3));
+%     getframe; title('Tension normal');
+%     hold off
+%         
+%     figure(2);
+%     grafscfld(geom,normesp(geom.rdeltafmaran));
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     hold on
+%     quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+%         geom.rdeltafmaran(:,1),geom.rdeltafmaran(:,2),geom.rdeltafmaran(:,3));
+%     getframe; title('Marangoni');
+%     hold off
     
 
 % guarde resultados
