@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'rbc';
+nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'demostracion_alexander';
+carpetadestino = 'test_wall';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,11 +23,11 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 1;
+ca = 0;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'inf';
+flow = 'semiinf';
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
 curvopt = 3;
@@ -37,6 +37,18 @@ curvopt = 3;
 % Ka*R_0^2/kappa.
 kext = 1e3;
 mu = 1;
+
+% gravedad
+kb = 1;
+g0 = 50;
+
+% interaccion electrostatica
+ke = 1;
+lie = 64.86;
+gammaie = 3183.1;
+
+% Coordenadas del centroide de la particula
+xc =[0 0 8];
 
 % aplica solo cuando hay double layer: 1: 'deflaction' 2:'subsust'
 dlmod = 1;
@@ -52,7 +64,7 @@ outputfreq = 1;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-deltat = 5e-6;
+deltat = 1e-5;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -73,11 +85,13 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 % parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2*ca;
+parms.rkextf = 2*ca/g0;
 parms.rksl = 2;
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
 parms.ca = ca;
+parms.g0 = g0;
+parms.w = 0;
     
 % Coeficiente termino de curvatura
 parms.rkcurv = 1;
@@ -89,15 +103,25 @@ parms.rkmaran = 1;
 parms.rkbend = 1;
 parms.kext = kext;
 parms.mu = mu;
+
+if kb == 1
+    % gravedad
+    parms.rkgrav = 1;
+else
+    parms.rkgrav = 0;
+end
+
+if ke == 1
+   % Interaccion electrostatica
+   parms.rkelestat = gammaie/g0;
+   parms.elestat.l = lie;
+else
+    parms.rkelestat = 0;
+end
     
 parms.curvopt = curvopt;
 
-switch flow
-    case 'inf'
-        greenfunction = @greeninf;
-    case 'semiinf'
-        greenfunction = @semiinf;
-end
+greenfunction = @greeninf;
 parms.greenfunction = greenfunction;
 
 if dlmod == 1
@@ -134,6 +158,12 @@ if opcionsim == 0
     geom.numelements = size(Elements,1);
     numnodes = geom.numnodes;
     numelements = geom.numelements;
+    geom = set_centroid(geom,xc);
+    
+%     figure(1);
+%     grafscfld(geom,1);
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     getframe; title('Marangoni');
     
     if parms.lamda ~= 1
        geom.W = zeros(numnodes,3); 
@@ -341,7 +371,7 @@ for p = paso:numtimesteps
           % primer paso de runge kutta f1
           % invoque el problema de flujo de stokes
           abmcount = abmcount+1;
-          [velnode1,geom,parms] = stokesvesicle(geom,parms);
+          [velnode1,geom,parms] = stokes_wall(geom,parms);
           
           % no estamos usando adaptacion de malla inicialmente
           f1 = velnode1;
@@ -352,7 +382,7 @@ for p = paso:numtimesteps
           % invoque el problema de flujo de stokes
           geom.nodes = nodes0 + (1/2)*deltat*f1;
           
-          [velnode2,geom,parms] = stokesvesicle(geom,parms);
+          [velnode2,geom,parms] = stokes_wall(geom,parms);
           
           f2 = velnode2;
 
@@ -360,7 +390,7 @@ for p = paso:numtimesteps
           % invoque el problema de flujo de stokes
           geom.nodes = nodes0 + (1/2)*deltat*f2;
           
-          [velnode3,geom,parms] = stokesvesicle(geom,parms);
+          [velnode3,geom,parms] = stokes_wall(geom,parms);
           
           f3 = velnode3;
 
@@ -368,7 +398,7 @@ for p = paso:numtimesteps
           % invoque el problema de flujo de stokes
           geom.nodes = nodes0 + deltat*f3;
           
-          [velnode,geom,parms] = stokesvesicle(geom,parms);
+          [velnode,geom,parms] = stokes_wall(geom,parms);
           
           f4 = velnode;
 
@@ -383,7 +413,7 @@ for p = paso:numtimesteps
 
           % Calculo de la velocidad en el punto actual
 
-          [velnode1,geom,parms] = stokesvesicle(geom,parms);
+          [velnode1,geom,parms] = stokes_wall(geom,parms);
           
           f1 = velnode1;
 
@@ -396,7 +426,7 @@ for p = paso:numtimesteps
 
           % Calculo de la velocidad en el punto siguiente con la prediccion
 
-          [velnode,geom,parms] = stokesvesicle(geom,parms);
+          [velnode,geom,parms] = stokes_wall(geom,parms);
           
           f2 = velnode;
 
@@ -438,16 +468,23 @@ for p = paso:numtimesteps
     velcont = max(abs(sum(velnode.*geom.normal,2)));
     geom.tiempo = geom.tiempo + deltat;
     geom.deltat = deltat;
+    
+    % calculo del centroide de la gota y velocidad del centroide
+    geom.xc = centroide(geom);
 
 % Visualizacion
-%     figure(1);
-%     grafscfld(geom,normesp(geom.rdeltafnorm));
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     hold on
-%     quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-%         geom.rdeltafnorm(:,1),geom.rdeltafnorm(:,2),geom.rdeltafnorm(:,3));
-%     getframe; title('Tension normal');
-%     hold off
+    figure(1);
+    grafscfld(geom,geom.rdeltafnorm);
+    axis([-5 5 -5 5 0 10]);
+    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+    title('Tension normal'); getframe; 
+    
+    figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
+    title('Electrostat vs. Grav');
+    plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;
+    
+    figure(3); plot(geom.tiempo,geom.xc,'*k');hold on;
+    title('Posicion Centroide'); getframe;
 %         
 %     figure(2);
 %     grafscfld(geom,normesp(geom.rdeltafmaran));

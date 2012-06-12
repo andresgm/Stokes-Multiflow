@@ -1,28 +1,26 @@
-% funcion de flujo de stokes con surfactantes
-% La integracion del single layer esta dada mediante de la forma:
-% int(ft gij ds) = int_ens(fti gij)ds + int_es(fti gij)ds
-% donde int_ens es la integral sobre elementos planos no singulares.
-% Calculada mediante regla del trapecio.
-% int_es es la integral sobre elementos planos no singulares evaluada
-% mediante integraci?n polar de Gauss legendre con vertice en el polo.
-
-function [velnode,geom] = stokessurf(geom,parms,flds)
+% CALCULO DEL FLUJO DE STOKES PARA UNA VESICULA
+% IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
+% IMPLEMENTADO SINGLE Y DOUBLE LAYER
+function [velnode,geom,parms] = stokes_wall(geom,parms)
 
 numnodes = size(geom.nodes,1);
-rkgrav = parms.rkgrav;
+
 rkcurv = parms.rkcurv;
-rkmaran = parms.maran.rkmaran;
+rkbend = parms.rkbend;
+rkmaran = parms.rkmaran;
+rkgrav = parms.rkgrav;
+rkelestat = parms.rkelestat;
+
 % constante del single layer
 rksl = parms.rksl;
-% constante del double layer
-rkdl = parms.rkdl;
 % constante del flujo externo
 rkextf = parms.rkextf;
+
+ks = parms.kext;
+mu = parms.mu;
+
 % funcion de green
 greenfunction = parms.greenfunction;
-
-% fields:
-gamma = flds.gamma;
 
 if  isfield(parms,'polarparms') == 1
     polarparms = parms.polarparms;
@@ -48,9 +46,8 @@ normalandgeoopt.areas = 1;
 normalandgeoopt.vol = 1;
 % calcule la matriz jacobiano invertido
 geomprop = normalandgeo(geom,normalandgeoopt,1);
-
-geom.normalele = geomprop.normalele;
 geom.normal = geomprop.normal;
+geom.normalele = geomprop.normalele;
 geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
 geom.s = geomprop.s;
@@ -61,46 +58,63 @@ geom.g = geomprop.g;
 % calculo de la curvatura media
 if parms.curvopt == 1
     % calculo mediante paraboloid fitting
-    geom.curv = curvparaboloid(geom);
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom);
 elseif parms.curvopt == 2
     % calculo mediante extended paraboloid fitting/bestparaboloid fitting
     paropt.tipo = 'extended';
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
-    lapbelmat = laplacebeltramimat(geom);
-    geom.curv = curvlb(geom,lapbelmat);
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
+    [lapbelmat,geom.Kg] = discretelaplacebeltrami(geom);
+    [geom.curv] = curvlb(geom,lapbelmat);
 end
 
-% calcule los esfuerzos por tension superficial
-if rkcurv ~= 0 && rkmaran == 0
-    rdeltafcurv = deltafcurv(geom.curv,rkcurv);
-else
-    rdeltafcurv = 0;
+if parms.curvopt ~= 3
+    % calcule la matriz de laplace beltrami de la curvatura
+    lapbelmat = discretelaplacebeltrami(geom);
 end
+% calcule el laplace beltrami de la curvatura
+geom.lapcurv = lapbelmat*geom.curv;
+% geom.lapcurv = lapbel(geom,geom.curv);
+% calcule el delta de fuerza debido a la resistencia al doblamiento.
+rdeltafbend = -(rkbend).*...%zeros(numnodes,1);%
+           (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
+geom.rdeltafbend = rdeltafbend;
+
+% Calculo de la tension isotropica
+
+isotens = isotension(geom,ks,mu);
+rdeltafcurv = rkcurv.*sum(isotens'.*geom.normal,2);
+geom.rdeltafcurv = rdeltafcurv;
 
 % calcule la fuerza de gravedad
 if rkgrav ~= 0
-    rdeltafgrav = deltafgrav(geom,rkgrav);
+    [rdeltafgrav,fuerzagrav] = deltafgrav(geom,rkgrav);
+    geom.deltafgrav = rdeltafgrav;
+    geom.fuerzagrav = fuerzagrav;
 else
     rdeltafgrav = 0;
 end
 
-% calcule los esfuerzos de marangoni
-if rkmaran ~= 0
-    [rdeltafmaran,rdeltafcurv,geom.rsigmavar] = deltafmaran(geom,gamma,parms.maran,rkcurv);
-    geom.rdeltafmaran = rdeltafmaran;
-    geom.rdeltafcurv  = rdeltafcurv;
-    %%%%% de prueba
-%     rdeltafmaran = sum(rdeltafmaran.*geom.normal,2);
+if rkelestat ~= 0
+   [rdeltafelestat,fuerzaelest] = deltafelestatic(geom,parms);
+   geom.deltafelestat = rdeltafelestat;
+   geom.fuerzaelest = fuerzaelest;
 else
-    rdeltafmaran = 0;
+   rdeltafelestat =0;
 end
 
-% calcule el delta de fuerza total que depende de la NORMAL
-rdeltaftot = rdeltafcurv + rdeltafgrav;
-geom.rdeltafcurv = rdeltafcurv;
-geom.rdeltafgrav = rdeltafgrav;
+rdeltaftot = rdeltafbend + rdeltafcurv + rdeltafgrav + rdeltafelestat;
+
+% delta fuerza normal total
+geom.rdeltafnorm = rdeltaftot;
+
+% Esfuerzos de marangoni
+rdeltafmaran = isotens'-repmat(sum(isotens'.*geom.normal,2),[1 3]).*geom.normal;
+
+geom.rdeltafmaran = rkmaran*rdeltafmaran;
 
 % calcule la integral de single layer caso normal y tangencial
 rintsln = zeros(numnodes,3);
@@ -122,6 +136,29 @@ for j = 1:numnodes
     rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
     % ejecute integral del trapecio
     rintsln(j,:) = inttrapecioa(geom.dsi,rintegrandsl);
+    
+    % Parte semiinfinita
+    if strcmp(parms.flow,'semiinf') == 1
+        % calcule la funcion de green 
+        rgreenwallfcn = stokesletwall(geom.nodes(j,:),geom.nodes,parms.w);
+        % limpie singularidades
+        rgreenwallfcn(isnan(rgreenwallfcn)) = 0;
+        % determine el deltaf*
+        nodex0_im = [geom.nodes(j,1), geom.nodes(j,2), 2*parms.w - geom.nodes(j,3)];
+        r = geom.nodes - repmat(nodex0_im,[numnodes 1]);
+        rn = normesp(r);
+        % Determine el nodo mas cercano a NodeX0_IM
+        rdeltafim = rdeltaftot(rn == min(rn));
+        if size(rdeltafim,1) ~= 1
+            rdeltafim = rdeltafim(1);
+        end
+        % calcule deltaf - deltaf*
+        rdeltaffpole = repmat((rdeltaftot - rdeltafim),[1 3]).*geom.normal;
+        % calcule el producto gij*dfi (opt:2)
+        rintegrandsl = matvect(rgreenwallfcn,rdeltaffpole,2);
+        % ejecute integral del trapecio sobre la gota que contiene el polo xj
+        rintsln(j,:) = rintsln(j,:) + inttrapecioa(geom.dsi,rintegrandsl);
+    end
        
     if rkmaran ~= 0
     % calcule la parte de elementos no singulares de INT(gij(x,x0)ft(x))ds
@@ -160,7 +197,8 @@ for j = 1:numnodes
             triandata.nodes = geom.nodes(elenew,:);
             vectfld = rdeltafmaran(elenew,:);
             triandata.g = geom.g(k);
-            intval = intval + gausslegmatvect2d(greenfunction,vectfld,triandata,polarparms);
+            intval = intval + ...
+                gausslegmatvect2d(greenfunction,vectfld,triandata,polarparms);
         end
         rintsltanes(j,:) = intval; 
     else
@@ -202,8 +240,6 @@ else
         velnode(:,2) = rextf  + velnode(:,2);
     end
 end
-
-
 
 return
 
@@ -283,7 +319,7 @@ for zz=1:100
             Temp2 = W - repmat(W(i,:),[NumXpoles 1]);
             Temp3 = sum(r.*Temp2,2);
             Cf1 = Temp1.*Temp3./rquint;
-            Cf1(isnan(Cf1) == 1) = 0; %Cf1(find(isnan(Cf1) == 1)) = 0;
+            Cf1(isnan(Cf1) == 1) = 0;
             % 
             IntTstInf(i,:) = (0.5*W(i,:) + (3/(4*pi)).*sum(dSiV.*repmat(Cf1,[1 3]).*r,1));
         end
@@ -336,74 +372,11 @@ for zz=1:100
     % Calculo del Error
     ErrorInVel = normesp(VelAtNode - VelAtNodeAnt);
     ErrorMax = max(abs(ErrorInVel));
-    if ErrorMax < 1e-3
-        disp(['It Deflaction: ' num2str(zz)]);
-        disp(['Error Deflaction: ' num2str(ErrorMax)]);
+    if ErrorMax < 1e-6
+%         disp(['It Deflaction: ' num2str(zz)]);
+%         disp(['Error Deflaction: ' num2str(ErrorMax)]);
         break
     end
 end
 
-return
-
-function [VelAtNode,W] = sucesivesubs(geom,W,IntSingleLayer,parms)
-
-IntSingleLayer = IntSingleLayer./parms.rksl;
-KDL = parms.rkdl;
-Kgreen = parms.rksl;
-
- % Calculo de la Integral Cj(X0)
-    NumSteps = 100;
-    TolError = 1e-3;
-    NumXpoles = size(geom.nodes,1);
-    dSiV = repmat(geom.dsi,[1 3]);
-    VelAtNode = geom.velnodeant;
-    for zz=1:NumSteps
-        % Calcule las integrales de double layer.
-
-        % Parte infinita y Total
-            IntTstInf = zeros(NumXpoles,3);
-            IntTstTotal = zeros(NumXpoles,3);
-            % W es VelAtNode;
-              
-        for i=1:NumXpoles
-            % Calculo de la integral tensor de esfuerzos parte infinita
-            r = geom.nodes - repmat(geom.nodes(i,:),[NumXpoles 1]);
-            rn = normesp(r);
-            rquint = rn.^5;
-            Temp1 = sum(r.*(geom.normal),2);
-            Temp2 = W - repmat(W(i,:),[NumXpoles 1]);
-            Temp3 = sum(r.*Temp2,2);
-            Cf1 = Temp1.*Temp3./rquint;
-            Cf1(isnan(Cf1) == 1) = 0;
-            % 
-            IntTstInf(i,:) = (0.5*W(i,:) + (3/(4*pi)).*sum(dSiV.*repmat(Cf1,[1 3]).*r,1));
-            IntTstTotal(i,:) = IntTstInf(i,:);  
-        end
-        
-        % ENSAMBLE LAS INTEGRALES 
-        VelAtNodeAnt = VelAtNode;
-
-        VelAtNode = Kgreen.*IntSingleLayer + (KDL).*IntTstTotal;
-        
-        if parms.rkextf ~= 0
-            % Velocidad debido a Uinf
-                % Calcule el shear flow en los nodos 
-            UinfAtNode = parms.rkextf.*geom.nodes(:,3);
-                % Sume el shear flow Uinf pot KGinf
-            VelAtNode(:,2) = VelAtNode(:,2) + UinfAtNode;
-        end
-        W = VelAtNode;
-       
-        % Calculo del Error
-        ErrorInVel = normesp(VelAtNode - VelAtNodeAnt);
-        ErrorMax = max(abs(ErrorInVel));
-        zz
-        if ErrorMax < TolError
-            zz
-            ErrorMax
-            break
-        end
-            
-    end
-    
 return

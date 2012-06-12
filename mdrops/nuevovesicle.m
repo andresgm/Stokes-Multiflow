@@ -4,17 +4,17 @@
 clear;clc;%close all;
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'it';
-carpetaorigen = 'sedimentacion_vesicle_g0_33.77_25kbT';
-iteracion = [60];
+nombreorigen = 'sph ref 3';
+carpetaorigen = '';
+iteracion = [];
 
     % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sedimentacion_vesicle_g0_68.74_25kbT';
+carpetadestino = 'test_nuevoves';
     % simulacion nueva desde cero optsim = 0
     % continue la simulacion optsim = 1
     % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 2;
+opcionsim = 0;
 
 % Algoritmo de flujo de stokes con surfactantes.
 ca = 0;
@@ -365,7 +365,7 @@ tic
        
        % primer paso de runge kutta f1
        % invoque el problema de flujo de stokes
-       [velnode1,geom,parms] = stokesvesicle(geom,parms);
+       [velnode1,geom,parms] = stokesvesicle_sed(geom,parms);
        % invoque la adaptacion de la malla
        % veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -400,7 +400,7 @@ tic
        
        % segundo paso de runge kutta f4
        % invoque el problema de flujo de stokes
-       [velnode,geom,parms] = stokesvesicle(geom,parms);
+       [velnode,geom,parms] = stokesvesicle_sed(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -437,7 +437,7 @@ tic
        
        % primer paso de runge kutta f1
        % invoque el problema de flujo de stokes
-       [velnode1,geom,parms] = stokesvesicle(geom,parms);
+       [velnode1,geom,parms] = stokesvesicle_sed(geom,parms);
        % invoque la adaptacion de la malla
        % veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -473,7 +473,7 @@ tic
        paropt.tipo = 'extended';
        [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
        
-       [velnode2,geom,parms] = stokesvesicle(geom,parms);
+       [velnode2,geom,parms] = stokesvesicle_sed(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -507,7 +507,7 @@ tic
        paropt.tipo = 'extended';
        [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
        
-       [velnode3,geom,parms] = stokesvesicle(geom,parms);
+       [velnode3,geom,parms] = stokesvesicle_sed(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -541,7 +541,7 @@ tic
        paropt.tipo = 'extended';
        [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
        
-       [velnode,geom,parms] = stokesvesicle(geom,parms);
+       [velnode,geom,parms] = stokesvesicle_sed(geom,parms);
        % invoque la adaptacion de la malla
     %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -581,7 +581,7 @@ tic
           % primer paso de runge kutta f1
           % invoque el problema de flujo de stokes
           abmcount = abmcount+1;
-          [velnode1,geom,parms] = stokesvesicle(geom,parms);
+          [velnode1,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
           % veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -618,7 +618,7 @@ tic
           paropt.tipo = 'extended';
           [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
           
-          [velnode2,geom,parms] = stokesvesicle(geom,parms);
+          [velnode2,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
        %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -652,7 +652,7 @@ tic
           paropt.tipo = 'extended';
           [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
           
-          [velnode3,geom,parms] = stokesvesicle(geom,parms);
+          [velnode3,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
        %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -686,7 +686,7 @@ tic
           paropt.tipo = 'extended';
           [dummyc,geom.normal,dummyk] = curvparaboloid(geom,paropt);
           
-          [velnode,geom,parms] = stokesvesicle(geom,parms);
+          [velnode,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
        %    veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -727,7 +727,7 @@ tic
 
           % Calculo de la velocidad en el punto actual
 
-          [velnode1,geom,parms] = stokesvesicle(geom,parms);
+          [velnode1,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
           % veladapt0 = meshadapt(geom,adaptparms,velnode0);
 
@@ -765,7 +765,7 @@ tic
 
           % Calculo de la velocidad en el punto siguiente con la prediccion
 
-          [velnode,geom,parms] = stokesvesicle(geom,parms);
+          [velnode,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
           % veladapt0 = meshadapt(geom,adaptparms,velnode0);
 

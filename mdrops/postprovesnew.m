@@ -18,11 +18,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'cortante_95_ca1_lambda8'};
+carpetaorigenv = {'rbc_lambda15_ca5'};
 nombreorigenv =  {'it'};
-itmaxv = 590;
+itmaxv = 5899;
 itminv = ones(1,size(itmaxv,2));
-intervalv = 10;
+intervalv = 50;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};
@@ -87,50 +87,50 @@ for i = 1:size(itmaxv,2)
         
     end
         nameydir = [cd  sbar '..' sbar 'data' sbar carpetaorigen sbar];
-%         movie2avi(pelicula,[nameydir carpetaorigen '.avi'])
+        movie2avi(pelicula,[nameydir carpetaorigen '.avi'])
         figure(1);
         grafscfld(geom,geom.curv);
         axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
         title('steady state vesicle shape - mean curvature contours');
         axis([ejes]);
-        saveas(1,[nameydir 'shape'],'fig')
-        saveas(1,[nameydir 'shape'],'eps')
+%         saveas(1,[nameydir 'shape'],'fig')
+%         saveas(1,[nameydir 'shape'],'eps')
         saveas(1,[nameydir 'shape'],'pdf')
         
         
         figure(2); plot(tiempov,excesarea); title('excess area vs dimensionless time')
         xlabel('Dimensionless time'); ylabel('excess area');
-        saveas(2,[nameydir 'excessarea'],'fig')
-        saveas(2,[nameydir 'excessarea'],'eps')
+%         saveas(2,[nameydir 'excessarea'],'fig')
+%         saveas(2,[nameydir 'excessarea'],'eps')
         saveas(2,[nameydir 'excessarea'],'pdf')
         
          
         figure(3); plot(tiempov,def); title('Deformation vs dimensionless time');
         xlabel('Dimensionless time'); ylabel('DF = (L - B)/(L + B)');
-        saveas(3,[nameydir 'def'],'fig')
-        saveas(3,[nameydir 'def'],'eps')
+%         saveas(3,[nameydir 'def'],'fig')
+%         saveas(3,[nameydir 'def'],'eps')
         saveas(3,[nameydir 'def'],'pdf')    
         
         if strcmp(parms.flow,'inf') == 1
             % grafique velocidad normal
             figure(4); plot(tiempov,velcont); title('Normal Velocity vs dimensionless time');
             xlabel('Dimensionless time'); ylabel('Normal Velocity');
-            saveas(4,[nameydir 'velnorm'],'fig')
-            saveas(4,[nameydir 'velnorm'],'eps')
+%             saveas(4,[nameydir 'velnorm'],'fig')
+%             saveas(4,[nameydir 'velnorm'],'eps')
             saveas(4,[nameydir 'velnorm'],'pdf')                           
         end
         
         if thetacal == 1
             figure(5); plot(tiempov,theta); title('\theta vs dimensionless time');
             xlabel('Dimensionless time'); ylabel('\theta');
-            saveas(5,[nameydir 'theta'],'fig')
-            saveas(5,[nameydir 'theta'],'eps')
+%             saveas(5,[nameydir 'theta'],'fig')
+%             saveas(5,[nameydir 'theta'],'eps')
             saveas(5,[nameydir 'theta'],'pdf')
         
             figure(6); plot(tiempov,theta45); title('45 - \theta vs dimensionless time');
             xlabel('Dimensionless time'); ylabel('45 - \theta');
-            saveas(6,[nameydir 'theta45'],'fig')
-            saveas(6,[nameydir 'theta45'],'eps')
+%             saveas(6,[nameydir 'theta45'],'fig')
+%             saveas(6,[nameydir 'theta45'],'eps')
             saveas(6,[nameydir 'theta45'],'pdf')
         end
         

@@ -833,7 +833,7 @@ for p = 1:numtimesteps
        if errorvol(r) > errorvoltol
            % invoque escalaje
            disp('Realizando Escalaje')
-           geom = escaling(geom,optesc,r);
+           geom = scaling(geom,optesc,r);
        end
     end
 
