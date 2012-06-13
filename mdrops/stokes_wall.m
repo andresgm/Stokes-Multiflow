@@ -106,7 +106,17 @@ else
    rdeltafelestat =0;
 end
 
-rdeltaftot = rdeltafbend + rdeltafcurv + rdeltafgrav + rdeltafelestat;
+rdeltaftot = rdeltafcurv + rdeltafgrav + rdeltafbend + rdeltafelestat;
+
+%     figure(1);
+%     grafscfld(geom,normesp(rdeltaftot));
+%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     hold on
+%     quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+%         geom.normal(:,1).*rdeltaftot,geom.normal(:,2).*rdeltaftot,...
+%         geom.normal(:,3).*rdeltaftot);
+%     getframe; title('Marangoni');
+%     hold off
 
 % delta fuerza normal total
 geom.rdeltafnorm = rdeltaftot;

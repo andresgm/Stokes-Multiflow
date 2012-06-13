@@ -90,9 +90,6 @@ optesc.tolerrorvol = errorvoltol;
 %% procesamiento de parametros
 if adim == 1
     
-    warning...
- ('DeltaF = (Sigma/g0)(2H) + Z - (1/g0)(4H^3 + 2Laps(H) + 4KH)');
-    
     parms.flow = flow;
     parms.w = 0;
     % adimensionalizacion del single layer
@@ -584,6 +581,15 @@ tic
           [velnode1,geom,parms] = stokesvesicle_sed(geom,parms);
           % invoque la adaptacion de la malla
           % veladapt0 = meshadapt(geom,adaptparms,velnode0);
+          
+%           figure(1);
+%             grafscfld(geom,normesp(velnode1));
+%             axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%             hold on
+%             quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+%             velnode1(:,1),velnode1(:,2),velnode1(:,3));
+%             getframe; title('Marangoni');
+%             hold off
 
           if velopt == 1
               % hidrodinamica + adaptacion

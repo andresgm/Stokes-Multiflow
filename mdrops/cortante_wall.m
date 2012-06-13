@@ -35,12 +35,12 @@ curvopt = 3;
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
-kext = 1e3;
+kext = 1e2;
 mu = 1;
 
 % gravedad
 kb = 1;
-g0 = 50;
+g0 = 100;
 
 % interaccion electrostatica
 ke = 1;
@@ -48,10 +48,7 @@ lie = 64.86;
 gammaie = 3183.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 8];
-
-% aplica solo cuando hay double layer: 1: 'deflaction' 2:'subsust'
-dlmod = 1;
+xc =[0 0 2];
 
 % numero de puntos a usar para integracion polar 4-6-8-12-20
 npolar = 4;
@@ -59,12 +56,12 @@ npolar = 4;
 % Adimensionalizacion
 adim = 1;
 % frecuencia de guardar resultados
-outputfreq = 1;
+outputfreq = 10;
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-deltat = 1e-5;
+deltat = 1e-4;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -94,13 +91,13 @@ parms.g0 = g0;
 parms.w = 0;
     
 % Coeficiente termino de curvatura
-parms.rkcurv = 1;
+parms.rkcurv = 1/g0;
 
 % Coeficiente termino de marangoni
-parms.rkmaran = 1;
+parms.rkmaran = 1/g0;
 
 % Coeficiente adimensional termino bending
-parms.rkbend = 1;
+parms.rkbend = 1/g0;
 parms.kext = kext;
 parms.mu = mu;
 
@@ -124,11 +121,8 @@ parms.curvopt = curvopt;
 greenfunction = @greeninf;
 parms.greenfunction = greenfunction;
 
-if dlmod == 1
-    parms.dlmod = 'deflaction';
-elseif dlmod == 2
-    parms.dlmod = 'subsust';
-end
+dlmod = 1;
+parms.dlmod = 'deflaction';
 
 [zz,ww] = gausslegabsweights(npolar);
 % coordenadas y pesos de los puntos de integracion gauss-Leg 2D
@@ -456,6 +450,7 @@ for p = paso:numtimesteps
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     
     errorvol = abs((geom.vol - geom.volini)./geom.volini);
+%     disp(['Error volumen pre-escalaje: ',num2str(errorvol)]);
 
     if errorvol > errorvoltol
            % invoque escalaje
@@ -463,27 +458,32 @@ for p = paso:numtimesteps
     end
 
 % error de volumen
-    errorvol = abs(geom.volini - geom.vol)/geom.volini;
+%     errorvol = abs(geom.volini - geom.vol)/geom.volini;
+%     disp(['Error volumen post-escalaje: ',num2str(errorvol)]);
 % velocidad normal maxima y tiempo de simulacion
+
     velcont = max(abs(sum(velnode.*geom.normal,2)));
+%     disp(['Velocidad normal maxima: ', num2str(velcont)]);
     geom.tiempo = geom.tiempo + deltat;
     geom.deltat = deltat;
     
     % calculo del centroide de la gota y velocidad del centroide
     geom.xc = centroide(geom);
+    
+    disp(['Posicion centroide: ', num2str(geom.xc(3))])
 
 % Visualizacion
     figure(1);
     grafscfld(geom,geom.rdeltafnorm);
     axis([-5 5 -5 5 0 10]);
     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); getframe; 
+    title('Tension normal'); getframe; hold off;
     
     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
     title('Electrostat vs. Grav');
     plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;
     
-    figure(3); plot(geom.tiempo,geom.xc,'*k');hold on;
+    figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
     title('Posicion Centroide'); getframe;
 %         
 %     figure(2);
