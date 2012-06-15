@@ -40,12 +40,12 @@ mu = 1;
 
 % gravedad
 kb = 1;
-g0 = 100;
+g0 = 111.64;
 
 % interaccion electrostatica
 ke = 1;
 lie = 64.86;
-gammaie = 3183.1;
+gammaie = 657.665;
 
 % Coordenadas del centroide de la particula
 xc =[0 0 2];
@@ -61,7 +61,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-deltat = 1e-4;
+deltat = 5e-4;
 
 % Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
 % 3: Adams-Bashford
@@ -82,7 +82,7 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 % parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2*ca/g0;
+parms.rkextf = 2*ca;
 parms.rksl = 2;
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
@@ -91,26 +91,26 @@ parms.g0 = g0;
 parms.w = 0;
     
 % Coeficiente termino de curvatura
-parms.rkcurv = 1/g0;
+parms.rkcurv = 1;
 
 % Coeficiente termino de marangoni
-parms.rkmaran = 1/g0;
+parms.rkmaran = 1;
 
 % Coeficiente adimensional termino bending
-parms.rkbend = 1/g0;
+parms.rkbend = 1;
 parms.kext = kext;
 parms.mu = mu;
 
 if kb == 1
     % gravedad
-    parms.rkgrav = 1;
+    parms.rkgrav = g0;
 else
     parms.rkgrav = 0;
 end
 
 if ke == 1
    % Interaccion electrostatica
-   parms.rkelestat = gammaie/g0;
+   parms.rkelestat = gammaie;
    parms.elestat.l = lie;
 else
     parms.rkelestat = 0;
