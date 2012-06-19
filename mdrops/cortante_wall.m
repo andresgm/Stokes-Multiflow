@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+nombreorigen = 'ellipsoide95'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_wall';
+carpetadestino = 'test_ellipsoid_wall';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,8 +23,8 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0;
-lamda = 1;
+ca = 10;
+lamda = 15;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'semiinf';
@@ -35,20 +35,20 @@ curvopt = 3;
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
-kext = 1e2;
+kext = 1e3;
 mu = 1;
 
 % gravedad
-kb = 1;
-g0 = 111.64;
+kb = 0;
+g0 = 13.6;
 
 % interaccion electrostatica
-ke = 1;
-lie = 64.86;
-gammaie = 657.665;
+ke = 0;
+lie = 48.75;
+gammaie = 1119.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 2];
+xc =[0 0 1.1];
 
 % numero de puntos a usar para integracion polar 4-6-8-12-20
 npolar = 4;
@@ -61,11 +61,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-deltat = 5e-4;
-
-% Tipo de integracion 1:Runge Kutta segundo orden 2:Runge Kutta cuarto orden
-% 3: Adams-Bashford
-inttype = 3;
+deltat = 1e-4;
 
 % Estamos usando solo la adaptacion de malla pasiva propuesta por Zinchenko
 % et al. 1997 y 1999.
@@ -154,11 +150,6 @@ if opcionsim == 0
     numelements = geom.numelements;
     geom = set_centroid(geom,xc);
     
-%     figure(1);
-%     grafscfld(geom,1);
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     getframe; title('Marangoni');
-    
     if parms.lamda ~= 1
        geom.W = zeros(numnodes,3); 
        geom.velnodeant = zeros(numnodes,3);
@@ -243,25 +234,6 @@ if opcionsim == 0
     volredini = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
     geom.volredini = volredini;
     disp(['Volumen reducido incial: ',num2str(volredini)]);
-    
-%     def = .2;
-%     geom.nodes = geom.nodes + def*geom.normal;
-%     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-%     
-%     % calcule el volumen inicial de la gota
-%     normalandgeoopt.normal = 1;
-%     normalandgeoopt.areas = 1;
-%     normalandgeoopt.vol = 1;
-%     geomprop = normalandgeo(geom,normalandgeoopt,1);
-%     geom.normalele = geomprop.normalele;
-%     geom.normal = geomprop.normal;
-%     geom.dsi = geomprop.dsi;
-%     geom.ds = geomprop.ds;
-%     geom.s = geomprop.s;
-%     geom.vol = geomprop.vol;
-%     geom.jacmat = geomprop.jacmat;
-%     geom.volini = geom.vol;
-%     geom.areaini = geom.s;
 
 elseif opcionsim == 1
     % cargue desde resultados y continue la simulacion
@@ -339,9 +311,7 @@ end
 
 
 %% Ciclo principal
-abmcount = 0;
-abm = zeros(numnodes,3,5);
-      
+
 for p = paso:numtimesteps
 % tic
 % if p == 5
@@ -350,91 +320,26 @@ for p = paso:numtimesteps
 % if p == 10
 %     profile off
 % end
-% calcule la distancia minima de adaptacion y el paso de tiempo
+
     counter = counter + 1;
+    disp('************************')
     disp(['iteracion = ', num2str(p)])
     
-%     if p == 4
-%        profile on
-%     end
-
+    % Usamos esquema rk2 para la integracion numerica.
     
-    %% Para los primeros pasos usamos RK4 para inicializar los puntos de
-    %% Adams-Bashforthabmcount = 0;
-      if (p <=3 || (opcionsim == 1 && p-paso < 3))
-          % primer paso de runge kutta f1
-          % invoque el problema de flujo de stokes
-          abmcount = abmcount+1;
-          [velnode1,geom,parms] = stokes_wall(geom,parms);
+    %% primer paso de runge kutta f1
+    [velnode1,geom,parms] = stokes_wall(geom,parms);
           
-          % no estamos usando adaptacion de malla inicialmente
-          f1 = velnode1;
-          abm(:,:,abmcount) = f1;
-          nodes0 = geom.nodes;
+    nodes0 = geom.nodes;
 
-       %% segundo paso de runge kutta f2
-          % invoque el problema de flujo de stokes
-          geom.nodes = nodes0 + (1/2)*deltat*f1;
-          
-          [velnode2,geom,parms] = stokes_wall(geom,parms);
-          
-          f2 = velnode2;
+    %% segundo paso de runge kutta f2
+    % invoque el problema de flujo de stokes
+    geom.nodes = nodes0 + (1/2)*deltat*velnode1;
 
-          %% tercer paso de runge kutta f3
-          % invoque el problema de flujo de stokes
-          geom.nodes = nodes0 + (1/2)*deltat*f2;
-          
-          [velnode3,geom,parms] = stokes_wall(geom,parms);
-          
-          f3 = velnode3;
+    [velnode,geom,parms] = stokes_wall(geom,parms);
 
-       %% cuarto paso de runge kutta f4
-          % invoque el problema de flujo de stokes
-          geom.nodes = nodes0 + deltat*f3;
-          
-          [velnode,geom,parms] = stokes_wall(geom,parms);
-          
-          f4 = velnode;
+    geom.nodes = nodes0 + deltat*velnode;          
 
-          geom.nodes = nodes0 + deltat*(f1+2*f2+2*f3+f4)/6;
-          
-      else
-
-          % Ahora podemos usar el metodo Predictor-Corrector de
-          % Adams-Bashforth-Moulton
-
-          % Paso predictor
-
-          % Calculo de la velocidad en el punto actual
-
-          [velnode1,geom,parms] = stokes_wall(geom,parms);
-          
-          f1 = velnode1;
-
-          abm(:,:,4) = f1;
-          nodes0 = geom.nodes;
-          geom.nodes = geom.nodes + deltat*(-9*abm(:,:,1)+37*abm(:,:,2)...
-              -59*abm(:,:,3)+55*abm(:,:,4))/24;
-          
-          % Paso corrector
-
-          % Calculo de la velocidad en el punto siguiente con la prediccion
-
-          [velnode,geom,parms] = stokes_wall(geom,parms);
-          
-          f2 = velnode;
-
-          abm(:,:,5) = f2;
-
-          geom.nodes = nodes0 + ...
-              deltat*(abm(:,:,2)-5*abm(:,:,3)+19*abm(:,:,4)+9*abm(:,:,5))/24;
-          
-          % Actualizaci?n nodos
-
-          abm(:,:,1) = abm(:,:,2);
-          abm(:,:,2) = abm(:,:,3);
-          abm(:,:,3) = abm(:,:,4);
-      end
 %   parms.bending.sigma
 %% escalaje
     normalandgeoopt.normal = 0;
@@ -463,28 +368,34 @@ for p = paso:numtimesteps
 % velocidad normal maxima y tiempo de simulacion
 
     velcont = max(abs(sum(velnode.*geom.normal,2)));
-%     disp(['Velocidad normal maxima: ', num2str(velcont)]);
+    disp(['Velocidad normal maxima: ', num2str(velcont)]);
     geom.tiempo = geom.tiempo + deltat;
     geom.deltat = deltat;
     
     % calculo del centroide de la gota y velocidad del centroide
     geom.xc = centroide(geom);
     
-    disp(['Posicion centroide: ', num2str(geom.xc(3))])
+    disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])])
 
 % Visualizacion
     figure(1);
     grafscfld(geom,geom.rdeltafnorm);
-    axis([-5 5 -5 5 0 10]);
+    axis equal;
     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     title('Tension normal'); getframe; hold off;
     
-    figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
-    title('Electrostat vs. Grav');
-    plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;
+%     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
+%     title('Electrostat vs. Grav');
+%     plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;
+    if ke == 1
+        disp(['Fuerzaelest ', num2str(geom.fuerzaelest)]);
+    end
+    if kb == 1
+        disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
+    end
     
-    figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
-    title('Posicion Centroide'); getframe;
+%     figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
+%     title('Posicion Centroide'); getframe;
 %         
 %     figure(2);
 %     grafscfld(geom,normesp(geom.rdeltafmaran));
@@ -501,7 +412,7 @@ for p = paso:numtimesteps
         itsaved = itsaved + 1;
         counter = 0;
         nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
-        save(nombrearchivo,'geom','velnode','parms','adim','');
+        save(nombrearchivo,'geom','velnode','parms','adim');
     end
 %     disp(carpetadestino)
     disp(['tiempo: ', num2str(geom.tiempo)])

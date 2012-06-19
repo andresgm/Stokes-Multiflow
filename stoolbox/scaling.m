@@ -59,4 +59,4 @@ while abs(ErrorVol)>TolErrorVol
         break
     end
 end
-disp(['Rescaling: ' num2str(ErrorVol), ' it: ', num2str(k)]);
+% disp(['Rescaling: ' num2str(ErrorVol), ' it: ', num2str(k)]);
