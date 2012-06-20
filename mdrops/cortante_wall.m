@@ -421,6 +421,10 @@ for p = paso:numtimesteps
     errorvolred = abs(volred-volredini)/volredini;
     disp(['Error volumen reducido: ',num2str(errorvolred)]);
     
+    if velcont*deltat < 1e-6
+        disp('Convergencia a estado estacionario');
+    end
+    
 %     if p == 14
 %        profile viewer
 %     end
