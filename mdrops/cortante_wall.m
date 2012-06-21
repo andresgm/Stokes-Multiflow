@@ -423,6 +423,10 @@ for p = paso:numtimesteps
     
     if velcont*deltat < 1e-6
         disp('Convergencia a estado estacionario');
+        itsaved = itsaved + 1;
+        nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
+        save(nombrearchivo,'geom','velnode','parms','adim');
+        break;
     end
     
 %     if p == 14
