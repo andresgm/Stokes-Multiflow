@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'ellipsoide95'; %rbc, ellipsoide95
+nombreorigen = 'ellipsoide862'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_ellipsoid_wall';
+carpetadestino = 'relax_nu0.862';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,8 +23,8 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 10;
-lamda = 15;
+ca = 0;
+lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'semiinf';
@@ -36,7 +36,7 @@ curvopt = 3;
 % Coeficiente de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
 kext = 1e3;
-mu = 1;
+mu = 0;
 
 % gravedad
 kb = 0;
@@ -48,7 +48,7 @@ lie = 48.75;
 gammaie = 1119.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 1.1];
+xc =[0 0 1.05];
 
 % numero de puntos a usar para integracion polar 4-6-8-12-20
 npolar = 4;
@@ -61,7 +61,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 
-deltat = 1e-4;
+deltat = 1e-6;
 
 % Estamos usando solo la adaptacion de malla pasiva propuesta por Zinchenko
 % et al. 1997 y 1999.
