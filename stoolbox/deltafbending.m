@@ -6,9 +6,7 @@ excessarea = (geom.s - geom.areaini)/geom.areaini;
 options.tolx = 1e-8;
 sigma = parms.bending.sigma;
 [sigma,valf] = fzero(@zeroalpha,sigma,options);
-% Quitar comentario para mostrar resultados de sigma y exceso de area
-sigma
-excessarea
+
 deltafcurv = (sigma*parms.rkcurv).*(2.*geom.curv);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,3 +52,4 @@ function zeroa = zeroalpha(sigmam)
 end
 
 end
+

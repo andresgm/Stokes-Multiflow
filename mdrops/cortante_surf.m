@@ -1,55 +1,55 @@
-% CALCULO DEL FLUJO DE STOKES PARA UNA VESICULA
+% CALCULO DEL FLUJO DE STOKES PARA UNA GOTA
 % IMPLEMENTADO FLUJO INFINITO, SEMIINFINITO
 % IMPLEMENTADO SINGLE Y DOUBLE LAYER
-clear;clc; %close all;
+clear;clc; %close all
 %% opciones de carga de archivos
-% nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+    % nombre de archivo a cargar y carpeta
+nombreorigen = 'sph ref 3';
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_iso_ves';
+carpetadestino = 'test_sed_surf';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 0;
-
-% Parametros introduccion ruido para minimizar efecto de la simetria de la
-% malla
-
-noiseint = 0.025;
-noiserep = 0;
 
 % Algoritmo de flujo de stokes.
 ca = 0;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
 curvopt = 3;
 
-% Coeficientes del modelo de Evans y Skalak
-% Coeficiente de resistencia al cambio de area:
-% Ka*R_0^2/kappa.
-kext = 1e3;
-mu = 0;
-
+% Banderas de fuerza dif 0: si. 1: no
 % gravedad
 kb = 1;
-g0 = 68.74;
+Bo = 1;
 
-% interaccion electrostatica
-ke = 0;
-lie = 64.86;
-gammaie = 3183.1;
+% Tensoactivos
+kc = 1;
+% maranmodel = 1(lineal) definir beta y pe(alpha)
+% maranmodel = 2(logaritmico) definir x, e y pe(alpha)
+maranmodel = 2;
+% Parametro \Alpha =  \simga_0 R_0/\mu D_s
+alpha = 100;
+% constante para modelo lineal
+beta = 0.2;
+% Parametro del modelo logaritmico
+e = 0.20;
+% Concentracion 
+x = 0.975;
 
-% Coordenadas del centroide de la particula
-xc =[0 0 8];
+% numero de gotas
+geom.numdrops = 1;
+% Coordenadas de los centroides de las gotas
+xc =[0 0 20];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
@@ -59,58 +59,64 @@ numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
 redfactor = 100;
 
-% Sin adaptacion de malla. OJO!
-% parametros de adaptacion
-% velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
-% velopt = 3;
-% meshadapt lowenberg
-% adaptparms.psi = 1;
-% adaptparms.lamda = lamda;
-
 % escalaje
 errorvoltol = 1e-6;
-optesc.maxit = 100;
+optesc.maxit = 15000;
 optesc.kp = 20;
 optesc.deltate = 0.01;
 optesc.tolerrorvol = errorvoltol;
 
+% parametros de adaptacion
+% velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
+velopt = 3;
+surfopt.opt = 5;
+
+% parametros de tiempo para integracion de surfactantes
+% theta = 0 Euler Explicito
+% theta = 0.5 semi implicito
+% theta = 1 full implicito
+theta = 0.5;
+
 %% procesamiento de parametros
+% adimensionalizacion de andres gonzalez basado en la velocidad
+% caracteristica de sedimentacion U_0=\Delata \rho g R_0^2/\mu(1+\lambda)
 parms.flow = flow;
-parms.w = 0;
+
 % adimensionalizacion del single layer
-parms.rkextf = 2*ca;
+parms.rkextf = 2*ca/Bo;
 parms.rksl = 2;
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
 parms.ca = ca;
-parms.g0 = g0;
-    
+parms.Bo = Bo;   
+
 % Coeficiente termino de curvatura
-parms.rkcurv = 1;
-
-% Coeficiente termino de marangoni
-parms.rkmaran = 1;
-
-% Coeficiente adimensional termino bending
-parms.rkbend = 1;
-parms.kext = kext;
-parms.mu = mu;
+parms.rkcurv = 1/Bo;
 
 if kb == 1
     % gravedad
-    parms.rkgrav = g0;
+    parms.rkgrav = 1;
 else
     parms.rkgrav = 0;
 end
 
-if ke == 1
-   % Interaccion electrostatica
-   parms.rkelestat = gammaie;
-   parms.elestat.l = lie;
+if kc == 1
+    pe = Bo*alpha/(1-lamda);
+    parms.maran.rkmaran = 1/Bo;
+    if maranmodel == 1
+        parms.maran.maranmodel = 'linear';
+        parms.maran.beta = beta;
+        parms.maran.pe = pe;
+    elseif maranmodel  == 2
+        parms.maran.maranmodel = 'log';
+        parms.maran.pe = pe;
+        parms.maran.x = x;
+        parms.maran.e = e;
+    end
 else
-    parms.rkelestat = 0;
+    parms.maran.rkmaran = 0; 
 end
-    
+
 parms.curvopt = curvopt;
 
 greenfunction = @greeninf;
@@ -136,6 +142,7 @@ parms.polarparms.r = r;
 
 % guarde temporalmente los parametros
 parmstemp = parms;
+
 %% procesamiento de la malla
 sbar = systembar();
 
@@ -152,26 +159,26 @@ if opcionsim == 0
     numelements = geom.numelements;
     geom = set_centroid(geom,xc);
     
-    if parms.lamda ~= 1
-       geom.W = zeros(numnodes,3); 
-       geom.velnodeant = zeros(numnodes,3);
+    if parms.lamda ~= 0
+        geom.W = zeros(numnodes,3);
+        geom.velnodeant = zeros(numnodes,3);
     end
-    
+
     % Elementos que contienen cada nodo
     geom.element2node = element2node(geom.elements);
     % Tabla de conectividad de nodos, bordes, e.t.c
     geom.nodecon2node = node2node(geom.elements);
-
+    
     % Encuentre los vertices de la malla si se va a usar la adaptacion de malla
     % pasiva de Zinchenco et al. 1997
-%     geom.vertices = extractvertices(geom);
+    geom.vertices = extractvertices(geom);
 
     % calcule el volumen inicial de la gota
     normalandgeoopt.normal = 1;
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
-    geomprop = normalandgeo(geom,normalandgeoopt,1);
-%     geom.normalele = geomprop.normalele;
+    geomprop = normalandgeo(geom,normalandgeoopt);
+    geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
     geom.ds = geomprop.ds;
@@ -181,29 +188,6 @@ if opcionsim == 0
     geom.volini = geom.vol;
     geom.areaini = geom.s;
     geom.xcini = centroide(geom);
-    
-    % Introduccion de ruido para minimizar efecto de simetria en creacion
-    % de la malla.
-    
-    % Primero se calcula la longitud minima entre los nodos para que el
-    % ruido sea una fraccion de esta longitud.
-    lmin = zeros(numnodes,1);
-    for k = 1:numnodes
-       nodesadj = geom.nodecon2node{k};
-       lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
-          - geom.nodes(nodesadj,:)));  
-    end
-
-    lmint = min(lmin);
-
-    for k = 1:noiserep
-        noisevel = ones(size(geom.nodes))...
-            .*(rand(size(geom.nodes))-0.5)*lmint*noiseint;
-        noisenormal = repmat(sum(noisevel.*geom.normal,2),[1 3]).*geom.normal;
-        noisetan = noisevel - noisenormal;
-
-        geom.nodes = geom.nodes + noisetan;
-    end
     
     % Calculo inicial de la curvatura usando ajuste a superficie cuadratica
     
@@ -219,14 +203,9 @@ if opcionsim == 0
     geom.tiempo = 0;
     itsaved = 0;
     
-    % Geometria de referencia
-    geom.ref = geom.nodes;
-    geom.dsref = geom.ds;
-    
-    % volumen reducido inicial
-    volredini = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
-    geom.volredini = volredini;
-    disp(['Volumen reducido incial: ',num2str(volredini)]);
+    % Campo inicial de concentracion
+    flds.gamma = ones(numnodes,1);
+    geom.gammatotori = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
 
 elseif opcionsim == 1
     % cargue desde resultados y continue la simulacion
@@ -253,9 +232,7 @@ elseif opcionsim == 1
     numelements = size(geom.elements,1);    
     
     parms.curvopt = parmstemp.curvopt;
-    % volumen reducido inicial
-    volredini = geom.volredini;
-       
+    
 elseif opcionsim == 2
     % cargue desde resultados y realice una nueva simulacion
     % cargue desde resultados y continue la simulacion
@@ -286,27 +263,17 @@ elseif opcionsim == 2
        geom.velnodeant = zeros(numnodes,3);
     end
     
-    % Geometria de referencia
-    geom.ref = geom.nodes;
-    geom.dsref = geom.ds;
-    
-    % volumen reducido inicial
-    volredini = geom.volredini;
 end
-
-% Calculo funciones de forma y demas parametros para el metodo de los 
-% elementos finitos que solo depende del estado inicial.
-
-[geom.shapeA, geom.shapeB, geom.refrot] = shapefun(geom);
-
-
+  
 %% Ciclo principal
 xcant = centroide(geom);
 geom.velcentroid = [0 0 0];
 geom.xc = xcant;
 
+veladapt = zeros(numnodes,3);
+
 for p = paso:numtimesteps
-% tic
+%tic
 % if p == 5
 %     profile on
 % end
@@ -319,7 +286,7 @@ for p = paso:numtimesteps
     disp(['iteracion = ', num2str(p)])
     
 % calcule la distancia minima de adaptacion y el paso de tiempo
-
+    
     lmin = zeros(numnodes,1);
     for k = 1:numnodes
     % extraiga los nodos vecinos a un nodo en la misma gota 
@@ -332,38 +299,82 @@ for p = paso:numtimesteps
     deltat = lmint^1.5/redfactor;
     parms.lmin = lmin;
     
-    % Usamos esquema rk2 para la integracion numerica.
+% Usamos esquema rk2 para la integracion numerica.
     
     %% primer paso de runge kutta f1
-    [velnode1,geom,parms] = stokes_wall(geom,parms);
-          
-    nodes0 = geom.nodes;
+    [velnode1,geom] = stokessurf(geom,parms,flds);
 
+    % passive (zinchenco et al. 1997)
+    velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
+    veladapt = meshadaptgrad(geom,velnormal,veladapt);
+    f1 = (velnormal + veladapt);
+   
+    if parms.maran.rkmaran ~= 0
+        ajimat = surfactants(geom,velnode1,veladapt,pe,surfopt);
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
+        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+
+        % escale la concentracion
+        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        gammasc = geom.gammatotori/gammatotnew;
+        flds.gamma = flds.gamma.*gammasc;
+        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        geom.gammatot
+    end
+
+    nodes0 = geom.nodes;
+       
+    geom.nodes = geom.nodes + (1/2)*deltat*f1;
+       
     %% segundo paso de runge kutta f2
     % invoque el problema de flujo de stokes
-    geom.nodes = nodes0 + (1/2)*deltat*velnode1;
+    
+    [velnode2,geom] = stokessurf(geom,parms,flds);
+    
+    % passive (zinchenco et al. 1997)
+    velnormal = repmat(sum(velnode2.*geom.normal,2),[1 3]).*geom.normal;
+    veladapt = meshadaptgrad(geom,velnormal,veladapt);
+    f2 = (velnormal + veladapt);
+   
+    if parms.maran.rkmaran ~= 0
+        ajimat = surfactants(geom,velnode2,veladapt,pe,surfopt);
+        % evolucion del sulfactante en t + dt/2
+        % propuesto
+        %     gammaori = flds.gamma;
+        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
 
-    [velnode,geom,parms] = stokes_wall(geom,parms);
+        % escale la concentracion
+        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        gammasc = geom.gammatotori/gammatotnew;
+        flds.gamma = flds.gamma.*gammasc;
+        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+        geom.gammatot
+    end
 
-    geom.nodes = nodes0 + deltat*velnode;          
-
-%   parms.bending.sigma
+    geom.nodes = nodes0 + deltat*f2;
+    
 %% escalaje
-    normalandgeoopt.normal = 0;
+    normalandgeoopt.normal = 1;
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
-    geomprop = normalandgeo(geom,normalandgeoopt,1);
+    geomprop = normalandgeo(geom,normalandgeoopt);
+    geom.normalele = geomprop.normalele;
+    geom.normal = geomprop.normalele;
     geom.dsi = geomprop.dsi;
     geom.ds = geomprop.ds;
     geom.s = geomprop.s;
     geom.vol = geomprop.vol;
+    geom.jacmat = geomprop.jacmat;
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     
     errorvol = abs((geom.vol - geom.volini)./geom.volini);
-%     disp(['Error volumen pre-escalaje: ',num2str(errorvol)]);
 
     if errorvol > errorvoltol
-           % invoque escalaje
-           geom = scaling(geom,optesc,errorvol);
+       % invoque escalaje
+       geom = scaling(geom,optesc,errorvol);
     end
 
 % error de volumen
@@ -371,7 +382,7 @@ for p = paso:numtimesteps
 %     disp(['Error volumen post-escalaje: ',num2str(errorvol)]);
 % velocidad normal maxima y tiempo de simulacion
 
-    velcont = max(abs(sum(velnode.*geom.normal,2)));
+    velcont = max(abs(sum(f2.*geom.normal,2)));
     disp(['Velocidad normal maxima: ', num2str(velcont)]);
     geom.tiempo = geom.tiempo + deltat;
     geom.deltat = deltat;
@@ -382,36 +393,29 @@ for p = paso:numtimesteps
     geom.velcentroid = (geom.xc - xcant)./deltat;
     disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
-
-% Visualizacion
-    figure(1);
-    grafscfld(geom,geom.rdeltafnorm);
-    axis equal;
-    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); getframe; hold off;
     
-%     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
-%     title('Electrostat vs. Grav');
-%     plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;
-    if ke == 1
-        disp(['Fuerzaelest ', num2str(geom.fuerzaelest)]);
+    if parms.maran.rkmaran ~= 0
+   % grafique la geometria
+       figure(1);
+   %     grafscfld(geom,flds.gamma);
+       grafscfld(geom,geom.rsigmavar);
+       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+       getframe; title('\sigma');
+       figure(2);
+   %     grafscfld(geom,flds.gamma);
+       grafscfld(geom,flds.gamma);
+       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+       getframe; title('\gamma');
+    else
+      figure(1);
+      grafscfld(geom,geom.curv);
+      axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+      getframe; title('curv');
     end
+
     if kb == 1
         disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
     end
-    
-%     figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
-%     title('Posicion Centroide'); getframe;
-%         
-%     figure(2);
-%     grafscfld(geom,normesp(geom.rdeltafmaran));
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     hold on
-%     quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-%         geom.rdeltafmaran(:,1),geom.rdeltafmaran(:,2),geom.rdeltafmaran(:,3));
-%     getframe; title('Marangoni');
-%     hold off
-    
 
 % guarde resultados
     if counter == outputfreq
@@ -423,19 +427,15 @@ for p = paso:numtimesteps
 %     disp(carpetadestino)
     disp(['deltat: ', num2str(geom.deltat)]);
     disp(['tiempo: ', num2str(geom.tiempo)]);
-    volred = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
-%     disp(['Volumen reducido: ',num2str(volred)]);
-    errorvolred = abs(volred-volredini)/volredini;
-    disp(['Error volumen reducido: ',num2str(errorvolred)]);
     
-    if velcont*deltat < 1e-6
+    if velcont*deltat < 1e-10
         disp('Convergencia a estado estacionario');
         itsaved = itsaved + 1;
         nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
         save(nombrearchivo,'geom','velnode','parms');
         break;
     end
-    
+
 %     if p == 14
 %        profile viewer
 %     end

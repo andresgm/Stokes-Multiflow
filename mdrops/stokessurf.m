@@ -9,46 +9,28 @@
 function [velnode,geom] = stokessurf(geom,parms,flds)
 
 numnodes = size(geom.nodes,1);
-rkgrav = parms.rkgrav;
+
 rkcurv = parms.rkcurv;
+rkgrav = parms.rkgrav;
 rkmaran = parms.maran.rkmaran;
+
 % constante del single layer
 rksl = parms.rksl;
-% constante del double layer
-rkdl = parms.rkdl;
 % constante del flujo externo
 rkextf = parms.rkextf;
+
 % funcion de green
 greenfunction = parms.greenfunction;
 
+
 % fields:
 gamma = flds.gamma;
-
-if  isfield(parms,'polarparms') == 1
-    polarparms = parms.polarparms;
-else
-     % calcule los parametros de integracion polar
-    n = 4;
-    [zz,ww] = gausslegabsweights(n);
-    % coordenadas y pesos de los puntos de integracion gauss-Leg 2D
-    [rmaxh,wwrho,r,xin,etn,ztn] = gausslegintpt(zz,ww);
-    % parametros de intergacion polar 2D
-    polarparms.rmaxh = rmaxh;
-    polarparms.wwrho = wwrho;
-    polarparms.ww = ww;
-    polarparms.xin = xin;
-    polarparms.etn = etn;
-    polarparms.ztn = ztn;
-    polarparms.r = r;
-end
 
 % calcule el vector normal a cada nodo
 normalandgeoopt.normal = 1;
 normalandgeoopt.areas = 1;
 normalandgeoopt.vol = 1;
-% calcule la matriz jacobiano invertido
 geomprop = normalandgeo(geom,normalandgeoopt,1);
-
 geom.normalele = geomprop.normalele;
 geom.normal = geomprop.normal;
 geom.dsi = geomprop.dsi;
@@ -58,30 +40,29 @@ geom.vol = geomprop.vol;
 geom.jacmat = geomprop.jacmat;
 geom.g = geomprop.g;
 
+polarparms = parms.polarparms;
+
 % calculo de la curvatura media
 if parms.curvopt == 1
     % calculo mediante paraboloid fitting
-    geom.curv = curvparaboloid(geom);
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom);
 elseif parms.curvopt == 2
     % calculo mediante extended paraboloid fitting/bestparaboloid fitting
     paropt.tipo = 'extended';
     [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 elseif parms.curvopt == 3
     % calculo mediante laplace - beltrami
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
     lapbelmat = laplacebeltramimat(geom);
     geom.curv = curvlb(geom,lapbelmat);
 end
 
-% calcule los esfuerzos por tension superficial
-if rkcurv ~= 0 && rkmaran == 0
-    rdeltafcurv = deltafcurv(geom.curv,rkcurv);
-else
-    rdeltafcurv = 0;
-end
-
 % calcule la fuerza de gravedad
 if rkgrav ~= 0
-    rdeltafgrav = deltafgrav(geom,rkgrav);
+    [rdeltafgrav,fuerzagrav] = deltafgrav(geom,rkgrav);
+    geom.deltafgrav = rdeltafgrav;
+    geom.fuerzagrav = fuerzagrav;
 else
     rdeltafgrav = 0;
 end
@@ -90,10 +71,10 @@ end
 if rkmaran ~= 0
     [rdeltafmaran,rdeltafcurv,geom.rsigmavar] = deltafmaran(geom,gamma,parms.maran,rkcurv);
     geom.rdeltafmaran = rdeltafmaran;
-    geom.rdeltafcurv  = rdeltafcurv;
     %%%%% de prueba
 %     rdeltafmaran = sum(rdeltafmaran.*geom.normal,2);
 else
+    rdeltafcurv = deltafcurv(geom.curv,rkcurv);
     rdeltafmaran = 0;
 end
 
@@ -122,6 +103,32 @@ for j = 1:numnodes
     rintegrandsl = matvect(rgreenfcn,rdeltaffpole,2);
     % ejecute integral del trapecio
     rintsln(j,:) = inttrapecioa(geom.dsi,rintegrandsl);
+    
+    % Parte semiinfinita
+    if strcmp(parms.flow,'semiinf') == 1
+        greenfunctionwall = @greenwall;
+        % calcule la funcion de green 
+        rgreenwallfcn = stokesletwall(geom.nodes(j,:),geom.nodes,parms.w);
+        % limpie singularidades
+        rgreenwallfcn(isnan(rgreenwallfcn)) = 0;
+        % sume componente pared a stokeslet
+        rgreenfcn = rgreenfcn + rgreenwallfcn;
+        % determine el deltaf*
+        nodex0_im = [geom.nodes(j,1), geom.nodes(j,2), 2*parms.w - geom.nodes(j,3)];
+        r = geom.nodes - repmat(nodex0_im,[numnodes 1]);
+        rn = normesp(r);
+        % Determine el nodo mas cercano a NodeX0_IM
+        rdeltafim = rdeltaftot(rn == min(rn));
+        if size(rdeltafim,1) ~= 1
+            rdeltafim = rdeltafim(1);
+        end
+        % calcule deltaf - deltaf*
+        rdeltaffpole = repmat((rdeltaftot - rdeltafim),[1 3]).*geom.normal;
+        % calcule el producto gij*dfi (opt:2)
+        rintegrandsl = matvect(rgreenwallfcn,rdeltaffpole,2);
+        % ejecute integral del trapecio sobre la gota que contiene el polo xj
+        rintsln(j,:) = rintsln(j,:) + inttrapecioa(geom.dsi,rintegrandsl);
+    end
        
     if rkmaran ~= 0
     % calcule la parte de elementos no singulares de INT(gij(x,x0)ft(x))ds
@@ -160,7 +167,12 @@ for j = 1:numnodes
             triandata.nodes = geom.nodes(elenew,:);
             vectfld = rdeltafmaran(elenew,:);
             triandata.g = geom.g(k);
-            intval = intval + gausslegmatvect2d(greenfunction,vectfld,triandata,polarparms);
+            intval = intval + ...
+                gausslegmatvect2d(greenfunction,vectfld,triandata,polarparms);
+            if strcmp(parms.flow,'semiinf') == 1
+                intval = intval + ...
+              gausslegmatvect2d(greenfunctionwall,vectfld,triandata,polarparms);
+            end
         end
         rintsltanes(j,:) = intval; 
     else
@@ -291,7 +303,7 @@ for zz=1:100
     elseif strcmp(parms.flow,'semiinf') == 1
         IntTstWall = zeros(NumXpoles,3);
         for i=1:NumXpoles
-             % Extraiga las coordendas del p??lo
+             % Extraiga las coordendas del polo
             NodeX0 = geom.nodes(i,:);
             NodeX0_IM = [NodeX0(1), NodeX0(2), 2*w - NodeX0(3)];
             R = geom.nodes - repmat(NodeX0_IM,[NumXpoles 1]);

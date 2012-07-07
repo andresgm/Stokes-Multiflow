@@ -7,3 +7,5 @@ rg=[0 0 1];
 rdeltafgrav = (geom.nodes*rg').*rkgrav;
 
 fuerzagrav = rkgrav*geom.vol;
+
+end

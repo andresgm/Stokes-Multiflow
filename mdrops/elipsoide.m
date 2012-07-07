@@ -8,11 +8,11 @@ clc;
 clear;
 
 reflevel = 3;
-name2save = 'ellipsoide990';
+name2save = 'ellipsoide946';
 
-a = 1.11;
-b = 1.11;
-c = 0.90;
+a = 1.25;
+b = 1.25;
+c = 0.82;
 r = 1;
 
 noiseint = 0.025;

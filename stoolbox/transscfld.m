@@ -1,4 +1,4 @@
-% Calcula explicitamente el término de transporte de un campo escalar
+% Calcula explicitamente el termino de transporte de un campo escalar
 % calcula grad(scfld).vel
 function gradscvel = transscfld(struct,scfld,vel)
 

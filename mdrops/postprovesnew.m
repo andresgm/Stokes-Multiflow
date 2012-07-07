@@ -18,11 +18,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'rbc_lambda15_ca5'};
+carpetaorigenv = {'sed_g019.48_nu0.862'};
 nombreorigenv =  {'it'};
-itmaxv = 5899;
+itmaxv = 120;
 itminv = ones(1,size(itmaxv,2));
-intervalv = 50;
+intervalv = 5;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};
@@ -35,7 +35,7 @@ intervalv = 50;
 % *.FIG, *.PDF, Y *PNG DE TODO.
 
 % OJO dependiendo de la simulacion (sedimentacion o cortante) usted coloca los ejes
-ejes = [-1.8 1.8 -1.8 1.8 -1.8 1.8];
+ejes = [-1.8 1.8 -1.8 1.8 0 1.8];
 
 % voy a ir a almorzar mientras posprocese lo que hace falta
 
@@ -71,9 +71,9 @@ for i = 1:size(itmaxv,2)
             [inerttensor,def(contador),v,theta] = dirprindef(geom);    
         end
         
-        if strcmp(parms.flow,'inf') == 1
+%         if strcmp(parms.flow,'inf') == 1
             velcont(contador) = max(abs(sum(velnode.*geom.normal,2)));
-        end
+%         end
         
         % vector de tiempo
         tiempov(contador) = geom.tiempo;
@@ -82,7 +82,7 @@ for i = 1:size(itmaxv,2)
         figure(1);
         grafscfld(geom,geom.curv); 
         axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-        axis(ejes);
+        axis([ejes]);
         pelicula(contador) = getframe; title('curv');
         
     end
@@ -95,44 +95,44 @@ for i = 1:size(itmaxv,2)
         axis([ejes]);
 %         saveas(1,[nameydir 'shape'],'fig')
 %         saveas(1,[nameydir 'shape'],'eps')
-        saveas(1,[nameydir 'shape'],'pdf')
+%         saveas(1,[nameydir 'shape'],'pdf')
         
         
         figure(2); plot(tiempov,excesarea); title('excess area vs dimensionless time')
         xlabel('Dimensionless time'); ylabel('excess area');
 %         saveas(2,[nameydir 'excessarea'],'fig')
 %         saveas(2,[nameydir 'excessarea'],'eps')
-        saveas(2,[nameydir 'excessarea'],'pdf')
+%         saveas(2,[nameydir 'excessarea'],'pdf')
         
          
         figure(3); plot(tiempov,def); title('Deformation vs dimensionless time');
         xlabel('Dimensionless time'); ylabel('DF = (L - B)/(L + B)');
 %         saveas(3,[nameydir 'def'],'fig')
 %         saveas(3,[nameydir 'def'],'eps')
-        saveas(3,[nameydir 'def'],'pdf')    
-        
-        if strcmp(parms.flow,'inf') == 1
+%         saveas(3,[nameydir 'def'],'pdf')    
+%         
+%         if strcmp(parms.flow,'inf') == 1
             % grafique velocidad normal
             figure(4); plot(tiempov,velcont); title('Normal Velocity vs dimensionless time');
             xlabel('Dimensionless time'); ylabel('Normal Velocity');
 %             saveas(4,[nameydir 'velnorm'],'fig')
-%             saveas(4,[nameydir 'velnorm'],'eps')
-            saveas(4,[nameydir 'velnorm'],'pdf')                           
-        end
+% %             saveas(4,[nameydir 'velnorm'],'eps')
+%             saveas(4,[nameydir 'velnorm'],'pdf')                           
+%         end
         
-        if thetacal == 1
-            figure(5); plot(tiempov,theta); title('\theta vs dimensionless time');
-            xlabel('Dimensionless time'); ylabel('\theta');
-%             saveas(5,[nameydir 'theta'],'fig')
-%             saveas(5,[nameydir 'theta'],'eps')
-            saveas(5,[nameydir 'theta'],'pdf')
-        
-            figure(6); plot(tiempov,theta45); title('45 - \theta vs dimensionless time');
-            xlabel('Dimensionless time'); ylabel('45 - \theta');
-%             saveas(6,[nameydir 'theta45'],'fig')
-%             saveas(6,[nameydir 'theta45'],'eps')
-            saveas(6,[nameydir 'theta45'],'pdf')
-        end
+%         if thetacal == 1
+% %             figure(5); plot(tiempov,theta); title('\theta vs dimensionless time');
+% %             xlabel('Dimensionless time'); ylabel('\theta');
+% % %             saveas(5,[nameydir 'theta'],'fig')
+% % %             saveas(5,[nameydir 'theta'],'eps')
+% %             saveas(5,[nameydir 'theta'],'pdf')
+%         
+% %             figure(6); plot(tiempov,theta45); title('45 - \theta vs dimensionless time');
+% %             xlabel('Dimensionless time'); ylabel('45 - \theta');
+% % %             saveas(6,[nameydir 'theta45'],'fig')
+% % %             saveas(6,[nameydir 'theta45'],'eps')
+% %             saveas(6,[nameydir 'theta45'],'pdf')
+%         end
         
 end
     

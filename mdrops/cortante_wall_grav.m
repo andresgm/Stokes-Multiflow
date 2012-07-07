@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_iso_ves';
+carpetadestino = 'test_sed_iso';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -20,7 +20,7 @@ opcionsim = 0;
 % malla
 
 noiseint = 0.025;
-noiserep = 0;
+noiserep = 10;
 
 % Algoritmo de flujo de stokes.
 ca = 0;
@@ -49,7 +49,7 @@ lie = 64.86;
 gammaie = 3183.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 8];
+xc =[0 0 1.2];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
@@ -57,7 +57,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 100;
+redfactor = 50;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -78,7 +78,7 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2*ca;
+parms.rkextf = 2*ca/g0;
 parms.rksl = 2;
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
@@ -86,26 +86,26 @@ parms.ca = ca;
 parms.g0 = g0;
     
 % Coeficiente termino de curvatura
-parms.rkcurv = 1;
+parms.rkcurv = 1/g0;
 
 % Coeficiente termino de marangoni
-parms.rkmaran = 1;
+parms.rkmaran = 1/g0;
 
 % Coeficiente adimensional termino bending
-parms.rkbend = 1;
+parms.rkbend = 1/g0;
 parms.kext = kext;
 parms.mu = mu;
 
 if kb == 1
     % gravedad
-    parms.rkgrav = g0;
+    parms.rkgrav = 1;
 else
     parms.rkgrav = 0;
 end
 
 if ke == 1
    % Interaccion electrostatica
-   parms.rkelestat = gammaie;
+   parms.rkelestat = gammaie/g0;
    parms.elestat.l = lie;
 else
     parms.rkelestat = 0;
@@ -136,6 +136,7 @@ parms.polarparms.r = r;
 
 % guarde temporalmente los parametros
 parmstemp = parms;
+
 %% procesamiento de la malla
 sbar = systembar();
 
@@ -385,10 +386,10 @@ for p = paso:numtimesteps
 
 % Visualizacion
     figure(1);
-    grafscfld(geom,geom.rdeltafnorm);
+    grafscfld(geom,normesp(geom.rdeltafmaran));
     axis equal;
     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); getframe; hold off;
+    title('Marangoni'); getframe; hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');
@@ -428,7 +429,7 @@ for p = paso:numtimesteps
     errorvolred = abs(volred-volredini)/volredini;
     disp(['Error volumen reducido: ',num2str(errorvolred)]);
     
-    if velcont*deltat < 1e-6
+    if velcont*deltat < 1e-10
         disp('Convergencia a estado estacionario');
         itsaved = itsaved + 1;
         nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
