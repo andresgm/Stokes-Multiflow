@@ -10,7 +10,8 @@
 % gamma: campo escalar de concentracion
 % pe: numero de Peclet de la concentracion
 % surfopt: opciones de surfactants
-function [aijmat,matterm1,matterm2,matterm3,matterm4] = surfactants(struct,u,w,pe,surfopt)
+function [aijmat,matterm1,matterm2,matterm3,matterm4] = ...
+    surfactants(struct,u,w,pe,surfopt)
 
 
 % preproceso de las entradas

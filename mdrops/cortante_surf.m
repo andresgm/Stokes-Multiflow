@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_surf';
+carpetadestino = 'test_sed_surf_on';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -30,7 +30,7 @@ curvopt = 3;
 % Banderas de fuerza dif 0: si. 1: no
 % gravedad
 kb = 1;
-Bo = 1;
+Bo = 68.74;
 
 % Tensoactivos
 kc = 1;
@@ -44,20 +44,20 @@ beta = 0.2;
 % Parametro del modelo logaritmico
 e = 0.20;
 % Concentracion 
-x = 0.975;
+x = 0.95;
 
 % numero de gotas
 geom.numdrops = 1;
 % Coordenadas de los centroides de las gotas
-xc =[0 0 20];
+xc =[0 0 0];
 
 % frecuencia de guardar resultados
-outputfreq = 10;
+outputfreq = 1;
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 100;
+redfactor = 500;
 
 % escalaje
 errorvoltol = 1e-6;
@@ -75,7 +75,7 @@ surfopt.opt = 5;
 % theta = 0 Euler Explicito
 % theta = 0.5 semi implicito
 % theta = 1 full implicito
-theta = 0.5;
+theta = 1;
 
 %% procesamiento de parametros
 % adimensionalizacion de andres gonzalez basado en la velocidad
@@ -302,6 +302,20 @@ for p = paso:numtimesteps
 % Usamos esquema rk2 para la integracion numerica.
     
     %% primer paso de runge kutta f1
+    % calcule el vector normal a cada nodo
+    normalandgeoopt.normal = 1;
+    normalandgeoopt.areas = 1;
+    normalandgeoopt.vol = 1;
+    geomprop = normalandgeo(geom,normalandgeoopt,1);
+    geom.normalele = geomprop.normalele;
+    geom.normal = geomprop.normal;
+    geom.dsi = geomprop.dsi;
+    geom.ds = geomprop.ds;
+    geom.s = geomprop.s;
+    geom.vol = geomprop.vol;
+    geom.jacmat = geomprop.jacmat;
+    geom.g = geomprop.g;
+    
     [velnode1,geom] = stokessurf(geom,parms,flds);
 
     % passive (zinchenco et al. 1997)
@@ -310,10 +324,26 @@ for p = paso:numtimesteps
     f1 = (velnormal + veladapt);
    
     if parms.maran.rkmaran ~= 0
+        % calcule el vector normal a cada nodo
+        normalandgeoopt.normal = 1;
+        normalandgeoopt.areas = 1;
+        normalandgeoopt.vol = 1;
+        geomprop = normalandgeo(geom,normalandgeoopt,1);
+        geom.normalele = geomprop.normalele;
+        geom.normal = geomprop.normal;
+        geom.dsi = geomprop.dsi;
+        geom.ds = geomprop.ds;
+        geom.s = geomprop.s;
+        geom.vol = geomprop.vol;
+        geom.jacmat = geomprop.jacmat;
+        geom.g = geomprop.g;
+        paropt.tipo = 'extended';
+        [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
+        
         ajimat = surfactants(geom,velnode1,veladapt,pe,surfopt);
         % evolucion del sulfactante en t + dt/2
         % propuesto
-        %     gammaori = flds.gamma;
+        gammaori = flds.gamma;
         flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
 
         % escale la concentracion
@@ -321,7 +351,7 @@ for p = paso:numtimesteps
         gammasc = geom.gammatotori/gammatotnew;
         flds.gamma = flds.gamma.*gammasc;
         geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
-        geom.gammatot
+%         geom.gammatot
     end
 
     nodes0 = geom.nodes;
@@ -331,26 +361,41 @@ for p = paso:numtimesteps
     %% segundo paso de runge kutta f2
     % invoque el problema de flujo de stokes
     
-    [velnode2,geom] = stokessurf(geom,parms,flds);
+    [velnode,geom] = stokessurf(geom,parms,flds);
     
     % passive (zinchenco et al. 1997)
-    velnormal = repmat(sum(velnode2.*geom.normal,2),[1 3]).*geom.normal;
+    velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
     veladapt = meshadaptgrad(geom,velnormal,veladapt);
     f2 = (velnormal + veladapt);
    
     if parms.maran.rkmaran ~= 0
-        ajimat = surfactants(geom,velnode2,veladapt,pe,surfopt);
+        % calcule el vector normal a cada nodo
+        normalandgeoopt.normal = 1;
+        normalandgeoopt.areas = 1;
+        normalandgeoopt.vol = 1;
+        geomprop = normalandgeo(geom,normalandgeoopt,1);
+        geom.normalele = geomprop.normalele;
+        geom.normal = geomprop.normal;
+        geom.dsi = geomprop.dsi;
+        geom.ds = geomprop.ds;
+        geom.s = geomprop.s;
+        geom.vol = geomprop.vol;
+        geom.jacmat = geomprop.jacmat;
+        geom.g = geomprop.g;
+        paropt.tipo = 'extended';
+        [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
+        ajimat = surfactants(geom,velnode,veladapt,pe,surfopt);
         % evolucion del sulfactante en t + dt/2
         % propuesto
         %     gammaori = flds.gamma;
-        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+        flds.gamma = thetamethod(ajimat,deltat,theta,gammaori);
 
         % escale la concentracion
         gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
         gammasc = geom.gammatotori/gammatotnew;
         flds.gamma = flds.gamma.*gammasc;
         geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
-        geom.gammatot
+%         geom.gammatot
     end
 
     geom.nodes = nodes0 + deltat*f2;
@@ -361,7 +406,7 @@ for p = paso:numtimesteps
     normalandgeoopt.vol = 1;
     geomprop = normalandgeo(geom,normalandgeoopt);
     geom.normalele = geomprop.normalele;
-    geom.normal = geomprop.normalele;
+    geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
     geom.ds = geomprop.ds;
     geom.s = geomprop.s;
@@ -382,7 +427,7 @@ for p = paso:numtimesteps
 %     disp(['Error volumen post-escalaje: ',num2str(errorvol)]);
 % velocidad normal maxima y tiempo de simulacion
 
-    velcont = max(abs(sum(f2.*geom.normal,2)));
+    velcont = max(abs(sum(velnode.*geom.normal,2)));
     disp(['Velocidad normal maxima: ', num2str(velcont)]);
     geom.tiempo = geom.tiempo + deltat;
     geom.deltat = deltat;

@@ -26,20 +26,6 @@ greenfunction = parms.greenfunction;
 % fields:
 gamma = flds.gamma;
 
-% calcule el vector normal a cada nodo
-normalandgeoopt.normal = 1;
-normalandgeoopt.areas = 1;
-normalandgeoopt.vol = 1;
-geomprop = normalandgeo(geom,normalandgeoopt,1);
-geom.normalele = geomprop.normalele;
-geom.normal = geomprop.normal;
-geom.dsi = geomprop.dsi;
-geom.ds = geomprop.ds;
-geom.s = geomprop.s;
-geom.vol = geomprop.vol;
-geom.jacmat = geomprop.jacmat;
-geom.g = geomprop.g;
-
 polarparms = parms.polarparms;
 
 % calculo de la curvatura media
