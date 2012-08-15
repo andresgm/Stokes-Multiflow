@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_surf_on';
+carpetadestino = 'sed_sur_x95_grav_inf';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -57,7 +57,7 @@ outputfreq = 1;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 500;
+redfactor = 5000;
 
 % escalaje
 errorvoltol = 1e-6;
@@ -339,19 +339,21 @@ for p = paso:numtimesteps
         geom.g = geomprop.g;
         paropt.tipo = 'extended';
         [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-        
-        ajimat = surfactants(geom,velnode1,veladapt,pe,surfopt);
+        % Third argument is the adaptation velocity w in Bazhlekov et al
+        % 2003 sense, careful. v = u + w.
+        ajimat = ...
+            surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
         % evolucion del sulfactante en t + dt/2
         % propuesto
         gammaori = flds.gamma;
         flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
 
         % escale la concentracion
-        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
-        gammasc = geom.gammatotori/gammatotnew;
-        flds.gamma = flds.gamma.*gammasc;
-        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
-%         geom.gammatot
+%         gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+%         gammasc = geom.gammatotori/gammatotnew;
+%         flds.gamma = flds.gamma.*gammasc;
+%         geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+%         geom.gammatot;
     end
 
     nodes0 = geom.nodes;
@@ -384,17 +386,18 @@ for p = paso:numtimesteps
         geom.g = geomprop.g;
         paropt.tipo = 'extended';
         [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-        ajimat = surfactants(geom,velnode,veladapt,pe,surfopt);
-        % evolucion del sulfactante en t + dt/2
-        % propuesto
-        %     gammaori = flds.gamma;
+        % Third argument is the adaptation velocity w in Bazhlekov et al
+        % 2003 sense, careful. v = u + w.
+        ajimat = ...
+            surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+        % evolucion del sulfactante en t
         flds.gamma = thetamethod(ajimat,deltat,theta,gammaori);
 
         % escale la concentracion
-        gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
-        gammasc = geom.gammatotori/gammatotnew;
-        flds.gamma = flds.gamma.*gammasc;
-        geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+%         gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
+%         gammasc = geom.gammatotori/gammatotnew;
+%         flds.gamma = flds.gamma.*gammasc;
+%         geom.gammatot = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
 %         geom.gammatot
     end
 
@@ -457,6 +460,11 @@ for p = paso:numtimesteps
       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
       getframe; title('curv');
     end
+    
+    if p > 1
+        figure(3); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
+        title('Sedimentation Rate'); getframe;
+    end
 
     if kb == 1
         disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
@@ -467,19 +475,19 @@ for p = paso:numtimesteps
         itsaved = itsaved + 1;
         counter = 0;
         nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
-        save(nombrearchivo,'geom','velnode','parms');
+        save(nombrearchivo,'geom','velnode','parms','flds');
     end
 %     disp(carpetadestino)
     disp(['deltat: ', num2str(geom.deltat)]);
     disp(['tiempo: ', num2str(geom.tiempo)]);
     
-    if velcont*deltat < 1e-10
-        disp('Convergencia a estado estacionario');
-        itsaved = itsaved + 1;
-        nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
-        save(nombrearchivo,'geom','velnode','parms');
-        break;
-    end
+%     if velcont*deltat < 1e-10
+%         disp('Convergencia a estado estacionario');
+%         itsaved = itsaved + 1;
+%         nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
+%         save(nombrearchivo,'geom','velnode','parms');
+%         break;
+%     end
 
 %     if p == 14
 %        profile viewer

@@ -9,6 +9,7 @@
 function [velnode,geom] = stokessurf(geom,parms,flds)
 
 numnodes = size(geom.nodes,1);
+parms.w = 0;
 
 rkcurv = parms.rkcurv;
 rkgrav = parms.rkgrav;
@@ -55,7 +56,8 @@ end
 
 % calcule los esfuerzos de marangoni
 if rkmaran ~= 0
-    [rdeltafmaran,rdeltafcurv,geom.rsigmavar] = deltafmaran(geom,gamma,parms.maran,rkcurv);
+    [rdeltafmaran,rdeltafcurv,geom.rsigmavar] = ...
+        deltafmaran(geom,gamma,parms.maran,rkcurv);
     geom.rdeltafmaran = rdeltafmaran;
     %%%%% de prueba
 %     rdeltafmaran = sum(rdeltafmaran.*geom.normal,2);

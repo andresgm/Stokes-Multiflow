@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_iso_ves';
+carpetadestino = 'cor_eves_dim_mu_ca_0.5_df';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,11 +23,11 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0;
+ca = 0.1;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
@@ -36,11 +36,12 @@ curvopt = 3;
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
-kext = 1e3;
-mu = 0;
+kext = 10;
+mu = 1;
+kappab = 1;
 
 % gravedad
-kb = 1;
+kb = 0;
 g0 = 68.74;
 
 % interaccion electrostatica
@@ -49,7 +50,7 @@ lie = 64.86;
 gammaie = 3183.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 8];
+xc =[0 0 0];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
@@ -85,16 +86,14 @@ parms.lamda = lamda;
 parms.ca = ca;
 parms.g0 = g0;
     
-% Coeficiente termino de curvatura
-parms.rkcurv = 1;
-
-% Coeficiente termino de marangoni
-parms.rkmaran = 1;
-
 % Coeficiente adimensional termino bending
-parms.rkbend = 1;
+parms.rkbend = kappab;
 parms.kext = kext;
 parms.mu = mu;
+
+% Coeficiente termino de curvatura
+parms.rkcurv = 1;
+parms.rkmaran = 1;
 
 if kb == 1
     % gravedad
@@ -377,11 +376,11 @@ for p = paso:numtimesteps
     geom.deltat = deltat;
     
 % calculo del centroide de la gota y velocidad del centroide
-    xcant = geom.xc;
-    geom.xc = centroide(geom);
-    geom.velcentroid = (geom.xc - xcant)./deltat;
-    disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
-    disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
+%     xcant = geom.xc;
+%     geom.xc = centroide(geom);
+%     geom.velcentroid = (geom.xc - xcant)./deltat;
+%     disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
+%     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
 
 % Visualizacion
     figure(1);
@@ -399,6 +398,11 @@ for p = paso:numtimesteps
     if kb == 1
         disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
     end
+    
+    [inerttensor,def,v,theta] = dirprindef(geom,1);
+    disp(['DF: ', num2str(def)]);
+    disp(['theta: ', num2str(theta)]);
+    
     
 %     figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
 %     title('Posicion Centroide'); getframe;

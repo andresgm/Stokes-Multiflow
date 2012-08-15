@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_iso';
+carpetadestino = 'sed_vesicula_hiperelas_grav_inf';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -27,7 +27,7 @@ ca = 0;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
@@ -37,7 +37,7 @@ curvopt = 3;
 % Coeficiente de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
 kext = 1e3;
-mu = 0;
+mu = 1;
 
 % gravedad
 kb = 1;
@@ -49,15 +49,15 @@ lie = 64.86;
 gammaie = 3183.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 1.2];
+xc =[0 0 0];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
-% Reduccion del paso de tiempo calculado automaticamente
-redfactor = 50;
+% Reduccion del p8aso de tiempo calculado automaticamente
+redfactor = 100000;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -391,8 +391,10 @@ for p = paso:numtimesteps
     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     title('Marangoni'); getframe; hold off;
     
-%     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
-%     title('Electrostat vs. Grav');
+    if p > 1
+        figure(2); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
+        title('Sedimentation Rate'); getframe;
+    end
 %     plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;
     if ke == 1
         disp(['Fuerzaelest ', num2str(geom.fuerzaelest)]);

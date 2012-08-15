@@ -12,34 +12,17 @@ numelements = size(struct.elements,1);
 % velt = zeros(numnodes,3);;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if isfield(struct,'normalele') ~= 1 || isfield(struct,'normal') ~= 1
-   [normalnode,normalele] = normal(struct); 
-else
-    normalele = struct.normalele;
-    normalnode = struct.normal;
-end
-
-if isfield(struct,'jacmat') ~= 1
-    % no tiene el inverso del jacobiano calculelo
-    jacomp = metrictrans(struct,[1/3;1/3]);
-    invjac = jacomp.jacinv;
-else
-    invjac = struct.jacmat;
-end
-
-if isfield(struct,'ds') ~= 1
-    % no hay areas de cada elemento calculadas
-    [s,ds,dsi] = areas(struct);
-else
-    dsi = struct.dsi;
-    ds = struct.ds;
-end
+normalele = struct.normalele;
+normalnode = struct.normal;
+invjac = struct.jacmat;
+dsi = struct.dsi;
+ds = struct.ds;
 
 % pjnod = ProjTensor(struct.normal);
 pjele = projtensor(normalele);
 
 % Velocidad tangencial
-velt = velt - repmat(sum(velt.*normalnode,2),[1 3]).*normalnode;
+% velt = velt - repmat(sum(velt.*normalnode,2),[1 3]).*normalnode;
 
 rk = zeros(3,3,numelements);
 parfor k=1:numelements

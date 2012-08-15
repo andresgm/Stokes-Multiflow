@@ -11,7 +11,7 @@
 % pe: numero de Peclet de la concentracion
 % surfopt: opciones de surfactants
 function [aijmat,matterm1,matterm2,matterm3,matterm4] = ...
-    surfactants(struct,u,w,pe,surfopt)
+    surfactants(struct,u,w,pe)
 
 
 % preproceso de las entradas
@@ -33,31 +33,15 @@ u_n = repmat(u_nmag,[1 3]).*struct.normal;
 % calcule el campo de velocidades hidrodinamico tangencial
 u_s = u - u_n;
 
-%% Calculo de la matriz del primer termino (velt).grad_s(gamma)
-
-if surfopt.opt == 1 
-% los nodos solo se mueven con la velocidad normal
-matterm1 = zeros(numnodes,numnodes);
-elseif surfopt.opt == 2 
-% los nodos se mueven con la velocidad normal y adaptacion
-matterm1 = c_term1mat(struct,w);
-elseif surfopt.opt == 3 
-% los nodos se mueven con la velocidad hidrodinamica
-matterm1 = c_term1mat(struct,u_s);
-elseif surfopt.opt == 4 
-% los nodos se mueven con la velocidad hidrodinamica y adaptacion
-matterm1 = c_term1mat(struct,u_s + w);
-elseif surfopt.opt == 5 
-% los nodos se mueven con la velocidad normal y adaptacion passive
-% (zinchenco et al. 1997)
-matterm1 = c_term1mat(struct,w);
-end
-
-%% Calculo de la matriz asociada del segundo termino
+% Calculo de la matriz del primer termino (velt).grad_s(gamma) Bazhelekov
+% et al. 2003 eq. (9), el segundo argumento corresponde a la velocidad
+% tangencial total.
+matterm1 = c_term1mat(struct,w+u_s);
+% Calculo de la matriz asociada del segundo termino
 matterm2 = c_term2mat(struct,u_s);
-%% Calculo de la matriz del tercer termino gamma.curv<u,n>
+% Calculo de la matriz del tercer termino gamma.curv<u,n>
 matterm3 = eye(numnodes).*repmat((struct.curv.*u_nmag),[1 numnodes]);
-%% Calculo de la matriz asociada al cuarto termino lap_s(gamma)
+% Calculo de la matriz asociada al cuarto termino lap_s(gamma)
 matterm4 = laplacebeltramimat(struct);
 % matterm4 = 0;
 
