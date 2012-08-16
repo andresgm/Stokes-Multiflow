@@ -18,11 +18,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'sed_g019.48_nu0.862'};
+carpetaorigenv = {'sed_vesicula_hiperelas_grav_inf_maran'};
 nombreorigenv =  {'it'};
-itmaxv = 120;
-itminv = ones(1,size(itmaxv,2));
-intervalv = 5;
+itminv = 1;
+itmaxv = 7;
+intervalv = 1;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};
@@ -35,7 +35,7 @@ intervalv = 5;
 % *.FIG, *.PDF, Y *PNG DE TODO.
 
 % OJO dependiendo de la simulacion (sedimentacion o cortante) usted coloca los ejes
-ejes = [-1.8 1.8 -1.8 1.8 0 1.8];
+ejes = [-2 2 -2 2 -2 2];
 
 % voy a ir a almorzar mientras posprocese lo que hace falta
 

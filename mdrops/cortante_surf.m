@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sed_sur_x95_grav_inf';
+carpetadestino = 'sed_sur_x95_grav_inf_maran';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -446,14 +446,14 @@ for p = paso:numtimesteps
    % grafique la geometria
        figure(1);
    %     grafscfld(geom,flds.gamma);
-       grafscfld(geom,geom.rsigmavar);
+       grafscfld(geom,normesp(geom.rdeltafcurv));
        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-       getframe; title('\sigma');
+       getframe; title('Tension');
        figure(2);
    %     grafscfld(geom,flds.gamma);
-       grafscfld(geom,flds.gamma);
+       grafscfld(geom,normesp(geom.rdeltafmaran));
        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-       getframe; title('\gamma');
+       getframe; title('Marangoni');
     else
       figure(1);
       grafscfld(geom,geom.curv);
