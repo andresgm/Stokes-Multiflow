@@ -123,8 +123,8 @@ for i=1:size(geom.elements,1)
     % del modelo de Evans y Skalak.
     % strain energy function from evans and skalak
     % mech and therm of biomembranes 1980 pg 98 (4.8.1)
-    dwdl1 = kaes*(l1*l2-1)*l2 + 0.5*mues*(l1^2-l2^2)/(2*l1^2*l2);
-    dwdl2 = kaes*(l1*l2-1)*l1 - 0.5*mues*(l1^2-l2^2)/(2*l1*l2^2);
+    dwdl1 = 2*kaes*(l1*l2-1)*l2 - mues*(l2^2)/l1;
+    dwdl2 = 2*kaes*(l1*l2-1)*l1 - mues*(l1^2)/l2;
     
     dwdui = dwdl1*dl1dui + dwdl2*dl2dui;
     dwduj = dwdl1*dl1duj + dwdl2*dl2duj;
