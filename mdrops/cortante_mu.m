@@ -4,7 +4,7 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+nombreorigen = 'ellipsoide980'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
@@ -23,7 +23,7 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.1;
+ca = 0.2;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -35,9 +35,11 @@ curvopt = 3;
 
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
-% Ka*R_0^2/kappa.
+% kext = K_rbc/\mu_rbc
 kext = 10;
+% mu es \mu_rbc/\mu_rbc
 mu = 1;
+% kappab = kappa_bending/\mu_rbc*R_0^2
 kappab = 1;
 
 % gravedad
@@ -401,7 +403,7 @@ for p = paso:numtimesteps
     
     [inerttensor,def,v,theta] = dirprindef(geom,1);
     disp(['DF: ', num2str(def)]);
-    disp(['theta: ', num2str(theta)]);
+    disp(['theta: ', num2str((45-theta)/pi)]);
     
     
 %     figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;

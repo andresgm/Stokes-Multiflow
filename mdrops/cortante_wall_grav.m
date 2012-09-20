@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+nombreorigen = 'sph ref 5'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sed_vesicula_hiperelas_grav_inf';
+carpetadestino = 'sed_vesicula_hiperelas_grav_inf_maran';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -57,7 +57,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del p8aso de tiempo calculado automaticamente
-redfactor = 100000;
+redfactor = 5000;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -386,13 +386,19 @@ for p = paso:numtimesteps
 
 % Visualizacion
     figure(1);
+    grafscfld(geom,normesp(geom.rdeltafbend+geom.rdeltafcurv));
+    axis equal;
+    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+    title('Normales'); getframe; hold off;
+    
+    figure(2);
     grafscfld(geom,normesp(geom.rdeltafmaran));
     axis equal;
     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     title('Marangoni'); getframe; hold off;
     
     if p > 1
-        figure(2); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
+        figure(3); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
         title('Sedimentation Rate'); getframe;
     end
 %     plot(geom.tiempo,geom.fuerzagrav,'*b'); getframe;

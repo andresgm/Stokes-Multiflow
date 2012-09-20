@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+nombreorigen = 'ellipsoide95'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'test_sed_iso_ves';
+carpetadestino = 'cort_95_ca_11_la_16';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,11 +23,11 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0;
-lamda = 1;
+ca = 11;
+lamda = 16;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'semiinf';
+flow = 'inf';
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
@@ -40,7 +40,7 @@ kext = 1e3;
 mu = 0;
 
 % gravedad
-kb = 1;
+kb = 0;
 g0 = 68.74;
 
 % interaccion electrostatica
@@ -49,7 +49,7 @@ lie = 64.86;
 gammaie = 3183.1;
 
 % Coordenadas del centroide de la particula
-xc =[0 0 8];
+xc =[0 0 0];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
@@ -57,7 +57,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 100;
+redfactor = 50;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -383,12 +383,12 @@ for p = paso:numtimesteps
     disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
 
-% Visualizacion
-    figure(1);
-    grafscfld(geom,geom.rdeltafnorm);
-    axis equal;
-    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); getframe; hold off;
+% % Visualizacion
+%     figure(1);
+%     grafscfld(geom,geom.rdeltafnorm);
+%     axis equal;
+%     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     title('Tension normal'); getframe; hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');
@@ -399,6 +399,10 @@ for p = paso:numtimesteps
     if kb == 1
         disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
     end
+    
+    [inerttensor,def,v,theta] = dirprindef(geom,1);
+    disp(['DF: ', num2str(def)]);
+    disp(['theta: ', num2str(theta)]);
     
 %     figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
 %     title('Posicion Centroide'); getframe;
