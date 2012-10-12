@@ -57,8 +57,8 @@ for i=1:size(geom.elements,1)
     g22 = 1 + 2*v'*B + (v'*B)*(B'*v) + (u'*B)*(B'*u);
     g12 = u'*B + (u'*B)*(A'*u) + v'*A + (v'*B)*(A'*v);
     
-    l1 = sqrt((g11+g22+sqrt((g11-g22)^2+4*g12^2))/2);
-    l2 = sqrt((g11+g22-sqrt((g11-g22)^2+4*g12^2))/2);
+    l1 = sqrt(0.5*(g11+g22+sqrt((g11-g22)^2+4*g12^2)));
+    l2 = sqrt(0.5*(g11+g22-sqrt((g11-g22)^2+4*g12^2)));
     
 %     isotens(geom.elements(i,1)) = isotens(geom.elements(i,1))+(l1*l2-1);
 %     isotens(geom.elements(i,2)) = isotens(geom.elements(i,2))+(l1*l2-1);
@@ -84,47 +84,66 @@ for i=1:size(geom.elements,1)
     dg12dvj = A(2)*(1+v'*B) + B(2)*(v'*A);
     dg12dvk = A(3)*(1+v'*B) + B(3)*(v'*A);
     
-    cuad = (g11-g22)^2+4*g12^2;
-    
-    if cuad <= 1e-6
-        radical = 0;
+    % 2. Calculo de las derivadas de lambda 1 y lambda 2 respecto desplazamientos
+	% nodales revision Sep/14/2010
+	t0 = sqrt((g11-g22)*(g11-g22) + 4.*g12*g12);
+
+	% Derivadas de lambda1  y lambda 2
+
+    if t0>10e-3
+        dt0dui = ((((g11-g22)*(dg11dui-dg22dui))+(4.*g12*dg12dui))/(t0));
     else
-        radical = cuad^(-.5);
+		dt0dui = 0.0;
     end
-    
-    g11mg22 = g11-g22;
-    
-    dl1dui = (dg11dui + dg22dui +...
-        radical*((g11mg22)*(dg11dui-dg22dui)+4*g12*dg12dui))/(4*l1);
-    dl1duj = (dg11duj + dg22duj +...
-        radical*((g11mg22)*(dg11duj-dg22duj)+4*g12*dg12duj))/(4*l1);
-    dl1duk = (dg11duk + dg22duk +...
-        radical*((g11mg22)*(dg11duk-dg22duk)+4*g12*dg12duk))/(4*l1);
-    dl1dvi = (dg11dvi + dg22dvi +...
-        radical*((g11mg22)*(dg11dvi-dg22dvi)+4*g12*dg12dvi))/(4*l1);
-    dl1dvj = (dg11dvj + dg22dvj +...
-        radical*((g11mg22)*(dg11dvj-dg22dvj)+4*g12*dg12dvj))/(4*l1);
-    dl1dvk = (dg11dvk + dg22dvk +...
-        radical*((g11mg22)*(dg11dvk-dg22dvk)+4*g12*dg12dvk))/(4*l1);
-    dl2dui = (dg11dui + dg22dui -...
-        radical*((g11mg22)*(dg11dui-dg22dui)+4*g12*dg12dui))/(4*l2);
-    dl2duj = (dg11duj + dg22duj -...
-        radical*((g11mg22)*(dg11duj-dg22duj)+4*g12*dg12duj))/(4*l2);
-    dl2duk = (dg11duk + dg22duk -...
-        radical*((g11mg22)*(dg11duk-dg22duk)+4*g12*dg12duk))/(4*l2);
-    dl2dvi = (dg11dvi + dg22dvi -...
-        radical*((g11mg22)*(dg11dvi-dg22dvi)+4*g12*dg12dvi))/(4*l2);
-    dl2dvj = (dg11dvj + dg22dvj -...
-        radical*((g11mg22)*(dg11dvj-dg22dvj)+4*g12*dg12dvj))/(4*l2);
-    dl2dvk = (dg11dvk + dg22dvk -...
-        radical*((g11mg22)*(dg11dvk-dg22dvk)+4*g12*dg12dvk))/(4*l2);
+	dl1dui = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dui + dg22dui + dt0dui);
+    dl2dui = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dui + dg22dui - dt0dui);
+
+    if t0>10e-3
+		dt0duj = ((((g11-g22)*(dg11duj-dg22duj))+(4.*g12*dg12duj))/(t0));
+    else
+		dt0duj = 0.0;
+    end
+	dl1duj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11duj + dg22duj + dt0duj);
+	dl2duj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11duj + dg22duj - dt0duj);
+
+    if t0>10e-3
+		dt0duk = ((((g11-g22)*(dg11duk-dg22duk))+(4.*g12*dg12duk))/(t0));
+    else
+		dt0duk = 0.0;
+    end
+	dl1duk = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11duk + dg22duk + dt0duk);
+	dl2duk = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11duk + dg22duk - dt0duk);
+
+    if t0>10e-3
+		dt0dvi = ((((g11-g22)*(dg11dvi-dg22dvi))+(4.*g12*dg12dvi))/(t0));
+    else
+		dt0dvi = 0.0;
+    end
+	dl1dvi = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dvi + dg22dvi + dt0dvi);
+	dl2dvi = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dvi + dg22dvi - dt0dvi);
+
+    if t0>10e-3
+		dt0dvj = ((((g11-g22)*(dg11dvj-dg22dvj))+(4.*g12*dg12dvj))/(t0));
+    else
+		dt0dvj = 0.0;
+    end
+	dl1dvj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dvj + dg22dvj + dt0dvj);
+	dl2dvj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dvj + dg22dvj - dt0dvj);
+
+    if t0>10e-3
+		dt0dvk = ((((g11-g22)*(dg11dvk-dg22dvk))+(4.*g12*dg12dvk))/(t0));
+    else
+		dt0dvk = 0.0;
+    end
+	dl1dvk = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dvk + dg22dvk + dt0dvk);
+    dl2dvk = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dvk + dg22dvk - dt0dvk);
     
     % En las lineas a continuacion kaes y mues son los parametros 
     % del modelo de Evans y Skalak.
     % strain energy function from evans and skalak
     % mech and therm of biomembranes 1980 pg 98 (4.8.1)
-    dwdl1 = 2*kaes*(l1*l2-1)*l2 - mues*(l2^2)/l1;
-    dwdl2 = 2*kaes*(l1*l2-1)*l1 - mues*(l1^2)/l2;
+    dwdl1 = 2*kaes*(l1*l2-1)*l2 + mues*(l1^2-l2^2)/(l1^2*l2);
+    dwdl2 = 2*kaes*(l1*l2-1)*l1 - mues*(l1^2-l2^2)/(l1*l2^2);
     
     dwdui = dwdl1*dl1dui + dwdl2*dl2dui;
     dwduj = dwdl1*dl1duj + dwdl2*dl2duj;
