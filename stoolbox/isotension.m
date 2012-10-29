@@ -142,8 +142,12 @@ for i=1:size(geom.elements,1)
     % del modelo de Evans y Skalak.
     % strain energy function from evans and skalak
     % mech and therm of biomembranes 1980 pg 98 (4.8.1)
-    dwdl1 = 2*kaes*(l1*l2-1)*l2 + mues*(l1^2-l2^2)/(l1^2*l2);
-    dwdl2 = 2*kaes*(l1*l2-1)*l1 - mues*(l1^2-l2^2)/(l1*l2^2);
+%     dwdl1 = 2*kaes*(l1*l2-1)*l2 + mues*(l1^2-l2^2)/(l1^2*l2);
+%     dwdl2 = 2*kaes*(l1*l2-1)*l1 - mues*(l1^2-l2^2)/(l1*l2^2);
+    % Neo-hookean
+    Eh = kaes;
+    dwdl1 = -(Eh)/(3*l1) + (Eh*l1)/3 + (Eh)/(3*l1)*log(l1^2*l2^2);
+    dwdl2 = -(Eh)/(3*l2) + (Eh*l2)/3 + (Eh)/(3*l2)*log(l1^2*l2^2);
     
     dwdui = dwdl1*dl1dui + dwdl2*dl2dui;
     dwduj = dwdl1*dl1duj + dwdl2*dl2duj;
@@ -163,11 +167,11 @@ for i=1:size(geom.elements,1)
 	fzk = 0.0;
     
     tensionelas(:,geom.elements(i,1)) = ...
-        tensionelas(:,geom.elements(i,1)) - (R'*[fxi;fyi;fzi]);
+        tensionelas(:,geom.elements(i,1)) + (R'*[fxi;fyi;fzi]);
     tensionelas(:,geom.elements(i,2)) = ...
-        tensionelas(:,geom.elements(i,2)) - (R'*[fxj;fyj;fzj]);
+        tensionelas(:,geom.elements(i,2)) + (R'*[fxj;fyj;fzj]);
     tensionelas(:,geom.elements(i,3)) = ...
-        tensionelas(:,geom.elements(i,3)) - (R'*[fxk;fyk;fzk]);
+        tensionelas(:,geom.elements(i,3)) + (R'*[fxk;fyk;fzk]);
 end
 
 isotens = tensionelas;

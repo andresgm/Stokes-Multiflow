@@ -1,4 +1,4 @@
-clear;clc
+clear;clc;
 sbar = systembar();
 % COLOQUE AQUI LA ITERACION MAXIMA QUE HAY DE CADA CARPETA DE ORIGEN
 
@@ -18,11 +18,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'sed_vesicula_hiperelas_grav_inf_maran'};
+carpetaorigenv = {'eggleton_vali_ca_0.01'};
 nombreorigenv =  {'it'};
 itminv = 1;
-itmaxv = 7;
-intervalv = 1;
+itmaxv = 691;
+intervalv = 10;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};

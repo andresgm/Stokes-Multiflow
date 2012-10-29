@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'cort_95_ca_11_la_16';
+carpetadestino = 'cort_95_ca_11_la_16_test';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -384,11 +384,11 @@ for p = paso:numtimesteps
     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
 
 % % Visualizacion
-%     figure(1);
-%     grafscfld(geom,geom.rdeltafnorm);
-%     axis equal;
-%     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     title('Tension normal'); getframe; hold off;
+    figure(1);
+    grafscfld(geom,geom.rdeltafnorm);
+    axis equal;
+    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+    title('Tension normal'); getframe; hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');

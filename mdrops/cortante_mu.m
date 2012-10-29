@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'ellipsoide980'; %rbc, ellipsoide95
+nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'cor_eves_dim_mu_ca_0.5_df';
+carpetadestino = 'ver_isotention_hookean';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -20,10 +20,10 @@ opcionsim = 0;
 % malla
 
 noiseint = 0.025;
-noiserep = 0;
+noiserep = 15;
 
 % Algoritmo de flujo de stokes.
-ca = 0.2;
+ca = 0.01;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -36,11 +36,11 @@ curvopt = 3;
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
 % kext = K_rbc/\mu_rbc
-kext = 10;
+kext = 1;
 % mu es \mu_rbc/\mu_rbc
 mu = 1;
 % kappab = kappa_bending/\mu_rbc*R_0^2
-kappab = 1;
+kappab = 0;
 
 % gravedad
 kb = 0;
@@ -60,7 +60,8 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 100;
+% redfactor = 10000;
+deltat = 0.05*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -81,8 +82,8 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2*ca;
-parms.rksl = 2;
+parms.rkextf = 2/(lamda+1);
+parms.rksl = 2/((lamda+1)*ca);
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
 parms.ca = ca;
@@ -321,17 +322,17 @@ for p = paso:numtimesteps
     
 % calcule la distancia minima de adaptacion y el paso de tiempo
 
-    lmin = zeros(numnodes,1);
-    for k = 1:numnodes
-    % extraiga los nodos vecinos a un nodo en la misma gota 
-        nodesadj = geom.nodecon2node{k};
-        lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
-            - geom.nodes(nodesadj,:)));
-    end
-% Longitud minima para verificacion de paso de tiempo.
-    lmint = min(lmin);
-    deltat = lmint^1.5/redfactor;
-    parms.lmin = lmin;
+%     lmin = zeros(numnodes,1);
+%     for k = 1:numnodes
+%     % extraiga los nodos vecinos a un nodo en la misma gota 
+%         nodesadj = geom.nodecon2node{k};
+%         lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
+%             - geom.nodes(nodesadj,:)));
+%     end
+% % Longitud minima para verificacion de paso de tiempo.
+%     lmint = min(lmin);
+%     deltat = lmint^1.5/redfactor;
+%     parms.lmin = lmin;
     
     % Usamos esquema rk2 para la integracion numerica.
     
@@ -389,7 +390,7 @@ for p = paso:numtimesteps
     grafscfld(geom,geom.rdeltafnorm);
     axis equal;
     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); getframe; hold off;
+    title('Tension normal'); hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');
@@ -403,11 +404,11 @@ for p = paso:numtimesteps
     
     [inerttensor,def,v,theta] = dirprindef(geom,1);
     disp(['DF: ', num2str(def)]);
-    disp(['theta: ', num2str((45-theta)/pi)]);
+    disp(['theta: ', num2str((theta)/pi)]);
     
     
-%     figure(3); plot(geom.tiempo,geom.xc(3),'*k');hold on;
-%     title('Posicion Centroide'); getframe;
+    figure(2); plot(geom.tiempo,def,'*k');hold on;
+    title('DF');
 %         
 %     figure(2);
 %     grafscfld(geom,normesp(geom.rdeltafmaran));
