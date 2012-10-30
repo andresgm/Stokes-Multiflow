@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'ver_isotention_hookean';
+carpetadestino = 'ver_isotention_hookean_eggleton';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -20,10 +20,10 @@ opcionsim = 0;
 % malla
 
 noiseint = 0.025;
-noiserep = 15;
+noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.01;
+ca = 0.0125;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -61,7 +61,7 @@ outputfreq = 10;
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
 % redfactor = 10000;
-deltat = 0.05*ca;
+deltat = 0.01*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion

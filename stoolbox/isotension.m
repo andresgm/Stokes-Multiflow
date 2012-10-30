@@ -156,22 +156,22 @@ for i=1:size(geom.elements,1)
     dwdvj = dwdl1*dl1dvj + dwdl2*dl2dvj;
     dwdvk = dwdl1*dl1dvk + dwdl2*dl2dvk;
     
-    fxi = dwdui*geom.dsref(i);
-    fyi = dwdvi*geom.dsref(i);
+    fxi = dwdui*geom.dsref(i)/geom.dsi(geom.elements(i,1));
+    fyi = dwdvi*geom.dsref(i)/geom.dsi(geom.elements(i,1));
     fzi = 0.0;
-    fxj = dwduj*geom.dsref(i);
-	fyj = dwdvj*geom.dsref(i);
+    fxj = dwduj*geom.dsref(i)/geom.dsi(geom.elements(i,2));
+	fyj = dwdvj*geom.dsref(i)/geom.dsi(geom.elements(i,2));
 	fzj = 0.0;
-	fxk = dwduk*geom.dsref(i);
-	fyk = dwdvk*geom.dsref(i);
+	fxk = dwduk*geom.dsref(i)/geom.dsi(geom.elements(i,3));
+	fyk = dwdvk*geom.dsref(i)/geom.dsi(geom.elements(i,3));
 	fzk = 0.0;
     
     tensionelas(:,geom.elements(i,1)) = ...
-        tensionelas(:,geom.elements(i,1)) + (R'*[fxi;fyi;fzi]);
+        tensionelas(:,geom.elements(i,1)) - (R'*[fxi;fyi;fzi]);
     tensionelas(:,geom.elements(i,2)) = ...
-        tensionelas(:,geom.elements(i,2)) + (R'*[fxj;fyj;fzj]);
+        tensionelas(:,geom.elements(i,2)) - (R'*[fxj;fyj;fzj]);
     tensionelas(:,geom.elements(i,3)) = ...
-        tensionelas(:,geom.elements(i,3)) + (R'*[fxk;fyk;fzk]);
+        tensionelas(:,geom.elements(i,3)) - (R'*[fxk;fyk;fzk]);
 end
 
 isotens = tensionelas;
