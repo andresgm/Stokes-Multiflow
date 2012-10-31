@@ -146,8 +146,8 @@ for i=1:size(geom.elements,1)
 %     dwdl2 = 2*kaes*(l1*l2-1)*l1 - mues*(l1^2-l2^2)/(l1*l2^2);
     % Neo-hookean
     Eh = kaes;
-    dwdl1 = -(Eh)/(3*l1) + (Eh*l1)/3 + (Eh)/(3*l1)*log(l1^2*l2^2);
-    dwdl2 = -(Eh)/(3*l2) + (Eh*l2)/3 + (Eh)/(3*l2)*log(l1^2*l2^2);
+    dwdl1 = (Eh/3)*(l1-1/(l1^2*l2^3));
+    dwdl2 = (Eh/3)*(l2-1/(l1^3*l2^2));
     
     dwdui = dwdl1*dl1dui + dwdl2*dl2dui;
     dwduj = dwdl1*dl1duj + dwdl2*dl2duj;

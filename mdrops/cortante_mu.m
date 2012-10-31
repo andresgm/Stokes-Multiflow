@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'ver_isotention_hookean_eggleton';
+carpetadestino = 'ver_isotention_hookean_eggleton_ca0.025';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -61,7 +61,7 @@ outputfreq = 10;
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
 % redfactor = 10000;
-deltat = 0.01*ca;
+deltat = 0.0001*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
