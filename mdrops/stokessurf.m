@@ -217,7 +217,7 @@ w = 0;
 if nargin < 3
 % Opciones por defecto
 NumSteps = 100;
-TolError = 1e-4;
+TolError = 1e-6;
 else
     
 end
@@ -336,7 +336,7 @@ for zz=1:100
     % Calculo del Error
     ErrorInVel = normesp(VelAtNode - VelAtNodeAnt);
     ErrorMax = max(abs(ErrorInVel));
-    if ErrorMax < 1e-3
+    if ErrorMax < 1e-6
         disp(['It Deflaction: ' num2str(zz)]);
         disp(['Error Deflaction: ' num2str(ErrorMax)]);
         break

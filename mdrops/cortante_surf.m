@@ -4,21 +4,21 @@
 clear;clc; %close all
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3';
+nombreorigen = 'sph ref 4';
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sed_sur_x95_grav_inf_maran';
+carpetadestino = 'ver_cortante_kennedy_clean_la3.6_ca.3_wei-6-ref4';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0;
-lamda = 1;
+ca = 0.3;
+lamda = 3.6;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
@@ -29,11 +29,11 @@ curvopt = 3;
 
 % Banderas de fuerza dif 0: si. 1: no
 % gravedad
-kb = 1;
-Bo = 68.74;
+kb = 0;
+Bo = 1;
 
 % Tensoactivos
-kc = 1;
+kc = 0;
 % maranmodel = 1(lineal) definir beta y pe(alpha)
 % maranmodel = 2(logaritmico) definir x, e y pe(alpha)
 maranmodel = 2;
@@ -42,9 +42,9 @@ alpha = 100;
 % constante para modelo lineal
 beta = 0.2;
 % Parametro del modelo logaritmico
-e = 0.20;
+e = 0.37;
 % Concentracion 
-x = 0.95;
+x = 0.74;
 
 % numero de gotas
 geom.numdrops = 1;
@@ -52,12 +52,13 @@ geom.numdrops = 1;
 xc =[0 0 0];
 
 % frecuencia de guardar resultados
-outputfreq = 1;
+outputfreq = 10;
 
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 5000;
+% redfactor = 5000;
+deltat = 0.01*ca;
 
 % escalaje
 errorvoltol = 1e-6;
@@ -83,26 +84,27 @@ theta = 1;
 parms.flow = flow;
 
 % adimensionalizacion del single layer
-parms.rkextf = 2*ca/Bo;
-parms.rksl = 2;
+parms.rkextf = 2/(lamda+1);
+parms.rksl = 2/((lamda+1)*ca);
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
 parms.ca = ca;
 parms.Bo = Bo;   
 
 % Coeficiente termino de curvatura
-parms.rkcurv = 1/Bo;
+parms.rkcurv = 1;
 
 if kb == 1
     % gravedad
-    parms.rkgrav = 1;
+    parms.rkgrav = Bo;
 else
     parms.rkgrav = 0;
 end
 
 if kc == 1
-    pe = Bo*alpha/(1-lamda);
-    parms.maran.rkmaran = 1/Bo;
+    gamma0overgammaeq = 1/(1+e*log(1-x));
+    pe = ca*alpha*gamma0overgammaeq;
+    parms.maran.rkmaran = 1;
     if maranmodel == 1
         parms.maran.maranmodel = 'linear';
         parms.maran.beta = beta;
@@ -266,9 +268,9 @@ elseif opcionsim == 2
 end
   
 %% Ciclo principal
-xcant = centroide(geom);
-geom.velcentroid = [0 0 0];
-geom.xc = xcant;
+% xcant = centroide(geom);
+% geom.velcentroid = [0 0 0];
+% geom.xc = xcant;
 
 veladapt = zeros(numnodes,3);
 
@@ -287,17 +289,17 @@ for p = paso:numtimesteps
     
 % calcule la distancia minima de adaptacion y el paso de tiempo
     
-    lmin = zeros(numnodes,1);
-    for k = 1:numnodes
-    % extraiga los nodos vecinos a un nodo en la misma gota 
-        nodesadj = geom.nodecon2node{k};
-        lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
-            - geom.nodes(nodesadj,:)));
-    end
-% Longitud minima para verificacion de paso de tiempo.
-    lmint = min(lmin);
-    deltat = lmint^1.5/redfactor;
-    parms.lmin = lmin;
+%     lmin = zeros(numnodes,1);
+%     for k = 1:numnodes
+%     % extraiga los nodos vecinos a un nodo en la misma gota 
+%         nodesadj = geom.nodecon2node{k};
+%         lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
+%             - geom.nodes(nodesadj,:)));
+%     end
+% % Longitud minima para verificacion de paso de tiempo.
+%     lmint = min(lmin);
+%     deltat = lmint^1.5/redfactor;
+%     parms.lmin = lmin;
     
 % Usamos esquema rk2 para la integracion numerica.
     
@@ -436,11 +438,11 @@ for p = paso:numtimesteps
     geom.deltat = deltat;
     
 % calculo del centroide de la gota y velocidad del centroide
-    xcant = geom.xc;
-    geom.xc = centroide(geom);
-    geom.velcentroid = (geom.xc - xcant)./deltat;
-    disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
-    disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
+%     xcant = geom.xc;
+%     geom.xc = centroide(geom);
+%     geom.velcentroid = (geom.xc - xcant)./deltat;
+%     disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
+%     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
     
     if parms.maran.rkmaran ~= 0
    % grafique la geometria
@@ -461,14 +463,22 @@ for p = paso:numtimesteps
       getframe; title('curv');
     end
     
-    if p > 1
-        figure(3); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
-        title('Sedimentation Rate'); getframe;
-    end
+%     if p > 1
+%         figure(3); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
+%         title('Sedimentation Rate'); getframe;
+%     end
 
-    if kb == 1
-        disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
-    end
+%     if kb == 1
+%         disp(['Fuerzagrav: ', num2str(geom.fuerzagrav)]);
+%     end
+
+    [inerttensor,def,v,theta] = dirprindef(geom,1);
+    disp(['DF: ', num2str(def)]);
+    disp(['theta: ', num2str((theta)/pi)]);
+    
+    
+    figure(3); plot(geom.tiempo,def,'*k');hold on;
+    title('DF');
 
 % guarde resultados
     if counter == outputfreq

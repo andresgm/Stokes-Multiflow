@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+nombreorigen = 'ellipsoide95'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'ver_isotention_hookean_eggleton_ca0.025';
+carpetadestino = 'ver_isotention_ellipsoide_ref3';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,7 +23,7 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.0125;
+ca = 0.05;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -61,7 +61,7 @@ outputfreq = 10;
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
 % redfactor = 10000;
-deltat = 0.0001*ca;
+deltat = 0.01*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -386,11 +386,11 @@ for p = paso:numtimesteps
 %     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
 
 % Visualizacion
-    figure(1);
-    grafscfld(geom,geom.rdeltafnorm);
-    axis equal;
-    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); hold off;
+%    figure(1);
+%    grafscfld(geom,geom.rdeltafnorm);
+%    axis equal;
+%    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%    title('Tension normal'); hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');
@@ -407,8 +407,8 @@ for p = paso:numtimesteps
     disp(['theta: ', num2str((theta)/pi)]);
     
     
-    figure(2); plot(geom.tiempo,def,'*k');hold on;
-    title('DF');
+%    figure(2); plot(geom.tiempo,def,'*k');hold on;
+%    title('DF');
 %         
 %     figure(2);
 %     grafscfld(geom,normesp(geom.rdeltafmaran));
