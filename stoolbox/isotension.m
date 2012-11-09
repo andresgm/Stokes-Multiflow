@@ -87,18 +87,19 @@ for i=1:size(geom.elements,1)
     % 2. Calculo de las derivadas de lambda 1 y lambda 2 respecto desplazamientos
 	% nodales revision Sep/14/2010
 	t0 = sqrt((g11-g22)*(g11-g22) + 4.*g12*g12);
+    tol = 1e-3;
 
 	% Derivadas de lambda1  y lambda 2
 
-    if t0>10e-3
-        dt0dui = ((((g11-g22)*(dg11dui-dg22dui))+(4.*g12*dg12dui))/(t0));
+    if t0>tol
+        dt0dui = (((g11-g22)*(dg11dui-dg22dui))+(4.*g12*dg12dui))/t0;
     else
 		dt0dui = 0.0;
     end
 	dl1dui = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dui + dg22dui + dt0dui);
     dl2dui = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dui + dg22dui - dt0dui);
 
-    if t0>10e-3
+    if t0>tol
 		dt0duj = ((((g11-g22)*(dg11duj-dg22duj))+(4.*g12*dg12duj))/(t0));
     else
 		dt0duj = 0.0;
@@ -106,7 +107,7 @@ for i=1:size(geom.elements,1)
 	dl1duj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11duj + dg22duj + dt0duj);
 	dl2duj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11duj + dg22duj - dt0duj);
 
-    if t0>10e-3
+    if t0>tol
 		dt0duk = ((((g11-g22)*(dg11duk-dg22duk))+(4.*g12*dg12duk))/(t0));
     else
 		dt0duk = 0.0;
@@ -114,7 +115,7 @@ for i=1:size(geom.elements,1)
 	dl1duk = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11duk + dg22duk + dt0duk);
 	dl2duk = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11duk + dg22duk - dt0duk);
 
-    if t0>10e-3
+    if t0>tol
 		dt0dvi = ((((g11-g22)*(dg11dvi-dg22dvi))+(4.*g12*dg12dvi))/(t0));
     else
 		dt0dvi = 0.0;
@@ -122,7 +123,7 @@ for i=1:size(geom.elements,1)
 	dl1dvi = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dvi + dg22dvi + dt0dvi);
 	dl2dvi = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dvi + dg22dvi - dt0dvi);
 
-    if t0>10e-3
+    if t0>tol
 		dt0dvj = ((((g11-g22)*(dg11dvj-dg22dvj))+(4.*g12*dg12dvj))/(t0));
     else
 		dt0dvj = 0.0;
@@ -130,7 +131,7 @@ for i=1:size(geom.elements,1)
 	dl1dvj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22+t0)))*(dg11dvj + dg22dvj + dt0dvj);
 	dl2dvj = ((sqrt(0.5)*0.5)/(sqrt(g11+g22-t0)))*(dg11dvj + dg22dvj - dt0dvj);
 
-    if t0>10e-3
+    if t0>tol
 		dt0dvk = ((((g11-g22)*(dg11dvk-dg22dvk))+(4.*g12*dg12dvk))/(t0));
     else
 		dt0dvk = 0.0;

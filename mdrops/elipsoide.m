@@ -7,12 +7,12 @@
 clc;
 clear;
 
-reflevel = 3;
-name2save = 'ellipsoide946';
+reflevel = 4;
+name2save = 'ellipsoide95ref4';
 
-a = 1.25;
-b = 1.25;
-c = 0.82;
+a = 1.205;
+b = 1.205;
+c = 0.8;
 r = 1;
 
 noiseint = 0.025;

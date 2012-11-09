@@ -9,7 +9,7 @@ rkcurv = parms.rkcurv;
 rkbend = parms.rkbend;
 rkgrav = parms.rkgrav;
 rkelestat = parms.rkelestat;
-rkmaran = parms.rkmaran;
+rkmaran = 0; %parms.rkmaran;
 
 % constante del single layer
 rksl = parms.rksl;
@@ -65,6 +65,15 @@ geom.rdeltafbend = rdeltafbend;
 % Calculo de la tension isotropica
 
 isotens = isotension(geom,ks,mu);
+
+    figure(1);
+    grafscfld(geom,normesp(isotens'));
+    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+    hold on
+    quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+        isotens(1,:)',isotens(2,:)',isotens(3,:)');
+    getframe; title('Marangoni');
+    hold off
 rdeltafcurv = rkcurv.*sum(isotens'.*geom.normal,2);
 geom.rdeltafcurv = rdeltafcurv;
 
@@ -87,15 +96,15 @@ end
 
 rdeltaftot = rdeltafcurv + rdeltafgrav + rdeltafbend + rdeltafelestat;
 
-%     figure(1);
-%     grafscfld(geom,normesp(rdeltaftot));
-%     axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%     hold on
-%     quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-%         geom.normal(:,1).*rdeltaftot,geom.normal(:,2).*rdeltaftot,...
-%         geom.normal(:,3).*rdeltaftot);
-%     getframe; title('Marangoni');
-%     hold off
+    figure(1);
+    grafscfld(geom,rdeltaftot);
+    axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+    hold on
+    quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+        geom.normal(:,1).*rdeltaftot,geom.normal(:,2).*rdeltaftot,...
+        geom.normal(:,3).*rdeltaftot);
+    getframe; title('Marangoni');
+    hold off
 
 % delta fuerza normal total
 geom.rdeltafnorm = rdeltaftot;

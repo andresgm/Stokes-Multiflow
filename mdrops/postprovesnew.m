@@ -18,10 +18,10 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'eggleton_vali_ca_0.01'};
+carpetaorigenv = {'sed_clean_texas_wall'};
 nombreorigenv =  {'it'};
 itminv = 1;
-itmaxv = 691;
+itmaxv = 185;
 intervalv = 10;
 
 %carpetaorigenv = {'it4ele'};
@@ -63,6 +63,9 @@ for i = 1:size(itmaxv,2)
         excesarea(contador) = abs(geom.s - geom.areaini)/geom.areaini;
         % posicion mas baja de la gota
         minxvert(contador) = min(geom.nodes(:,3));
+        
+        % velocidad (rapidez) del centroide de la gota
+        velcentm(contador) = normesp(geom.velcentroid);
         % calculo de las deformaciones de la gota
         if thetacal == 1
             [inerttensor,def(contador),v,theta(contador)] = dirprindef(geom,1);    
@@ -119,6 +122,8 @@ for i = 1:size(itmaxv,2)
 % %             saveas(4,[nameydir 'velnorm'],'eps')
 %             saveas(4,[nameydir 'velnorm'],'pdf')                           
 %         end
+            figure(8); plot(tiempov,velcentm);
+            xlabel('Dimensionless time'); ylabel('Magnitude of Centroid Velocity');
         
 %         if thetacal == 1
 % %             figure(5); plot(tiempov,theta); title('\theta vs dimensionless time');
@@ -137,7 +142,9 @@ for i = 1:size(itmaxv,2)
 end
     
 % valor de sigma
-disp('deformation');def(end)
+disp(['deformation',num2str(def(end))]);
 % exceso de area
-disp('excesarea');excesarea(end)
+disp(['excesarea',num2str(excesarea(end))]);
+% Sedimentation rate
+disp(['sedimentation rate: ',num2str(velcentm(end))]);
 

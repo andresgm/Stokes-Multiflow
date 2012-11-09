@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'ellipsoide95'; %rbc, ellipsoide95
+nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'ver_isotention_ellipsoide_ref3';
+carpetadestino = 'ver_eggleton_ca0.05_test';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -20,10 +20,10 @@ opcionsim = 0;
 % malla
 
 noiseint = 0.025;
-noiserep = 0;
+noiserep = 9;
 
 % Algoritmo de flujo de stokes.
-ca = 0.05;
+ca = 1;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -61,7 +61,7 @@ outputfreq = 10;
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
 % redfactor = 10000;
-deltat = 0.01*ca;
+deltat = 0.05*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
@@ -82,7 +82,7 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2/(lamda+1);
+parms.rkextf = 0; %2/(lamda+1);
 parms.rksl = 2/((lamda+1)*ca);
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
@@ -225,6 +225,8 @@ if opcionsim == 0
     geom.ref = geom.nodes;
     geom.dsref = geom.ds;
     
+    [geom.shapeA, geom.shapeB, geom.refrot] = shapefun(geom);
+    
     % volumen reducido inicial
     volredini = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
     geom.volredini = volredini;
@@ -298,8 +300,6 @@ end
 
 % Calculo funciones de forma y demas parametros para el metodo de los 
 % elementos finitos que solo depende del estado inicial.
-
-[geom.shapeA, geom.shapeB, geom.refrot] = shapefun(geom);
 
 
 %% Ciclo principal
@@ -386,11 +386,11 @@ for p = paso:numtimesteps
 %     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
 
 % Visualizacion
-%    figure(1);
-%    grafscfld(geom,geom.rdeltafnorm);
-%    axis equal;
-%    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%    title('Tension normal'); hold off;
+   figure(1);
+   grafscfld(geom,geom.rdeltafnorm);
+   axis equal;
+   view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+   title('Tension normal'); hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');
@@ -407,8 +407,8 @@ for p = paso:numtimesteps
     disp(['theta: ', num2str((theta)/pi)]);
     
     
-%    figure(2); plot(geom.tiempo,def,'*k');hold on;
-%    title('DF');
+   figure(2); plot(geom.tiempo,def,'*k');hold on;
+   title('DF');
 %         
 %     figure(2);
 %     grafscfld(geom,normesp(geom.rdeltafmaran));
@@ -435,13 +435,13 @@ for p = paso:numtimesteps
     errorvolred = abs(volred-volredini)/volredini;
     disp(['Error volumen reducido: ',num2str(errorvolred)]);
     
-    if velcont*deltat < 1e-6
-        disp('Convergencia a estado estacionario');
-        itsaved = itsaved + 1;
-        nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
-        save(nombrearchivo,'geom','velnode','parms');
-        break;
-    end
+%     if velcont*deltat < 1e-6
+%         disp('Convergencia a estado estacionario');
+%         itsaved = itsaved + 1;
+%         nombrearchivo = [direcciondestino num2str(itsaved), '.mat'];
+%         save(nombrearchivo,'geom','velnode','parms');
+%         break;
+%     end
     
 %     if p == 14
 %        profile viewer
