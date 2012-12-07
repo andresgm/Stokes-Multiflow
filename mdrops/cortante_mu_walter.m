@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3'; %rbc, ellipsoide95
+nombreorigen = 'sph ref 4'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'ver_walter_fem_ca1';
+carpetadestino = 'ver_walter_fem_ca.1ref4';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,7 +23,7 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.25;
+ca = 0.1;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -61,7 +61,7 @@ outputfreq = 10;
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
 % redfactor = 10000;
-deltat = 0.05*ca;
+deltat = 0.01*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion

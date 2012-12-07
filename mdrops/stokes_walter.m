@@ -10,7 +10,7 @@ rkcurv = parms.rkcurv;
 rkbend = parms.rkbend;
 rkgrav = parms.rkgrav;
 rkelestat = parms.rkelestat;
-rkmaran = 0; %parms.rkmaran;
+rkmaran = parms.rkmaran;
 
 % constante del single layer
 rksl = parms.rksl;
@@ -51,17 +51,23 @@ elseif parms.curvopt == 3
     [geom.curv] = curvlb(geom,lapbelmat);
 end
 
-if parms.curvopt ~= 3
-    % calcule la matriz de laplace beltrami de la curvatura
-    lapbelmat = discretelaplacebeltrami(geom);
+if rkbend ~= 0
+    if parms.curvopt ~= 3
+        % calcule la matriz de laplace beltrami de la curvatura
+        lapbelmat = discretelaplacebeltrami(geom);
+    end
+    % calcule el laplace beltrami de la curvatura
+    geom.lapcurv = lapbelmat*geom.curv;
+    % geom.lapcurv = lapbel(geom,geom.curv);
+    % calcule el delta de fuerza debido a la resistencia al doblamiento.
+    rdeltafbend = -(rkbend).*...%zeros(numnodes,1);%
+               (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
+    geom.rdeltafbend = rdeltafbend;
+else
+    rdeltafbend = zeros(numnodes,1);
+    geom.rdeltafbend = rdeltafbend;
 end
-% calcule el laplace beltrami de la curvatura
-geom.lapcurv = lapbelmat*geom.curv;
-% geom.lapcurv = lapbel(geom,geom.curv);
-% calcule el delta de fuerza debido a la resistencia al doblamiento.
-rdeltafbend = -(rkbend).*...%zeros(numnodes,1);%
-           (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
-geom.rdeltafbend = rdeltafbend;
+    
 
 % Calculo de la tension isotropica
 
@@ -118,13 +124,13 @@ qload = reshape(qloadv,[3,numnodes])';
 % 
 % 
 % %% Resultados
-figure(3);
-grafscfld(geom,normesp(qload));
-hold on
-quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-    qload(:,1),qload(:,2),qload(:,3));
-axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-getframe; title('q - skalak');hold off;
+% figure(3);
+% grafscfld(geom,normesp(qload));
+% hold on
+% quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+%     qload(:,1),qload(:,2),qload(:,3));
+% axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+% getframe; title('q - skalak');hold off;
 
 rdeltafcurv = rkcurv.*sum(qload.*geom.normal,2);
 geom.rdeltafcurv = rdeltafcurv;
