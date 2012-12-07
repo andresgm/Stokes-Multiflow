@@ -2,7 +2,7 @@ clear; clc; close all;
 
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'ellipsoide95.mat';
+nombreorigen = 'sph ref 3.mat';
 
 geom.gssk = 1;
 geom.csk = 1;
@@ -65,6 +65,10 @@ rglobal = zeros(3*numnodes,1);
 
 [xg,wg] = quadrature;
 [Abase,Abasectr,Metricg,Metricgctr,Jacmet,Jacmetctr] = isobase(geom);
+
+alphadef = 0.1;
+geom.nodes = geom.nodes + geom.normal*alphadef;
+
 [abase,abasectr,metricg,metricgctr,jacmet,jacmetctr] = isobase(geom);
 
 tab = ...
@@ -100,8 +104,8 @@ for i = 1:numelements
     end
 end
 
-disp('hola')
-
+qloadv = Mglobal\rglobal;
+qload = reshape(qloadv,[3,numnodes])';
 
 % % Esfuerzos normales
 % isonorm = repmat(sum(isotens'.*geom.normal,2),[1 3]).*geom.normal;
@@ -110,13 +114,13 @@ disp('hola')
 % 
 % 
 % %% Resultados
-% figure(2);
-% grafscfld(geom,normesp(isonorm));
-% hold on
-% quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
-%     isonorm(:,1),isonorm(:,2),isonorm(:,3));
-% axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-% getframe; title('tension normal');
+figure(2);
+grafscfld(geom,normesp(qload));
+hold on
+quiver3(geom.nodes(:,1),geom.nodes(:,2),geom.nodes(:,3),...
+    qload(:,1),qload(:,2),qload(:,3));
+axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+getframe; title('q - skalak');
 % 
 % figure(3);
 % % trimesh...
