@@ -10,7 +10,7 @@ iteracion = 475;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'shear_rv.95_ca0.2_labmda1_kb1e-4';
+carpetadestino = 'shear_biben_rv.95_ca10_labmda16_gs1_csk150';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,8 +23,8 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.2;
-lamda = 1;
+ca = 10;
+lamda = 16;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
@@ -36,11 +36,11 @@ curvopt = 3;
 % Coeficientes del modelo de Evans y Skalak
 % Coeficiente de resistencia al cambio de area:
 % kext = K_rbc/\mu_rbc
-gssk = 1;
+gssk = 1e-2;
 % mu es \mu_rbc/\mu_rbc
-csk = 10;
+csk = 10000;
 % kappab = kappa_bending/\mu_rbc*R_0^2
-kappab = 1e-4;
+kappab = 1;
 
 % gravedad
 kb = 0;
@@ -60,7 +60,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Paso de tiempo
-deltat = 0.01*ca;
+deltat = 0.001*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion

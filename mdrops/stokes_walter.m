@@ -30,33 +30,19 @@ normalandgeoopt.vol = 0;
 geomprop = normalandgeo(geom,normalandgeoopt);
 geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
+geom.normal = geomprop.normal;
 geom.s = geomprop.s;
 geom.g = geomprop.g;
 
 polarparms = parms.polarparms;
 
-% calculo de la curvatura media
-if parms.curvopt == 1
-    % calculo mediante paraboloid fitting
-    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom);
-elseif parms.curvopt == 2
-    % calculo mediante extended paraboloid fitting/bestparaboloid fitting
-    paropt.tipo = 'extended';
-    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-elseif parms.curvopt == 3
-    % calculo mediante laplace - beltrami
-    paropt.tipo = 'extended';
-    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-    [lapbelmat,geom.Kg] = discretelaplacebeltrami(geom);
-    [geom.curv] = curvlb(geom,lapbelmat);
-end
+paropt.tipo = 'extended';
+[geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
 
 if rkbend ~= 0
-    if parms.curvopt ~= 3
-        % calcule la matriz de laplace beltrami de la curvatura
-        lapbelmat = discretelaplacebeltrami(geom);
-    end
     % calcule el laplace beltrami de la curvatura
+    [lapbelmat,geom.Kg] = discretelaplacebeltrami(geom);
+    [geom.curv] = curvlb(geom,lapbelmat);
     geom.lapcurv = lapbelmat*geom.curv;
     % geom.lapcurv = lapbel(geom,geom.curv);
     % calcule el delta de fuerza debido a la resistencia al doblamiento.
@@ -68,7 +54,6 @@ else
     geom.rdeltafbend = rdeltafbend;
 end
     
-
 % Calculo de la tension isotropica
 
 Mglobal = zeros(3*numnodes,3*numnodes);

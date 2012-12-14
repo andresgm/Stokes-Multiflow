@@ -20,8 +20,11 @@ for i = 1:numelements
     abase(:,2,i) = dN(1,2)*nodes(elements(i,1),:)...
                  + dN(2,2)*nodes(elements(i,2),:)...
                  + dN(3,2)*nodes(elements(i,3),:);
-    a3 = cross(abase(:,1,i),abase(:,2,i));
-    a3 = a3/norm(a3);
+    % Normal a los vectore a1 y a2
+%     a3 = cross(abase(:,1,i),abase(:,2,i));
+%     a3 = a3/norm(a3);
+    % Normal a la superficie
+    a3 = geom.normal(geom.elements(i,1),:);
     ca2a3 = cross(abase(:,2,i),a3);
     v = dot(abase(:,1,i),ca2a3);
     abasectr(:,1,i) = ca2a3/v;
