@@ -4,13 +4,13 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'rbc'; %rbc, ellipsoide95
+nombreorigen = 'rbc3'; %rbc, ellipsoide95
 carpetaorigen = '';
 iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'rbc_shear_ca0.5_labmda2_kb1e-2';
+carpetadestino = 'rbc_bagchi_relax_ref3';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,7 +23,7 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.5;
+ca = 1;
 lamda = 2;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -41,6 +41,8 @@ gssk = 1;
 csk = 100;
 % kappab = kappa_bending/\mu_rbc*R_0^2
 kappab = 1e-2;
+% Spontaneous curvature
+c0 = -2.09;
 
 % gravedad
 kb = 0;
@@ -81,7 +83,7 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2/(lamda+1);
+parms.rkextf = 0; %2/(lamda+1);
 parms.rksl = 2/((lamda+1)*ca);
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
@@ -90,6 +92,7 @@ parms.g0 = g0;
     
 % Coeficiente adimensional termino bending
 parms.rkbend = kappab;
+parms.c0 = c0;
 parms.gssk = gssk;
 parms.csk = csk;
 

@@ -7,16 +7,16 @@
 clc;
 clear;
 
-reflevel = 3;
-name2save = 'rbc';
+reflevel = 4;
+name2save = 'rbc4';
 
 c0 = 0.207;
-c1 = 2.000;
+c1 = 2.003;
 c2 = -1.123;
 R = 1;
 
 noiseint = 0.025;
-noiserep = 20;
+noiserep = 0;
 
 % cargue la esfera
 fileload = ['sph ref ' num2str(reflevel) '.mat'];

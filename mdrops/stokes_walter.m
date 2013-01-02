@@ -8,6 +8,7 @@ numelements = size(geom.elements,1);
 
 rkcurv = parms.rkcurv;
 rkbend = parms.rkbend;
+c0 = parms.c0;
 rkgrav = parms.rkgrav;
 rkelestat = parms.rkelestat;
 rkmaran = parms.rkmaran;
@@ -46,8 +47,10 @@ if rkbend ~= 0
     geom.lapcurv = lapbelmat*geom.curv;
     % geom.lapcurv = lapbel(geom,geom.curv);
     % calcule el delta de fuerza debido a la resistencia al doblamiento.
-    rdeltafbend = -(rkbend).*...%zeros(numnodes,1);%
-               (4.*geom.curv.^3 + 2.*geom.lapcurv - 4.*geom.Kg.*geom.curv);
+    % Included spontaneous curvature.
+    rdeltafbend = -(rkbend).*...
+               ((2.*geom.curv-c0).*...
+               (2.*geom.curv.^2-2.*geom.Kg-c0.*geom.curv)+2.*geom.lapcurv);
     geom.rdeltafbend = rdeltafbend;
 else
     rdeltafbend = zeros(numnodes,1);
