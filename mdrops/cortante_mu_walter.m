@@ -4,17 +4,17 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'it'; %rbc, ellipsoide95
-carpetaorigen = 'biben_relax';
-iteracion = 475;
+nombreorigen = 'rbc'; %rbc, ellipsoide95
+carpetaorigen = '';
+iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'shear_rv.95_ca0.2_labmda1_kb1e-4';
+carpetadestino = 'rbc_shear_ca0.5_labmda2_kb1e-2';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 2;
+opcionsim = 0;
 
 % Parametros introduccion ruido para minimizar efecto de la simetria de la
 % malla
@@ -23,8 +23,8 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 0.2;
-lamda = 1;
+ca = 0.5;
+lamda = 2;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
@@ -38,9 +38,9 @@ curvopt = 3;
 % kext = K_rbc/\mu_rbc
 gssk = 1;
 % mu es \mu_rbc/\mu_rbc
-csk = 10;
+csk = 100;
 % kappab = kappa_bending/\mu_rbc*R_0^2
-kappab = 1e-4;
+kappab = 1e-2;
 
 % gravedad
 kb = 0;
@@ -60,7 +60,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Paso de tiempo
-deltat = 0.01*ca;
+deltat = 0.001*ca;
 
 % Sin adaptacion de malla. OJO!
 % parametros de adaptacion
