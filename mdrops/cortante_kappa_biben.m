@@ -4,17 +4,17 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'it'; %rbc, ellipsoide95
-carpetaorigen = 'biben_relax';
-iteracion = 475;
+nombreorigen = 'ellipsoide95ref3'; %rbc, ellipsoide95
+carpetaorigen = '';
+iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'shear_biben_rv.95_ca10_labmda16_gs1_csk150';
+carpetadestino = 'biben_rv.95_relax_labmda1';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 2;
+opcionsim = 0;
 
 % Parametros introduccion ruido para minimizar efecto de la simetria de la
 % malla
@@ -23,7 +23,7 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 10;
+ca = 1;
 lamda = 16;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
@@ -33,14 +33,16 @@ flow = 'inf';
 % 3: basado en laplace beltrami
 curvopt = 3;
 
-% Coeficientes del modelo de Evans y Skalak
+% Coeficientes del modelo de Skalak
 % Coeficiente de resistencia al cambio de area:
 % kext = K_rbc/\mu_rbc
-gssk = 1e-2;
+gssk = 0;
 % mu es \mu_rbc/\mu_rbc
-csk = 10000;
+csk = 100;
 % kappab = kappa_bending/\mu_rbc*R_0^2
 kappab = 1;
+% Spontaneous curvature
+c0 = 0;
 
 % gravedad
 kb = 0;
@@ -81,7 +83,7 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 2/(lamda+1);
+parms.rkextf = 0; %2/(lamda+1);
 parms.rksl = 2/((lamda+1)*ca);
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
@@ -90,6 +92,7 @@ parms.g0 = g0;
     
 % Coeficiente adimensional termino bending
 parms.rkbend = kappab;
+parms.c0 = c0;
 parms.gssk = gssk;
 parms.csk = csk;
 

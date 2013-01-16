@@ -7,16 +7,16 @@
 clc;
 clear;
 
-reflevel = 4;
-name2save = 'ellipsoide95ref4';
+reflevel = 3;
+name2save = 'ellipsoide95ref3';
 
-a = 1.205;
-b = 1.205;
-c = 0.8;
-r = 1;
+a = .8;
+b = 1.2;
+c = .8;
+r = 1.3;
 
 noiseint = 0.025;
-noiserep = 20;
+noiserep = 0;
 
 % cargue la esfera
 fileload = ['sph ref ' num2str(reflevel) '.mat'];
