@@ -8,8 +8,8 @@ function tab = ...
     I2 = JAabctr.*jAab-1;
     
     % Skalak constitutive equation
-    dwdI1 = gssk*(2*I1+2)/4;
-    dwdI2 = gssk*(2*csk*I2-2)/4;
+    dwdI1 = gssk*(I1+1)/4;
+    dwdI2 = (csk*I2-gssk)/4;
     
     Js = sqrt(JAabctr.*jAab);
     
