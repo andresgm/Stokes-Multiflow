@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sed_vesicula_ten_uniforme_grav_inf';
+carpetadestino = 'sed_vesicula_g01_fig4';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -21,7 +21,7 @@ ca = 0;
 lamda = 1;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
-flow = 'inf';
+flow = 'semiinf';
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
@@ -34,20 +34,20 @@ c = 0.1;
 kbar = 25;
 % Coeficiente adimensional de resistencia al cambio de area:
 % Ka*R_0^2/kappa.
-kext = 1.6e9;
+kext = 7.58e8;
 
 % Banderas de fuerza dif 0: si. 1: no
 % gravedad
 kb = 1;
-g0 = 68.74;
+g0 = 1;
 
 % interaccion electrostatica
-ke = 0;
-lie = 64.86;
-gammaie = 3183.1;
+ke = 1;
+lie = 33.33;
+gammaie = 150.71;
 
 % Coordenadas de los centroides de las gotas
-xc =[0 0 0];
+xc =[0 0 5];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
@@ -55,7 +55,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 10;
+redfactor = 100;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
