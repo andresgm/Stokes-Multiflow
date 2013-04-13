@@ -18,11 +18,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 2 2 1 1];
 
-carpetaorigenv = {'sed_clean_texas_wall'};
+carpetaorigenv = {'rbc_bagchi_relax_ref3'};
 nombreorigenv =  {'it'};
 itminv = 1;
-itmaxv = 185;
-intervalv = 10;
+itmaxv = 137;
+intervalv = 5;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};
@@ -44,6 +44,7 @@ thetacal = 1;
 
 pelicula = 0;
 raiz = cd;
+
 for i = 1:size(itmaxv,2)
     nombreorigen = nombreorigenv{i};
     carpetaorigen = carpetaorigenv{i};
@@ -58,15 +59,17 @@ for i = 1:size(itmaxv,2)
         contador = contador + 1;
         direccion = [cd  sbar '..' sbar 'data' sbar carpetaorigen sbar nombreorigen num2str(k) '.mat'];
         load(direccion);
+        
+        R0 = (3*geom.vol/(4*pi))^(1/3);
 
         % exceso de area
-        excesarea(contador) = abs(geom.s - geom.areaini)/geom.areaini;
-        % posicion mas baja de la gota
-        minxvert(contador) = min(geom.nodes(:,3));
+        excesarea(contador) = geom.s/R0^2-4*pi;
+%         % posicion mas baja de la gota
+%         minxvert(contador) = min(geom.nodes(:,3));
         
-        % velocidad (rapidez) del centroide de la gota
-        velcentm(contador) = normesp(geom.velcentroid);
-        % calculo de las deformaciones de la gota
+%         % velocidad (rapidez) del centroide de la gota
+%         velcentm(contador) = normesp(geom.velcentroid);
+%         % calculo de las deformaciones de la gota
         if thetacal == 1
             [inerttensor,def(contador),v,theta(contador)] = dirprindef(geom,1);    
             theta45(contador) = 45 - theta(contador);
@@ -75,7 +78,7 @@ for i = 1:size(itmaxv,2)
         end
         
 %         if strcmp(parms.flow,'inf') == 1
-            velcont(contador) = max(abs(sum(velnode.*geom.normal,2)));
+%             velcont(contador) = max(abs(sum(velnode.*geom.normal,2)));
 %         end
         
         % vector de tiempo
@@ -108,22 +111,22 @@ for i = 1:size(itmaxv,2)
 %         saveas(2,[nameydir 'excessarea'],'pdf')
         
          
-        figure(3); plot(tiempov,def); title('Deformation vs dimensionless time');
-        xlabel('Dimensionless time'); ylabel('DF = (L - B)/(L + B)');
+%         figure(3); plot(tiempov,def); title('Deformation vs dimensionless time');
+%         xlabel('Dimensionless time'); ylabel('DF = (L - B)/(L + B)');
 %         saveas(3,[nameydir 'def'],'fig')
 %         saveas(3,[nameydir 'def'],'eps')
 %         saveas(3,[nameydir 'def'],'pdf')    
 %         
 %         if strcmp(parms.flow,'inf') == 1
             % grafique velocidad normal
-            figure(4); plot(tiempov,velcont); title('Normal Velocity vs dimensionless time');
-            xlabel('Dimensionless time'); ylabel('Normal Velocity');
+%             figure(4); plot(tiempov,velcont); title('Normal Velocity vs dimensionless time');
+%             xlabel('Dimensionless time'); ylabel('Normal Velocity');
 %             saveas(4,[nameydir 'velnorm'],'fig')
 % %             saveas(4,[nameydir 'velnorm'],'eps')
 %             saveas(4,[nameydir 'velnorm'],'pdf')                           
 %         end
-            figure(8); plot(tiempov,velcentm);
-            xlabel('Dimensionless time'); ylabel('Magnitude of Centroid Velocity');
+%             figure(8); plot(tiempov,velcentm);
+%             xlabel('Dimensionless time'); ylabel('Magnitude of Centroid Velocity');
         
 %         if thetacal == 1
 % %             figure(5); plot(tiempov,theta); title('\theta vs dimensionless time');
@@ -142,9 +145,9 @@ for i = 1:size(itmaxv,2)
 end
     
 % valor de sigma
-disp(['deformation',num2str(def(end))]);
+% disp(['deformation',num2str(def(end))]);
 % exceso de area
 disp(['excesarea',num2str(excesarea(end))]);
 % Sedimentation rate
-disp(['sedimentation rate: ',num2str(velcentm(end))]);
+% disp(['sedimentation rate: ',num2str(velcentm(end))]);
 

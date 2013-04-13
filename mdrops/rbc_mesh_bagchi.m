@@ -7,16 +7,13 @@
 clc;
 clear;
 
-reflevel = 3;
-name2save = 'rbc_ref3_ea5';
+reflevel = 4;
+name2save = 'rbc_ref4_ea4.1466';
 
-c0 = 0.32;
+c0 = 0.200;
 c1 = 2.003;
 c2 = -1.123;
-R = 1;
-
-noiseint = 0.025;
-noiserep = 0;
+R = 1.3841;
 
 % cargue la esfera
 fileload = ['sph ref ' num2str(reflevel) '.mat'];
@@ -56,18 +53,19 @@ geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
 geom.s = geomprop.s;
 geom.vol = geomprop.vol;
-geom.jacmat = geomprop.jacmat;
-geom.volini = 4.*pi/3.;
-geom.areaini = 4.*pi;
+geom.volini = geom.vol;
+geom.areaini = geom.s;
 
 % Calcular la coordenada z 
 
 for i = 1:geom.numnodes
-    x = geom.nodes(i,1);
-    y = geom.nodes(i,2);
-    a = (x^2+y^2)/R^2;
-    b = (c0 + c1*a + c2*(a^2));
-    Z = (0.5*R*(sqrt(abs(1.0-a))))*b;
+    eta = geom.nodes(i,1);
+    zita = geom.nodes(i,2);
+    r2 = (eta^2+zita^2);
+    geom.nodes(i,1)=R*eta;
+    geom.nodes(i,2)=R*zita;
+    b = (c0 + c1*r2 + c2*(r2^2));
+    Z = 0.5*R*(sqrt(abs(1.0-r2)))*b;
     
 % Calcular la magnitud del vector
 
@@ -99,18 +97,17 @@ geom.ds = geomprop.ds;
 geom.s = geomprop.s;
 geom.vol = geomprop.vol;
 
-errorvoltol = 1e-6;
-optesc.maxit = 1000;
-optesc.kp = 20;
-optesc.deltate = 0.01;
-optesc.tolerrorvol = errorvoltol;
-errorvol = (geom.vol - geom.volini)./geom.volini;
-geom = scaling(geom,optesc,errorvol);
 
+disp(['Initial Volumen: ',num2str(geom.volini)]);
 disp(['Volumen: ',num2str(geom.vol)]);
-disp(['Area: ',num2str(geom.s)]);
+errorvol = (geom.vol - geom.volini)./geom.volini;
+disp(['Error in Volume: ',num2str(errorvol)]);
 volred = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
 disp(['Volumen reducido: ',num2str(volred)]);
+disp(['Area: ',num2str(geom.s)]);
+R0 = (3*geom.vol/(4*pi))^(1/3);
+exarea = geom.s/(R0^2) - 4*pi;
+disp(['Excess Area: ',num2str(exarea)]);
 
 Nodes = geom.nodes;
 Elements = geom.elements;

@@ -7,16 +7,13 @@
 clc;
 clear;
 
-reflevel = 4;
-name2save = 'ellipsoide95ref4';
+reflevel = 3;
+name2save = 'ellipsoide_volred65_ref3';
 
-a = 1.205;
-b = 1.205;
-c = 0.8;
-r = 1;
-
-noiseint = 0.025;
-noiserep = 20;
+a = 1.8;
+b = 1.8;
+c = 0.52;
+r = .83615;
 
 % cargue la esfera
 fileload = ['sph ref ' num2str(reflevel) '.mat'];
@@ -56,34 +53,8 @@ geom.dsi = geomprop.dsi;
 geom.ds = geomprop.ds;
 geom.s = geomprop.s;
 geom.vol = geomprop.vol;
-geom.jacmat = geomprop.jacmat;
-geom.volini = 4.*pi/3.;
-geom.areaini = 4.*pi;
-
-paropt.tipo = 'extended';
-[geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
-
-geom.nodecon2node = node2node(geom.elements);
-lmin = zeros(numnodes,1);
-for k = 1:numnodes
-   % extraiga los nodos vecinos a un nodo en la misma gota 
-   nodesadj = geom.nodecon2node{k};
-   lmin(k) = min(normesp(repmat(geom.nodes(k,:),[size(nodesadj,1) 1])...
-      - geom.nodes(nodesadj,:)));  
-end
-
-% Ruido
-% Longitud minima para verificacion de paso de tiempo.
-lmint = min(lmin);
-
-for k = 1:noiserep
-    noisevel = ones(size(geom.nodes))...
-            .*(rand(size(geom.nodes))-0.5)*lmint*noiseint;
-    noisenormal = repmat(sum(noisevel.*geom.normal,2),[1 3]).*geom.normal;
-    noisetan = noisevel - noisenormal;
-
-    geom.nodes = geom.nodes + noisetan;
-end
+geom.volini = geom.vol;
+geom.areaini = geom.s;
 
 for i = 1:geom.numnodes
     x = geom.nodes(i,1)^2;
@@ -109,18 +80,16 @@ geom.ds = geomprop.ds;
 geom.s = geomprop.s;
 geom.vol = geomprop.vol;
 
-errorvoltol = 1e-6;
-optesc.maxit = 1000;
-optesc.kp = 20;
-optesc.deltate = 0.01;
-optesc.tolerrorvol = errorvoltol;
-errorvol = (geom.vol - geom.volini)./geom.volini;
-geom = scaling(geom,optesc,errorvol);
-
+disp(['Initial Volumen: ',num2str(geom.volini)]);
 disp(['Volumen: ',num2str(geom.vol)]);
-disp(['Area: ',num2str(geom.s)]);
+errorvol = (geom.vol - geom.volini)./geom.volini;
+disp(['Error in Volume: ',num2str(errorvol)]);
 volred = 6*sqrt(pi)*geom.vol/geom.s^(3/2);
 disp(['Volumen reducido: ',num2str(volred)]);
+disp(['Area: ',num2str(geom.s)]);
+R0 = (3*geom.vol/(4*pi))^(1/3);
+exarea = geom.s/(R0^2) - 4*pi;
+disp(['Excess Area: ',num2str(exarea)]);
 
 Nodes = geom.nodes;
 Elements = geom.elements;
