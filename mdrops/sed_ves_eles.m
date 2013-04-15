@@ -10,11 +10,31 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sed_vesicula_g01_fig4';
+carpetadestino = 'sed_vesicula_1M_R0_25_sal';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 0;
+
+% Ajuste de parametros a partir de valores fisicos de los parametros
+
+R0 = 25e-6;
+% Densidad para concentracion 1M
+deltarho = 35.466;
+grav = 9.81;
+debye = 5.55e-9;
+kbT = 4.11433342e-21;
+elec = 1.6e-19;
+sigmavidrio = 0.2e-3;
+
+% Constantes del modelo de Evans y Rawicz
+% Constante c del modelo
+c = 0.1;
+% Coeficiente de rigides al doblamiento en KbT (kappa)
+kbar = 40;
+% Coeficiente adimensional de resistencia al cambio de area:
+% Ka*R_0^2/kappa.
+kext = (1e8*R0^2)/(40*(1e-6)^2);
 
 % Algoritmo de flujo de stokes.
 ca = 0;
@@ -27,27 +47,18 @@ flow = 'semiinf';
 % 3: basado en laplace beltrami
 curvopt = 3;
 
-% Constantes del modelo de Evans y Rawicz
-% Constante c del modelo
-c = 0.1;
-% Coeficiente de rigides al doblamiento en KbT (kappa)
-kbar = 25;
-% Coeficiente adimensional de resistencia al cambio de area:
-% Ka*R_0^2/kappa.
-kext = 7.58e8;
-
 % Banderas de fuerza dif 0: si. 1: no
 % gravedad
 kb = 1;
-g0 = 1;
+g0 = deltarho*grav*R0^4/(kbar*kbT)
 
 % interaccion electrostatica
 ke = 1;
-lie = 33.33;
-gammaie = 150.71;
+lie = R0/debye;
+gammaie = (R0^2*sigmavidrio)/(2*pi*elec*kbar);
 
 % Coordenadas de los centroides de las gotas
-xc =[0 0 5];
+xc =[0 0 2.5];
 
 % frecuencia de guardar resultados
 outputfreq = 10;
@@ -55,7 +66,7 @@ outputfreq = 10;
 % pasos de tiempo de la simulacion
 numtimesteps = 80000;
 % Reduccion del paso de tiempo calculado automaticamente
-redfactor = 100;
+redfactor = 10;
 
 % parametros de adaptacion
 % velopt: 1 hidrodinamica velopt:2 normal velopt:3 passive (zinchenko et al.)
@@ -88,6 +99,16 @@ parms.bending.c = c;
 parms.bending.kbar = kbar;
 parms.bending.kext = kext;
 parms.bending.sigma = 0;
+
+parm.R0 = R0;
+% Densidad para concentracion 1M
+parm.deltarho = deltarho;
+parm.grav = grav;
+parm.debye = debye;
+parm.kbT = kbT;
+parm.elec = elec;
+parm.sigmavidrio = sigmavidrio;
+
 
 if kb == 1
     % gravedad
@@ -328,11 +349,11 @@ for p = paso:numtimesteps
     % todo: revisar este display
     
 % Visualizacion
-    figure(1);
-    grafscfld(geom,geom.rdeltafnorm);
-    axis equal;
-    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-    title('Tension normal'); getframe; hold off;
+%     figure(1);
+%     grafscfld(geom,geom.rdeltafnorm);
+%     axis equal;
+%     view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%     title('Tension normal'); getframe; hold off;
     
 %     figure(2); plot(geom.tiempo,parms.bending.sigma,'*'); hold on;title('sigma');
     
