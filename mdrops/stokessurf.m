@@ -14,6 +14,7 @@ parms.w = 0;
 rkcurv = parms.rkcurv;
 rkgrav = parms.rkgrav;
 rkmaran = parms.maran.rkmaran;
+Fflow = parms.Fflow;
 
 % constante del single layer
 rksl = parms.rksl;
@@ -176,9 +177,16 @@ rintslt = rintsltanens + rintsltanes;
 % integral total del single layer incluido constante
 rintsl = rksl.*(rintslt + rintsln);
 
-% calcule el flujo externo
+% calcule el flujo externo en base al tipo de flujo (cortante u axial)
+%OJO Cambio original = geom.nodes(:,3)*rkextf
 if rkextf ~= 0
-    rextf = geom.nodes(:,3).*rkextf;
+    
+    if Fflow == 0
+        rextf= geom.nodes(:,3).*rkextf;
+    else
+        rextf = [geom.nodes(:,2),-geom.nodes(:,3)].*rkextf;
+    end
+    
 else
     rextf = 0;
 end
@@ -329,7 +337,12 @@ for zz=1:100
     IntWN = sum(sum(W.*geom.normal,2).*geom.dsi,1);
     % W(Xpole)
     W = parms.rkdl.*(IntTstTotal - Wprim./2 + geom.normal.*(1/(2*Stot)).*IntWN) + IntSingleLayer;
-    W(:,2) = W(:,2) + UinfAtNode;
+     if parms.Fflow == 1
+         W(:,2) = W(:,2) + UinfAtNode(:,1);
+         W(:,3) = W(:,3) + UinfAtNode(:,2);
+     else
+         W(:,2) = W(:,2) + UinfAtNode;
+     end
     % Velocidad final de la interfase
     VelAtNode = W + Kappa/(1 - Kappa).*Wprim;
 
