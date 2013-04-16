@@ -4,20 +4,20 @@
 clear;clc; %close all
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'sph ref 3';
-carpetaorigen = '';
-iteracion = [];
+nombreorigen = 'it';
+carpetaorigen = 'drops_la_0.08_ca_0.08_x_0_ext';
+iteracion = [142];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'drops_la_0.08_ca_0.04_x_0_ext';
+carpetadestino = 'drops_la_0.08_ca_0.1_x_0_ext';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 0;
+opcionsim = 2;
 
 % Algoritmo de flujo de stokes.
-ca = 0.04;
+ca = 0.1;
 lamda = 0.08;
 
 % tipo de flujo flow: 'inf' flow:'semiinf'
@@ -41,11 +41,11 @@ kc = 0;
 % maranmodel = 2(logaritmico) definir x, e y pe(alpha)
 maranmodel = 2;
 % Parametro \Alpha = \simga_0 R_0/\mu D_s
-alpha = 100;
+alpha = 1000;
 % constante para modelo lineal
 beta = 0.2;
 % Parametro del modelo logaritmico
-e = 0.37;
+e = 0.2;
 % Concentracion
 x = 0.78;
 
@@ -106,8 +106,8 @@ else
 end
 
 if kc == 1
-    gamma0overgammaeq = 1/(1+e*log(1-x));
-    pe = ca*alpha*gamma0overgammaeq;
+    gammaeqovergamma0 = 1+e*log(1-x);
+    pe = ca*alpha*gammaeqovergamma0;
     parms.maran.rkmaran = 1;
     if maranmodel == 1
         parms.maran.maranmodel = 'linear';
@@ -275,7 +275,7 @@ end
 % xcant = centroide(geom);
 % geom.velcentroid = [0 0 0];
 % geom.xc = xcant;
-
+defant = 100;
 veladapt = zeros(numnodes,3);
 
 for p = paso:numtimesteps
@@ -448,24 +448,24 @@ for p = paso:numtimesteps
 % disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
 % disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
     
-    if parms.maran.rkmaran ~= 0
-   % grafique la geometria
-       figure(1);
-   % grafscfld(geom,flds.gamma);
-       grafscfld(geom,normesp(geom.rdeltafcurv));
-       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-       getframe; title('Tension');
-       figure(2);
-   % grafscfld(geom,flds.gamma);
-       grafscfld(geom,normesp(geom.rdeltafmaran));
-       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-       getframe; title('Marangoni');
-    else
-      figure(1);
-      grafscfld(geom,geom.curv);
-      axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-      getframe; title('curv');
-    end
+%     if parms.maran.rkmaran ~= 0
+%    % grafique la geometria
+%        figure(1);
+%    % grafscfld(geom,flds.gamma);
+%        grafscfld(geom,normesp(geom.rdeltafcurv));
+%        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%        getframe; title('Tension');
+%        figure(2);
+%    % grafscfld(geom,flds.gamma);
+%        grafscfld(geom,normesp(geom.rdeltafmaran));
+%        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%        getframe; title('Marangoni');
+%     else
+%       figure(1);
+%       grafscfld(geom,geom.curv);
+%       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%       getframe; title('curv');
+%     end
     
 % if p > 1
 % figure(3); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
@@ -479,10 +479,17 @@ for p = paso:numtimesteps
     [inerttensor,def,v,theta] = dirprindef(geom,1);
     disp(['DF: ', num2str(def)]);
     disp(['theta: ', num2str((theta)/pi)]);
+    vardef = abs((defant-def)/def);
+    disp(['Cambio DF: ', num2str(vardef)]);
+    if vardef <= 1e-6
+        disp('Convergencia en deformacion');
+        break
+    else
+        defant = def;
+    end
     
-    
-    figure(3); plot(geom.tiempo,def,'*k');hold on;
-    title('DF');
+%     figure(3); plot(geom.tiempo,def,'*k');hold on;
+%     title('DF');
 
 % guarde resultados
     if counter == outputfreq
