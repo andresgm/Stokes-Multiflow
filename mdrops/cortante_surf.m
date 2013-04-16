@@ -87,7 +87,7 @@ theta = 1;
 parms.flow = flow;
 
 % adimensionalizacion del single layer
-parms.rkextf = 2*Ca;
+parms.rkextf = 2*ca;
 parms.rksl = 2;
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
