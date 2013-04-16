@@ -186,7 +186,7 @@ if rkextf ~= 0
     elseif Fflow == 1
         rextf = [geom.nodes(:,2),-geom.nodes(:,3)].*rkextf;
     else
-        error 'Incorrect Fflow setting.";
+        error('Incorrect Fflow setting.');
     end
     
 else
