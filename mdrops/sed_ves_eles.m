@@ -100,14 +100,14 @@ parms.bending.kbar = kbar;
 parms.bending.kext = kext;
 parms.bending.sigma = 0;
 
-parm.R0 = R0;
+parms.R0 = R0;
 % Densidad para concentracion 1M
-parm.deltarho = deltarho;
-parm.grav = grav;
-parm.debye = debye;
-parm.kbT = kbT;
-parm.elec = elec;
-parm.sigmavidrio = sigmavidrio;
+parms.deltarho = deltarho;
+parms.grav = grav;
+parms.debye = debye;
+parms.kbT = kbT;
+parms.elec = elec;
+parms.sigmavidrio = sigmavidrio;
 
 
 if kb == 1
