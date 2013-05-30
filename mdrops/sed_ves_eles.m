@@ -10,7 +10,7 @@ iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'sed_vesicula_1M_R0_25_sal';
+carpetadestino = 'sed_vesicula_1M_R0_Grande_calceina_b';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -18,11 +18,11 @@ opcionsim = 0;
 
 % Ajuste de parametros a partir de valores fisicos de los parametros
 
-R0 = 25e-6;
+R0 = 0.0073294;
 % Densidad para concentracion 1M
 deltarho = 35.466;
 grav = 9.81;
-debye = 5.55e-9;
+debye = 2.01E-07;
 kbT = 4.11433342e-21;
 elec = 1.6e-19;
 sigmavidrio = 0.2e-3;

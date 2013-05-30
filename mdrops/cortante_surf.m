@@ -5,19 +5,19 @@ clear;clc; %close all
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
-carpetaorigen = 'drops_la_0.08_ca_0.08_x_0_ext';
-iteracion = [142];
+carpetaorigen = 'drops_la_0.08_ca_0.16_x_0_ext';
+iteracion = [219];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'drops_la_0.08_ca_0.1_x_0_ext';
+carpetadestino = 'drops_la_0.08_ca_0.18_x_0_ext';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 2;
 
 % Algoritmo de flujo de stokes.
-ca = 0.1;
+ca = 0.18;
 lamda = 0.08;
 
 % tipo de flujo flow: 'inf' flow:'semiinf'

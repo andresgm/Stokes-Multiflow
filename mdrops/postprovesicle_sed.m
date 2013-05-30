@@ -5,7 +5,7 @@ sbar = systembar();
 % nombreorigenv =  {'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it' 'it'
 % 'it'};
 
-carpetaorigenv = {'sed_vesicula_1M_R0_20_sal_redtime'};
+carpetaorigenv = {'sed_vesicula_1M_R0_20_calceina'};
 nombreorigenv =  {'it'};
 
 % Simulations run after april 19 have the parameters saved.
@@ -16,19 +16,19 @@ nombreorigenv =  {'it'};
 % COLOQUE AQUI LA ITERACION MAXIMA QUE HAY DE CADA CARPETA DE ORIGEN
 % itmaxv = [81 90 135 135 135 135 150 150 145 155 150 160];
 
-itmaxv = 1466;
+itmaxv = 3712;
 
 % COLOQUE AQUI LA ITERACION MINIMA (1) DE CADA CARPETA DE ORIGEN
 % itminv = ones(1,size(itmaxv,2));
 
-itminv = 1;
+itminv = 3700;
 %itminv = ones(1,size(itmaxv,2));
 
 % ESCRIBA AQUI EL INTERVALO DE CADA CUANTO QUIERE POPROCESAR (PILAS ESTE
 % VALOR DEPENDE DE CUANTAS ITERACIONES HAY DISPONIBLE SEN LA CARPETA
 % intervalv = [2 2 2 2 2 2 2 2 2 2 2 2];
 
-intervalv = 50;
+intervalv = 1;
 
 % OJO LA CANTIDAD DE ELEMENTOS DE CARPETAORIGENV, ... HASTA INTERVAL V DEBE
 % SER EL MISMO.... EL RESTO ES CORRER Y YA... LE GENERA LAS IMAGENES EN
@@ -108,6 +108,7 @@ for i = 1:size(itmaxv,2)
     xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
     axis([ejesequil]);
     saveas(1,[nameydir 'steadyshape'],'pdf')
+    saveas(1,[nameydir 'steadyshape'],'tif')
 
 %     figure(2); plot(tiempov,xvert);
 %     xlabel('Time (t)');

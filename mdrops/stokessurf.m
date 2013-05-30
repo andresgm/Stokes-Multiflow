@@ -182,9 +182,10 @@ rintsl = rksl.*(rintslt + rintsln);
 if rkextf ~= 0
     
     if Fflow == 0
-        rextf= geom.nodes(:,3).*rkextf;
+        rextf= ...
+   [zeros(geom.numnodes,1),geom.nodes(:,3).*rkextf,zeros(geom.numnodes,1)];
     elseif Fflow == 1
-        rextf = [geom.nodes(:,2),-geom.nodes(:,3)].*rkextf;
+        rextf = [zeros(geom.numnodes,1),geom.nodes(:,2),-geom.nodes(:,3)].*rkextf;
     else
         error('Incorrect Fflow setting.');
     end
@@ -209,7 +210,7 @@ else
 
     % calcule el flujo externo y sumelo
     if rkextf ~= 0
-        velnode(:,2) = rextf  + velnode(:,2);
+        velnode = rextf  + velnode;
     end
 end
 
@@ -338,13 +339,10 @@ for zz=1:100
     % Calcule la integral Int(<w(Xpole),NormalAtXpole>,dS)
     IntWN = sum(sum(W.*geom.normal,2).*geom.dsi,1);
     % W(Xpole)
-    W = parms.rkdl.*(IntTstTotal - Wprim./2 + geom.normal.*(1/(2*Stot)).*IntWN) + IntSingleLayer;
-     if parms.Fflow == 1
-         W(:,2) = W(:,2) + UinfAtNode(:,1);
-         W(:,3) = W(:,3) + UinfAtNode(:,2);
-     else
-         W(:,2) = W(:,2) + UinfAtNode;
-     end
+    W = ...
+ parms.rkdl.*(IntTstTotal - Wprim./2 + geom.normal.*(1/(2*Stot)).*IntWN)...
+        + IntSingleLayer + UinfAtNode;
+    
     % Velocidad final de la interfase
     VelAtNode = W + Kappa/(1 - Kappa).*Wprim;
 
