@@ -4,17 +4,17 @@
 clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
-nombreorigen = 'rbc3'; %rbc, ellipsoide95
-carpetaorigen = '';
-iteracion = [];
+nombreorigen = 'it'; %rbc, ellipsoide95
+carpetaorigen = 'rbc_bagchi_relax_ea4.1466_ref3';
+iteracion = 3250;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'rbc_bagchi_relax_ref3';
+carpetadestino = 'rbc_bagchi_ea4.1466_ref3_ca0.1_la5';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 0;
+opcionsim = 2;
 
 % Parametros introduccion ruido para minimizar efecto de la simetria de la
 % malla
@@ -23,8 +23,8 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 1;
-lamda = 2;
+ca = 0.1;
+lamda = 5;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
@@ -83,7 +83,7 @@ optesc.tolerrorvol = errorvoltol;
 parms.flow = flow;
 parms.w = 0;
 % adimensionalizacion del single layer
-parms.rkextf = 0; %2/(lamda+1);
+parms.rkextf = 2/(lamda+1);
 parms.rksl = 2/((lamda+1)*ca);
 parms.rkdl = 2*(lamda - 1)/(lamda + 1);
 parms.lamda = lamda;
@@ -394,11 +394,11 @@ for p = paso:numtimesteps
 %     disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
 
 % Visualizacion
-   figure(1);
-   grafscfld(geom,geom.rdeltafnorm);
-   axis equal;
-   view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-   title('Tension normal'); hold off;
+%    figure(1);
+%    grafscfld(geom,geom.rdeltafnorm);
+%    axis equal;
+%    view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+%    title('Tension normal'); hold off;
     
 %     figure(2); plot(geom.tiempo,geom.fuerzaelest,'*r');hold on;
 %     title('Electrostat vs. Grav');
@@ -415,8 +415,8 @@ for p = paso:numtimesteps
     disp(['theta: ', num2str((theta)/pi)]);
     
     
-   figure(2); plot(geom.tiempo,(theta)/pi,'*k');hold on;
-   title('\Theta');
+%    figure(2); plot(geom.tiempo,(theta)/pi,'*k');hold on;
+%    title('\Theta');
 %         
 %     figure(2);
 %     grafscfld(geom,normesp(geom.rdeltafmaran));

@@ -5,12 +5,12 @@ clear;clc; %close all;
 %% opciones de carga de archivos
 % nombre de archivo a cargar y carpeta
 nombreorigen = 'it'; %rbc, ellipsoide95
-carpetaorigen = 'biben_rv.95_relax_labmda1';
+carpetaorigen = 'biben_rv.95_relax_labmda15_csk1e3';
 iteracion = 5;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'biben_rv.95_ca1_labmda15';
+carpetadestino = 'biben_rv.95_ca5_labmda10';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
@@ -23,8 +23,8 @@ noiseint = 0.025;
 noiserep = 0;
 
 % Algoritmo de flujo de stokes.
-ca = 1;
-lamda = 15;
+ca = 5;
+lamda = 10;
 
 % tipo de flujo flow: 'inf'  flow:'semiinf'
 flow = 'inf';
@@ -38,7 +38,7 @@ curvopt = 3;
 % gssk = mu_rbc/\mu_rbc
 gssk = 0;
 % mu es \mu_rbc/\mu_rbc
-csk = 100;
+csk = 1000;
 % kappab = kappa_bending/\mu_rbc*R_0^2
 kappab = 1;
 % Spontaneous curvature
