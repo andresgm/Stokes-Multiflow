@@ -177,16 +177,19 @@ rintslt = rintsltanens + rintsltanes;
 % integral total del single layer incluido constante
 rintsl = rksl.*(rintslt + rintsln);
 
-% calcule el flujo externo en base al tipo de flujo (cortante u axial)
+% calcule el flujo externo en base al tipo de flujo (cortante simple,...
+%   hiperbolico o extensional puro)
 %OJO Cambio original = geom.nodes(:,3)*rkextf
 if rkextf ~= 0
     
     if Fflow == 0
         rextf= ...
-   [zeros(geom.numnodes,1),geom.nodes(:,3).*rkextf,zeros(geom.numnodes,1)];
+   [zeros(geom.numnodes,1),geom.nodes(:,3),zeros(geom.numnodes,1)].*rkextf;
     elseif Fflow == 1
         rextf = [zeros(geom.numnodes,1),geom.nodes(:,2),-geom.nodes(:,3)].*rkextf;
-    else
+    elseif  Fflow == 2
+        rextf = [-geom.nodes(:,1),2*geom.nodes(:,2),-geom.nodes(:,3)].*rkextf;
+    else 
         error('Incorrect Fflow setting.');
     end
     

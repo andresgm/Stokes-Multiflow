@@ -23,7 +23,7 @@ lamda = 0.08;
 % tipo de flujo flow: 'inf' flow:'semiinf'
 flow = 'inf';
 
-%Forma del flujo 0=Cortante, 1=Extensional
+%Forma del flujo 0=Cortante simple, 1=plano hiperbolico ,2=Extensional Puro
 Fflow = 1;
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
@@ -48,6 +48,15 @@ beta = 0.2;
 e = 0.2;
 % Concentracion
 x = 0.78;
+
+%Solubilidad
+ks=1;
+%Parametro de solubilidad B
+B=0;
+%parametro de profundidad k
+k= -x/(x-1);
+%numero de Biot (Bi)
+Bi=B/ca;
 
 % numero de gotas
 geom.numdrops = 1;
@@ -94,6 +103,8 @@ parms.lamda = lamda;
 parms.ca = ca;
 parms.Bo = Bo;
 parms.Fflow = Fflow;
+parms.Bi= Bi;
+parms.k= k;
 
 % Coeficiente termino de curvatura
 parms.rkcurv = 1;
@@ -347,8 +358,14 @@ for p = paso:numtimesteps
         [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
         % Third argument is the adaptation velocity w in Bazhlekov et al
         % 2003 sense, careful. v = u + w.
-        ajimat = ...
-            surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+         if ks==0
+            
+            ajimat = ...
+                surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+        else
+            ajimat = ...
+                solsurf(geom,velnode1,veladapt-(velnode1-velnormal),pe,Bi,k);
+        end
         % evolucion del sulfactante en t + dt/2
         % propuesto
         gammaori = flds.gamma;
@@ -394,8 +411,14 @@ for p = paso:numtimesteps
         [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
         % Third argument is the adaptation velocity w in Bazhlekov et al
         % 2003 sense, careful. v = u + w.
-        ajimat = ...
-            surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+        if ks==0
+            
+            ajimat = ...
+                surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+        else
+            ajimat = ...
+                solsurf(geom,velnode1,veladapt-(velnode1-velnormal),pe,Bi,k);
+        end
         % evolucion del sulfactante en t
         flds.gamma = thetamethod(ajimat,deltat,theta,gammaori);
 
