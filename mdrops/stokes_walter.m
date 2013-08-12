@@ -57,7 +57,7 @@ else
     geom.rdeltafbend = rdeltafbend;
 end
     
-% Calculo de la tension isotropica
+% Calculo de la tension isotropica Walter et. al.
 
 Mglobal = zeros(3*numnodes,3*numnodes);
 rglobal = zeros(3*numnodes,1);
