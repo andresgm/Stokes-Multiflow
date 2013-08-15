@@ -1,6 +1,6 @@
 % Rutina de adaptaci?n de malla pasiva usando metodos de gradiente iterativos.
 % Metodo basado en Zinchenco et al. 1997.
-function veladapt = meshadaptgrad(geom,velnormal,veladapt)
+function veladapt = meshadaptgradcurv(geom,velnormal,veladapt,dt)
 
 numnodes = geom.numnodes;
 
@@ -12,7 +12,7 @@ flag0 = 1;
 Vel = velnormal + veladapt...
     - repmat(sum(veladapt.*geom.normal,2),[1 3]).*geom.normal;
 
-fdev = FdeV(geom,Vel);
+fdev = FdeV(geom,Vel,dt);
 
 for iter = 1:maxit
    fdevold = fdev;
@@ -44,7 +44,7 @@ for iter = 1:maxit
       error('Newton-Raphson para calculo de Epsilon no convergio')
    end
    
-   fdev = FdeV(geom,Vel);
+   fdev = FdeV(geom,Vel,dt);
    if (fdevold - fdev < tolerance)
          flag0 = 0;
          break;
@@ -105,15 +105,69 @@ end
 %    dfdepsprima = suma;
 % end
 
-function fdev = FdeV(geom,Vel)
+function fdev = FdeV(geom,Vel,dt)
+
+    c1 = 0.25;
+    c2 = 2;
 
    numvertices = size(geom.vertices,1);
+   numnodes = geom.numnodes;
    
-   suma = 0;
+   k2max = zeros(numnodes,1);
+   k2min = zeros(numnodes,1);
+   
+   for i = 1:numnodes
+      k2 = [];
+      for j = 1:size(geom.nodecon2node{i},1)
+         xij = geom.nodes(geom.nodecon2node{i}(j),:) - geom.nodes(i,:);
+         k2(j) = (geom.normal(geom.nodecon2node{i}(j),:)-geom.normal(i,:))*...
+             (geom.normal(geom.nodecon2node{i}(j),:)-geom.normal(i,:))'...
+             /(xij*xij');
+      end
+      k2max(i) = max(k2);
+      k2min(i) = min(k2);
+   end      
+   
+   geomvar = geom;
+   geomvar.nodes = geomvar.nodes + dt*Vel;
+   
+   % calcule el vector normal a cada nodo
+    normalandgeoopt.normal = 1;
+    normalandgeoopt.areas = 1;
+    normalandgeoopt.vol = 1;
+    geomprop = normalandgeo(geom,normalandgeoopt,1);
+    geomvar.normalele = geomprop.normalele;
+    geomvar.normal = geomprop.normal;
+    geomvar.dsi = geomprop.dsi;
+    geomvar.ds = geomprop.ds;
+    geomvar.s = geomprop.s;
+    geomvar.vol = geomprop.vol;
+    geomvar.jacmat = geomprop.jacmat;
+    geomvar.g = geomprop.g;
+    paropt.tipo = 'extended';
+    [geomvar.curv,geomvar.normal,geomvar.Kg] = ...
+        curvparaboloid(geomvar,paropt);
+    dnormaldt = (geomvar.normal-geom.normal)./dt;
+   
+   term1 = 0;
+   term2 = 0;
    for i = 1:numvertices
-      xij = geom.nodes(geom.vertices(i,2),:) - geom.nodes(geom.vertices(i,1),:);
-      producto = xij*(Vel(geom.vertices(i,2),:)-Vel(geom.vertices(i,1),:))';
-      suma = suma + producto*producto;
+       % Primer termino 5.3 Cusping, capture, and breakup...
+      xij = geom.nodes(geom.vertices(i,2),:) - ...
+          geom.nodes(geom.vertices(i,1),:);
+      der1 = (Vel(geom.vertices(i,2),:)-Vel(geom.vertices(i,1),:))*...
+          (geom.normal(geom.vertices(i,2),:)-...
+          geom.normal(geom.vertices(i,1),:))';
+      der2 = xij*...
+          (dnormaldt(geom.vertices(i,2),:)-dnormaldt(geom.vertices(i,1),:))';
+      term1 = term1 + ((der1+der2)^2)/((xij*xij')^2);
+      % Segundo termino 5.3 ...
+      phii = k2max(geom.vertices(i,1)) - k2min(geom.vertices(i,1))+ 1;
+      phij = k2max(geom.vertices(i,2)) - k2min(geom.vertices(i,2))+ 1;
+      sumphis = (phii+phij)/((xij*xij')^2);
+      dxijdt = ...
+          4*(xij*(Vel(geom.vertices(i,2),:)-Vel(geom.vertices(i,1),:))')^2;
+      term2 = term2 + sumphis*dxijdt;
    end
-   fdev = 4*suma;
+   fdev = term1 + c1*term2;
 end

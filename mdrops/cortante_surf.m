@@ -5,26 +5,26 @@ clear;clc; %close all
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
 nombreorigen = 'it';
-carpetaorigen = 'drops_la_0.08_ca_0.16_x_0_ext';
-iteracion = [219];
+carpetaorigen = 'drops_la_1_ca_0.04_x_0_ext';
+iteracion = 10;
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'drops_la_0.08_ca_0.18_x_0_ext';
+carpetadestino = 'drops_la_1_ca_0.04_x_0_ext_testmeshadaptcurv';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
 opcionsim = 2;
 
 % Algoritmo de flujo de stokes.
-ca = 0.18;
-lamda = 0.08;
+ca = 0.04;
+lamda = 1;
 
 % tipo de flujo flow: 'inf' flow:'semiinf'
 flow = 'inf';
 
 %Forma del flujo 0=Cortante simple, 1=plano hiperbolico ,2=Extensional Puro
-Fflow = 1;
+Fflow = 2;
 
 % opcion de calculo de la curvatura 1: paraboloid fitting; 2: extended par;
 % 3: basado en laplace beltrami
@@ -47,12 +47,12 @@ beta = 0.2;
 % Parametro del modelo logaritmico
 e = 0.2;
 % Concentracion
-x = 0.78;
+x = 0.1;
 
 %Solubilidad
-ks=1;
+ks=0;
 %Parametro de solubilidad B
-B=0;
+B=0.01;
 %parametro de profundidad k
 k= -x/(x-1);
 %numero de Biot (Bi)
@@ -202,6 +202,7 @@ if opcionsim == 0
     geom.s = geomprop.s;
     geom.vol = geomprop.vol;
     geom.jacmat = geomprop.jacmat;
+    geom.g = geomprop.g;
     geom.volini = geom.vol;
     geom.areaini = geom.s;
     geom.xcini = centroide(geom);
@@ -319,43 +320,15 @@ for p = paso:numtimesteps
 % Usamos esquema rk2 para la integracion numerica.
     
     %% primer paso de runge kutta f1
-    % calcule el vector normal a cada nodo
-    normalandgeoopt.normal = 1;
-    normalandgeoopt.areas = 1;
-    normalandgeoopt.vol = 1;
-    geomprop = normalandgeo(geom,normalandgeoopt,1);
-    geom.normalele = geomprop.normalele;
-    geom.normal = geomprop.normal;
-    geom.dsi = geomprop.dsi;
-    geom.ds = geomprop.ds;
-    geom.s = geomprop.s;
-    geom.vol = geomprop.vol;
-    geom.jacmat = geomprop.jacmat;
-    geom.g = geomprop.g;
     
     [velnode1,geom] = stokessurf(geom,parms,flds);
 
     % passive (zinchenco et al. 1997)
     velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
-    veladapt = meshadaptgrad(geom,velnormal,veladapt);
+    veladapt = meshadaptgradcurv(geom,velnormal,veladapt,deltat/2);
     f1 = (velnormal + veladapt);
    
     if parms.maran.rkmaran ~= 0
-        % calcule el vector normal a cada nodo
-        normalandgeoopt.normal = 1;
-        normalandgeoopt.areas = 1;
-        normalandgeoopt.vol = 1;
-        geomprop = normalandgeo(geom,normalandgeoopt,1);
-        geom.normalele = geomprop.normalele;
-        geom.normal = geomprop.normal;
-        geom.dsi = geomprop.dsi;
-        geom.ds = geomprop.ds;
-        geom.s = geomprop.s;
-        geom.vol = geomprop.vol;
-        geom.jacmat = geomprop.jacmat;
-        geom.g = geomprop.g;
-        paropt.tipo = 'extended';
-        [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
         % Third argument is the adaptation velocity w in Bazhlekov et al
         % 2003 sense, careful. v = u + w.
          if ks==0
@@ -386,29 +359,30 @@ for p = paso:numtimesteps
     %% segundo paso de runge kutta f2
     % invoque el problema de flujo de stokes
     
+    % calcule el vector normal a cada nodo
+    normalandgeoopt.normal = 1;
+    normalandgeoopt.areas = 1;
+    normalandgeoopt.vol = 1;
+    geomprop = normalandgeo(geom,normalandgeoopt,1);
+    geom.normalele = geomprop.normalele;
+    geom.normal = geomprop.normal;
+    geom.dsi = geomprop.dsi;
+    geom.ds = geomprop.ds;
+    geom.s = geomprop.s;
+    geom.vol = geomprop.vol;
+    geom.jacmat = geomprop.jacmat;
+    geom.g = geomprop.g;
+    paropt.tipo = 'extended';
+    [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
+    
     [velnode,geom] = stokessurf(geom,parms,flds);
     
     % passive (zinchenco et al. 1997)
     velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
-    veladapt = meshadaptgrad(geom,velnormal,veladapt);
+    veladapt = meshadaptgradcurv(geom,velnormal,veladapt,deltat);
     f2 = (velnormal + veladapt);
    
     if parms.maran.rkmaran ~= 0
-        % calcule el vector normal a cada nodo
-        normalandgeoopt.normal = 1;
-        normalandgeoopt.areas = 1;
-        normalandgeoopt.vol = 1;
-        geomprop = normalandgeo(geom,normalandgeoopt,1);
-        geom.normalele = geomprop.normalele;
-        geom.normal = geomprop.normal;
-        geom.dsi = geomprop.dsi;
-        geom.ds = geomprop.ds;
-        geom.s = geomprop.s;
-        geom.vol = geomprop.vol;
-        geom.jacmat = geomprop.jacmat;
-        geom.g = geomprop.g;
-        paropt.tipo = 'extended';
-        [geom.curv,geom.normal,geom.Kg] = curvparaboloid(geom,paropt);
         % Third argument is the adaptation velocity w in Bazhlekov et al
         % 2003 sense, careful. v = u + w.
         if ks==0
@@ -471,24 +445,24 @@ for p = paso:numtimesteps
 % disp(['Posicion centroide: ', num2str([geom.xc(1),geom.xc(2),geom.xc(3)])]);
 % disp(['Velocidad centroide: ', num2str(geom.velcentroid)]);
     
-%     if parms.maran.rkmaran ~= 0
-%    % grafique la geometria
-%        figure(1);
-%    % grafscfld(geom,flds.gamma);
-%        grafscfld(geom,normesp(geom.rdeltafcurv));
-%        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%        getframe; title('Tension');
-%        figure(2);
-%    % grafscfld(geom,flds.gamma);
-%        grafscfld(geom,normesp(geom.rdeltafmaran));
-%        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%        getframe; title('Marangoni');
-%     else
-%       figure(1);
-%       grafscfld(geom,geom.curv);
-%       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-%       getframe; title('curv');
-%     end
+    if parms.maran.rkmaran ~= 0
+   % grafique la geometria
+       figure(1);
+   % grafscfld(geom,flds.gamma);
+       grafscfld(geom,normesp(geom.rdeltafcurv));
+       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+       getframe; title('Tension');
+       figure(2);
+   % grafscfld(geom,flds.gamma);
+       grafscfld(geom,normesp(geom.rdeltafmaran));
+       axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+       getframe; title('Marangoni');
+    else
+      figure(1);
+      grafscfld(geom,geom.curv);
+      axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
+      getframe; title('curv');
+    end
     
 % if p > 1
 % figure(3); plot(geom.tiempo,geom.velcentroid(3),'*r');hold on;
@@ -512,7 +486,7 @@ for p = paso:numtimesteps
     end
     
 %     figure(3); plot(geom.tiempo,def,'*k');hold on;
-%     title('DF');
+%     title('DF'); 
 
 % guarde resultados
     if counter == outputfreq
