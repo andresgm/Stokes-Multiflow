@@ -4,17 +4,17 @@
 clear;clc; %close all
 %% opciones de carga de archivos
     % nombre de archivo a cargar y carpeta
-nombreorigen = 'it';
-carpetaorigen = 'drops_la_1_ca_0.04_x_0_ext';
-iteracion = 10;
+nombreorigen = 'sph ref 3';
+carpetaorigen = '';
+iteracion = [];
 
 % nombre de archivo a guardar y carpeta
 nombredestino = 'it';
-carpetadestino = 'drops_la_1_ca_0.04_x_0_ext_testmeshadaptcurv';
+carpetadestino = 'ccmn_la_1_x_.1_b_0_ext_sol_test';
 % simulacion nueva desde cero optsim = 0
 % continue la simulacion optsim = 1
 % simulacion nueva desde archivo de resultados optsim = 2
-opcionsim = 2;
+opcionsim = 0;
 
 % Algoritmo de flujo de stokes.
 ca = 0.04;
@@ -36,7 +36,7 @@ kb = 0;
 Bo = 1;
 
 % Tensoactivos
-kc = 0;
+kc = 1;
 % maranmodel = 1(lineal) definir beta y pe(alpha)
 % maranmodel = 2(logaritmico) definir x, e y pe(alpha)
 maranmodel = 2;
@@ -47,10 +47,10 @@ beta = 0.2;
 % Parametro del modelo logaritmico
 e = 0.2;
 % Concentracion
-x = 0.1;
+x = 0.01;
 
 %Solubilidad
-ks=0;
+ks=1;
 %Parametro de solubilidad B
 B=0.01;
 %parametro de profundidad k
@@ -194,7 +194,7 @@ if opcionsim == 0
     normalandgeoopt.normal = 1;
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
-    geomprop = normalandgeo(geom,normalandgeoopt);
+    geomprop = normalandgeo(geom,normalandgeoopt,1);
     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
@@ -325,7 +325,8 @@ for p = paso:numtimesteps
 
     % passive (zinchenco et al. 1997)
     velnormal = repmat(sum(velnode1.*geom.normal,2),[1 3]).*geom.normal;
-    veladapt = meshadaptgradcurv(geom,velnormal,veladapt,deltat/2);
+%     veladapt = meshadaptgradcurv(geom,velnormal,veladapt,deltat/2);
+    veladapt = meshadaptgrad(geom,velnormal,veladapt);
     f1 = (velnormal + veladapt);
    
     if parms.maran.rkmaran ~= 0
@@ -379,7 +380,8 @@ for p = paso:numtimesteps
     
     % passive (zinchenco et al. 1997)
     velnormal = repmat(sum(velnode.*geom.normal,2),[1 3]).*geom.normal;
-    veladapt = meshadaptgradcurv(geom,velnormal,veladapt,deltat);
+%     veladapt = meshadaptgradcurv(geom,velnormal,veladapt,deltat);
+     veladapt = meshadaptgrad(geom,velnormal,veladapt);
     f2 = (velnormal + veladapt);
    
     if parms.maran.rkmaran ~= 0
@@ -410,7 +412,7 @@ for p = paso:numtimesteps
     normalandgeoopt.normal = 1;
     normalandgeoopt.areas = 1;
     normalandgeoopt.vol = 1;
-    geomprop = normalandgeo(geom,normalandgeoopt);
+    geomprop = normalandgeo(geom,normalandgeoopt,1);
     geom.normalele = geomprop.normalele;
     geom.normal = geomprop.normal;
     geom.dsi = geomprop.dsi;
@@ -454,9 +456,9 @@ for p = paso:numtimesteps
        getframe; title('Tension');
        figure(2);
    % grafscfld(geom,flds.gamma);
-       grafscfld(geom,normesp(geom.rdeltafmaran));
+       grafscfld(geom,normesp(flds.gamma));
        axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-       getframe; title('Marangoni');
+       getframe; title('Concentracion');
     else
       figure(1);
       grafscfld(geom,geom.curv);
