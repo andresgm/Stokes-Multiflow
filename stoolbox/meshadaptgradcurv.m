@@ -115,6 +115,7 @@ function fdev = FdeV(geom,Vel,dt)
    
    k2max = zeros(numnodes,1);
    k2min = zeros(numnodes,1);
+   phi = zeros(numnodes,1);
    
    for i = 1:numnodes
       k2 = [];
@@ -126,6 +127,7 @@ function fdev = FdeV(geom,Vel,dt)
       end
       k2max(i) = max(k2);
       k2min(i) = min(k2);
+      phi(i) = k2max(i) - k2min(i)+ 1;
    end      
    
    geomvar = geom;
@@ -162,12 +164,21 @@ function fdev = FdeV(geom,Vel,dt)
           (dnormaldt(geom.vertices(i,2),:)-dnormaldt(geom.vertices(i,1),:))';
       term1 = term1 + ((der1+der2)^2)/((xij*xij')^2);
       % Segundo termino 5.3 ...
-      phii = k2max(geom.vertices(i,1)) - k2min(geom.vertices(i,1))+ 1;
-      phij = k2max(geom.vertices(i,2)) - k2min(geom.vertices(i,2))+ 1;
+      phii = phi(geom.vertices(i,1));
+      phij = phi(geom.vertices(i,2));
       sumphis = (phii+phij)/((xij*xij')^2);
       dxijdt = ...
           4*(xij*(Vel(geom.vertices(i,2),:)-Vel(geom.vertices(i,1),:))')^2;
       term2 = term2 + sumphis*dxijdt;
    end
+   
+   for i = 1:geom.numelements
+       % Tercer termino 5.3 ...
+       phi1 = phi(geom.elements(i,1));
+       phi2 = phi(geom.elements(i,2));
+       phi3 = phi(geom.elements(i,3));
+       phiave = (phi1 + phi2 + phi3)/3;
+       cross
+   
    fdev = term1 + c1*term2;
 end
