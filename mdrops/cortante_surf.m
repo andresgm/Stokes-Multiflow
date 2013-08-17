@@ -47,16 +47,14 @@ beta = 0.2;
 % Parametro del modelo logaritmico
 e = 0.2;
 % Concentracion
-x = 0.01;
+x = 0.9;
 
 %Solubilidad
 ks=1;
 %Parametro de solubilidad B
-B=0.01;
+B=0.1;
 %parametro de profundidad k
 k= -x/(x-1);
-%numero de Biot (Bi)
-Bi=B/ca;
 
 % numero de gotas
 geom.numdrops = 1;
@@ -103,8 +101,6 @@ parms.lamda = lamda;
 parms.ca = ca;
 parms.Bo = Bo;
 parms.Fflow = Fflow;
-parms.Bi= Bi;
-parms.k= k;
 
 % Coeficiente termino de curvatura
 parms.rkcurv = 1;
@@ -118,7 +114,8 @@ end
 
 if kc == 1
     gammaeqovergamma0 = 1+e*log(1-x);
-    pe = ca*alpha*gammaeqovergamma0;
+    pe = alpha*gammaeqovergamma0; % Para adimensionalizacion con tiempo
+    % intrinseco de la gota, no entra el capilar. Si no mult. por Ca.
     parms.maran.rkmaran = 1;
     if maranmodel == 1
         parms.maran.maranmodel = 'linear';
@@ -132,6 +129,17 @@ if kc == 1
     end
 else
     parms.maran.rkmaran = 0;
+end
+
+if ks == 1
+    %numero de Biot (Bi)
+    % Ojo aca con la adimensionalizacion o div por Ca
+    Bi=B/gammaeqovergamma0;
+    parms.Bi= Bi;
+    parms.k= k;
+else
+    parms.Bi= 0;
+    parms.k= 0;
 end
 
 parms.curvopt = curvopt;
@@ -332,18 +340,23 @@ for p = paso:numtimesteps
     if parms.maran.rkmaran ~= 0
         % Third argument is the adaptation velocity w in Bazhlekov et al
         % 2003 sense, careful. v = u + w.
+        gammaori = flds.gamma;
          if ks==0
             
             ajimat = ...
                 surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+            % evolucion del sulfactante en t + dt/2
+            % propuesto
+            flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
         else
             ajimat = ...
                 solsurf(geom,velnode1,veladapt-(velnode1-velnormal),pe,Bi,k);
+            % evolucion del sulfactante en t + dt/2
+            % propuesto
+            nohet = Bi*(1+k);
+            flds.gamma = thetamethodsol(ajimat,deltat/2,theta,flds.gamma,nohet);
         end
-        % evolucion del sulfactante en t + dt/2
-        % propuesto
-        gammaori = flds.gamma;
-        flds.gamma = thetamethod(ajimat,deltat/2,theta,flds.gamma);
+        
 
         % escale la concentracion
 % gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
@@ -391,12 +404,15 @@ for p = paso:numtimesteps
             
             ajimat = ...
                 surfactants(geom,velnode1,veladapt-(velnode1-velnormal),pe);
+            % evolucion del sulfactante en t
+            flds.gamma = thetamethod(ajimat,deltat,theta,gammaori);
         else
             ajimat = ...
                 solsurf(geom,velnode1,veladapt-(velnode1-velnormal),pe,Bi,k);
+             % evolucion del sulfactante en t
+             nohet = Bi*(1+k);
+            flds.gamma = thetamethodsol(ajimat,deltat,theta,gammaori,nohet);
         end
-        % evolucion del sulfactante en t
-        flds.gamma = thetamethod(ajimat,deltat,theta,gammaori);
 
         % escale la concentracion
 % gammatotnew = inttrapecioa(geom.dsi,flds.gamma)./geom.s;
