@@ -33,11 +33,11 @@ sbar = systembar();
 % itminv = ones(1,size(itmaxv,2));
 % intervalv = [1 1 1 1 1];
 
-carpetaorigenv = {'drops_la_2.3_x_0.50_ca_0.05_ext'};
+carpetaorigenv = {'ccmn_la_1_ca_0.04_x_.1_b_0.03_ext'};
 nombreorigenv =  {'it'};
-itmaxv = 1304;
+itmaxv = 375;
 itminv = ones(1,size(itmaxv,2));
-intervalv = 25;
+intervalv = 5;
 
 %carpetaorigenv = {'it4ele'};
 %nombreorigenv =  {'it'};
@@ -115,7 +115,7 @@ for i = 1:size(itmaxv,2)
         figure(1);
         grafscfld(geom,flds.gamma);
         axis equal; view(90,0); xlabel('x1'); ylabel('x2'); zlabel('x3'); colorbar;
-        title('steady state vesicle shape - mean curvature contours');
+        title('Steady state shape - Surfactant concentration contour');
         axis([ejes]);
         saveas(1,[nameydir 'shape'],'fig')
         saveas(1,[nameydir 'shape'],'png')
