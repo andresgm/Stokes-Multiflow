@@ -81,7 +81,7 @@ jacomp.g = (jacomp.g1.^2 + jacomp.g2.^2 + jacomp.g3.^2).^0.5;
 if nargin == 3
     % Jacobiano completo
     jacinv = zeros(3,3,numelements);
-    parfor i = 1:numelements
+    for i = 1:numelements
        % extraiga y ensamble las componentes del Jacobiano de cada elemento
        jacobiano = [dx1.dz1(i) dx2.dz1(i) dx3.dz1(i);...
                 dx1.dz2(i) dx2.dz2(i) dx3.dz2(i);...
